@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: manija-awards-2026-web
+    env: node
+    region: oregon
+    branch: main
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    plan: starter
+    envVars:
+      - key: NEXT_PUBLIC_FIREBASE_API_KEY
+        value: "AIzaSyCbQ7XIqVmVGaeHC0DMiHJzJT4HAxvYj8A"
+      - key: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+        value: "manija-awards-2026.firebaseapp.com"
+      - key: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+        value: "manija-awards-2026"
+      - key: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+        value: "manija-awards-2026.firebasestorage.app"
+      - key: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+        value: "96184198576"
+      - key: NEXT_PUBLIC_FIREBASE_APP_ID
+        value: "1:96184198576:web:333e59372729fa14e5e275"
+      - key: NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+        value: "G-99XH6M8HDZ"
