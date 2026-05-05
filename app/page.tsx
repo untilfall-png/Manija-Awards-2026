@@ -41,6 +41,14 @@ export default function Home() {
     setSession(newSession)
   }
 
+  const handleVoteSubmitted = () => {
+    if (!session) return
+    window.localStorage.setItem('voter_session', JSON.stringify({
+      voter: session.voter,
+      votes: session.votes,
+    }))
+  }
+
   const handleLogout = () => {
     window.localStorage.removeItem('voter_session')
     setSession(null)
@@ -79,7 +87,7 @@ export default function Home() {
             </div>
 
             {/* Voting Section */}
-            <Voting session={session} />
+            <Voting session={session} onVoteSubmitted={handleVoteSubmitted} />
 
             {/* Results Section */}
             <LiveResults />

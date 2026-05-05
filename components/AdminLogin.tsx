@@ -23,7 +23,7 @@ export function AdminLogin({ onLogin }: AdminLoginProps) {
       const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'ManijAdmin2026'
 
       if (password === ADMIN_PASSWORD) {
-        const token = Buffer.from(`admin:${Date.now()}`).toString('base64')
+        const token = btoa(`admin:${Date.now()}`)
         onLogin(token)
       } else {
         setError('Contraseña incorrecta')

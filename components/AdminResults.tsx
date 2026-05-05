@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Download, Filter, Eye } from 'lucide-react'
-import { getAllVotesWithVoters, getCategories } from '@/lib/voting'
+import { Download, Filter, Eye, RefreshCcw } from 'lucide-react'
+import { getAllVotesWithVoters, getCategories, deleteAllVotes } from '@/lib/voting'
 import { Category } from '@/lib/types'
 
 export function AdminResults() {
@@ -27,6 +27,26 @@ export function AdminResults() {
       setCategories(categoriesData)
     } catch (error) {
       console.error('Error loading data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleResetVotes = async () => {
+    if (!window.confirm('¿Estás seguro de que deseas borrar todos los votos? Esta acción no se puede deshacer.')) {
+      return
+    }
+
+    try {
+      setLoading(true)
+      await deleteAllVotes()
+      await loadData()
+      setFilterCategory(null)
+      setFilterVoter('')
+      alert('Votaciones reiniciadas correctamente.')
+    } catch (error) {
+      console.error('Error al reiniciar votaciones:', error)
+      alert('No se pudo reiniciar las votaciones. Revisa la consola para más detalles.')
     } finally {
       setLoading(false)
     }
@@ -83,15 +103,25 @@ export function AdminResults() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <h2 className="text-3xl font-display font-bold text-white">Resultados Detallados</h2>
-        <button
-          onClick={downloadCSV}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-neon-cyan/20 text-neon-cyan hover:bg-neon-cyan/30 transition-all font-semibold text-sm"
-        >
-          <Download className="h-5 w-5" />
-          Descargar CSV
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={downloadCSV}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-neon-cyan/20 text-neon-cyan hover:bg-neon-cyan/30 transition-all font-semibold text-sm"
+          >
+            <Download className="h-5 w-5" />
+            Descargar CSV
+          </button>
+          <button
+            onClick={handleResetVotes}
+            disabled={loading}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500/20 text-red-300 hover:bg-red-500/30 transition-all font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <RefreshCcw className="h-5 w-5" />
+            Resetear Votos
+          </button>
+        </div>
       </div>
 
       {/* Filters */}

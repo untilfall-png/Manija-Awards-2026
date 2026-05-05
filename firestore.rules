@@ -14,8 +14,7 @@ service cloud.firestore {
 
     // Categories collection
     match /categories/{categoryId} {
-      allow read: if true;
-      allow write: if false; // Only admin can modify categories
+      allow read, write: if true; // Allow category management from the client for admin operations
     }
   }
 }

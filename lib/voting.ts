@@ -6,9 +6,11 @@ import {
   setDoc,
   addDoc,
   deleteDoc,
+  writeBatch,
   query,
   where,
   orderBy,
+  limit,
   getDocs,
   updateDoc,
   serverTimestamp,
@@ -193,7 +195,42 @@ export async function saveCategory(category: Category): Promise<void> {
 
 export async function deleteCategory(categoryId: string): Promise<void> {
   const categoryRef = doc(db, 'categories', categoryId)
+
+  const deleteVoteBatch = async () => {
+    const votesQuery = query(collection(db, 'votes'), where('categoryId', '==', categoryId), limit(500))
+    const votesSnapshot = await getDocs(votesQuery)
+    if (votesSnapshot.empty) return false
+
+    const batch = writeBatch(db)
+    votesSnapshot.docs.forEach((voteDoc) => batch.delete(voteDoc.ref))
+    await batch.commit()
+    return votesSnapshot.docs.length === 500
+  }
+
+  while (await deleteVoteBatch()) {
+    // Continue deleting votes in batches of 500 until none remain
+  }
+
   await deleteDoc(categoryRef)
+}
+
+export async function deleteAllVotes(): Promise<void> {
+  const batchSize = 500
+
+  const deleteBatch = async () => {
+    const votesQuery = query(collection(db, 'votes'), limit(batchSize))
+    const votesSnapshot = await getDocs(votesQuery)
+    if (votesSnapshot.empty) return false
+
+    const batch = writeBatch(db)
+    votesSnapshot.docs.forEach((voteDoc) => batch.delete(voteDoc.ref))
+    await batch.commit()
+    return votesSnapshot.docs.length === batchSize
+  }
+
+  while (await deleteBatch()) {
+    // Continue deleting in batches until no votes remain
+  }
 }
 
 export async function getAllVotesWithVoters(): Promise<Array<{
