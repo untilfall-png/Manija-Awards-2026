@@ -29,19 +29,44 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-[#04020a] text-white">
+    <main className="relative min-h-screen text-white overflow-hidden">
+      {/* Hero Section - Always visible */}
       <Hero />
-      {user ? (
-        tutorialCompleted ? (
-          <Voting user={user} />
+
+      {/* Main Content Flow */}
+      <div className="relative z-10">
+        {user ? (
+          tutorialCompleted ? (
+            <>
+              <Voting user={user} />
+              <LiveResults />
+            </>
+          ) : (
+            <TutorialVideo onComplete={handleTutorialComplete} />
+          )
         ) : (
-          <TutorialVideo onComplete={handleTutorialComplete} />
-        )
-      ) : (
-        <Auth onAuthenticated={setUser} />
-      )}
-      <LiveResults />
-      <Sponsors />
+          <Auth onAuthenticated={setUser} />
+        )}
+
+        {/* Sponsors - Always visible at bottom */}
+        <Sponsors />
+      </div>
+
+      {/* Floating particles effect */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        {[...Array(20)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-1 h-1 bg-neon-pink rounded-full animate-pulse-neon"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 3}s`,
+              animationDuration: `${2 + Math.random() * 3}s`,
+            }}
+          />
+        ))}
+      </div>
     </main>
   )
 }
