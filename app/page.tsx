@@ -2,30 +2,49 @@
 
 import { useEffect, useState } from 'react'
 import { Hero } from '@/components/Hero'
-import { Auth } from '@/components/Auth'
+import { Login } from '@/components/Login'
 import { Voting } from '@/components/Voting'
 import { LiveResults } from '@/components/LiveResults'
 import { Sponsors } from '@/components/Sponsors'
-import { TutorialVideo } from '@/components/TutorialVideo'
+import { VoterSession } from '@/lib/types'
 
 export default function Home() {
-  const [user, setUser] = useState<string | null>(null)
-  const [tutorialCompleted, setTutorialCompleted] = useState(false)
+  const [session, setSession] = useState<VoterSession | null>(null)
 
   useEffect(() => {
-    const savedUser = window.localStorage.getItem('manija_user')
-    const savedTutorial = window.localStorage.getItem('manija_tutorial_completed')
-    if (savedUser) {
-      setUser(savedUser)
-    }
-    if (savedTutorial) {
-      setTutorialCompleted(true)
+    // Check for existing session
+    const savedSession = window.localStorage.getItem('voter_session')
+    if (savedSession) {
+      try {
+        const parsedSession = JSON.parse(savedSession)
+        // Convert dates back to Date objects
+        parsedSession.voter.createdAt = new Date(parsedSession.voter.createdAt)
+        parsedSession.voter.updatedAt = new Date(parsedSession.voter.updatedAt)
+        parsedSession.votes = parsedSession.votes.map((vote: any) => ({
+          ...vote,
+          createdAt: new Date(vote.createdAt)
+        }))
+
+        // Add hasVotedForCategory method
+        parsedSession.hasVotedForCategory = (categoryId: string) => {
+          return parsedSession.votes.some((vote: any) => vote.categoryId === categoryId)
+        }
+
+        setSession(parsedSession)
+      } catch (error) {
+        console.error('Error loading session:', error)
+        window.localStorage.removeItem('voter_session')
+      }
     }
   }, [])
 
-  const handleTutorialComplete = () => {
-    setTutorialCompleted(true)
-    window.localStorage.setItem('manija_tutorial_completed', 'true')
+  const handleAuthenticated = (newSession: VoterSession) => {
+    setSession(newSession)
+  }
+
+  const handleLogout = () => {
+    window.localStorage.removeItem('voter_session')
+    setSession(null)
   }
 
   return (
@@ -35,17 +54,39 @@ export default function Home() {
 
       {/* Main Content Flow */}
       <div className="relative z-10">
-        {user ? (
-          tutorialCompleted ? (
-            <>
-              <Voting user={user} />
-              <LiveResults />
-            </>
-          ) : (
-            <TutorialVideo onComplete={handleTutorialComplete} />
-          )
+        {session ? (
+          <>
+            {/* User Info Bar */}
+            <div className="bg-black/50 backdrop-blur-xl border-b border-neon-pink/20 px-6 py-4">
+              <div className="mx-auto max-w-6xl flex justify-between items-center">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-neon-pink/20 border border-neon-pink/30 flex items-center justify-center">
+                    <span className="text-neon-pink font-bold text-lg">
+                      {session.voter.name.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-white font-semibold">{session.voter.name}</p>
+                    <p className="text-white/60 text-sm">{session.voter.email}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="px-4 py-2 rounded-lg border border-white/20 text-white/70 hover:border-red-500/50 hover:text-red-400 transition-all duration-300 text-sm"
+                >
+                  Cerrar Sesión
+                </button>
+              </div>
+            </div>
+
+            {/* Voting Section */}
+            <Voting session={session} />
+
+            {/* Results Section */}
+            <LiveResults />
+          </>
         ) : (
-          <Auth onAuthenticated={setUser} />
+          <Login onAuthenticated={handleAuthenticated} />
         )}
 
         {/* Sponsors - Always visible at bottom */}
