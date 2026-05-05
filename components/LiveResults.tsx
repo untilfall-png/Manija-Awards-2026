@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { collection, onSnapshot, QuerySnapshot, DocumentData } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
-import { categories } from '@/lib/voting'
+import { getCategories } from '@/lib/voting'
 import { Vote, Category } from '@/lib/types'
 import { Trophy, TrendingUp, Users, Award } from 'lucide-react'
 
@@ -21,9 +21,33 @@ interface CategoryResults {
 
 export function LiveResults() {
   const [categoryResults, setCategoryResults] = useState<CategoryResults[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
+  const [loadingCategories, setLoadingCategories] = useState(true)
+  const [categoryLoadError, setCategoryLoadError] = useState<string | null>(null)
   const [totalVoters, setTotalVoters] = useState(0)
   const [totalVotes, setTotalVotes] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    let isMounted = true
+
+    getCategories()
+      .then((fetched) => {
+        if (!isMounted) return
+        setCategories(fetched)
+      })
+      .catch((err) => {
+        console.error('Error loading categories:', err)
+        setCategoryLoadError('No se pudieron cargar las categorías')
+      })
+      .finally(() => {
+        if (isMounted) setLoadingCategories(false)
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   useEffect(() => {
     const unsubscribe = onSnapshot(
@@ -81,7 +105,7 @@ export function LiveResults() {
     return () => unsubscribe()
   }, [])
 
-  if (isLoading) {
+  if (isLoading || loadingCategories) {
     return (
       <section className="section-padding mx-auto max-w-6xl">
         <div className="text-center">

@@ -5,8 +5,10 @@ import {
   getDoc,
   setDoc,
   addDoc,
+  deleteDoc,
   query,
   where,
+  orderBy,
   getDocs,
   updateDoc,
   serverTimestamp,
@@ -128,6 +130,84 @@ export async function getVotesByCategory(categoryId: string): Promise<Vote[]> {
     return {
       id: doc.id,
       voterId: data.voterId,
+      categoryId: data.categoryId,
+      nomineeId: data.nomineeId,
+      createdAt: data.createdAt?.toDate() || new Date(),
+    }
+  })
+}
+
+export async function getCategories(): Promise<Category[]> {
+  const categoriesQuery = query(collection(db, 'categories'), orderBy('order', 'asc'))
+  const querySnapshot = await getDocs(categoriesQuery)
+
+  if (querySnapshot.empty) {
+    return categories
+  }
+
+  return querySnapshot.docs.map((doc) => {
+    const data = doc.data()
+    return {
+      id: doc.id,
+      name: data.name,
+      description: data.description,
+      order: data.order,
+      nominees: (data.nominees || []).map((nominee: any) => ({
+        id: nominee.id,
+        name: nominee.name,
+        description: nominee.description,
+        imageUrl: nominee.imageUrl,
+      })),
+    }
+  })
+}
+
+export async function saveCategory(category: Category): Promise<void> {
+  const categoryRef = doc(db, 'categories', category.id)
+  await setDoc(categoryRef, {
+    name: category.name,
+    description: category.description,
+    order: category.order,
+    nominees: category.nominees || [],
+  })
+}
+
+export async function deleteCategory(categoryId: string): Promise<void> {
+  const categoryRef = doc(db, 'categories', categoryId)
+  await deleteDoc(categoryRef)
+}
+
+export async function getAllVotesWithVoters(): Promise<Array<{
+  voteId: string
+  voterId: string
+  voterName: string
+  voterEmail: string
+  categoryId: string
+  nomineeId: string
+  createdAt: Date
+}>> {
+  const [votesSnapshot, votersSnapshot] = await Promise.all([
+    getDocs(collection(db, 'votes')),
+    getDocs(collection(db, 'voters')),
+  ])
+
+  const votersMap = new Map<string, { name: string; email: string }>()
+  votersSnapshot.docs.forEach((doc) => {
+    const data = doc.data()
+    votersMap.set(doc.id, {
+      name: data.name,
+      email: data.email,
+    })
+  })
+
+  return votesSnapshot.docs.map((doc) => {
+    const data = doc.data()
+    const voter = votersMap.get(data.voterId) || { name: 'Anónimo', email: '---' }
+    return {
+      voteId: doc.id,
+      voterId: data.voterId,
+      voterName: voter.name,
+      voterEmail: voter.email,
       categoryId: data.categoryId,
       nomineeId: data.nomineeId,
       createdAt: data.createdAt?.toDate() || new Date(),

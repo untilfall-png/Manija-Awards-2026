@@ -5,7 +5,6 @@ import { Hero } from '@/components/Hero'
 import { Login } from '@/components/Login'
 import { Voting } from '@/components/Voting'
 import { LiveResults } from '@/components/LiveResults'
-import { Sponsors } from '@/components/Sponsors'
 import { VoterSession } from '@/lib/types'
 
 export default function Home() {
@@ -88,9 +87,15 @@ export default function Home() {
         ) : (
           <Login onAuthenticated={handleAuthenticated} />
         )}
+      </div>
 
-        {/* Sponsors - Always visible at bottom */}
-        <Sponsors />
+      <div className="absolute top-6 right-6 z-20">
+        <a
+          href="/admin"
+          className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/70 px-4 py-2 text-sm text-white/80 transition hover:border-neon-pink hover:text-white"
+        >
+          Módulo Admin
+        </a>
       </div>
 
       {/* Floating particles effect */}

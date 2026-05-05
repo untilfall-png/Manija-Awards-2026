@@ -1,10 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { CheckCircle, Vote, Clock, Trophy, Sparkles, AlertCircle } from 'lucide-react'
-import { createVote } from '@/lib/voting'
-import { categories } from '@/lib/voting'
+import { createVote, getCategories } from '@/lib/voting'
 import { VoterSession, Category, Vote as VoteType } from '@/lib/types'
 
 interface VotingProps {
@@ -18,25 +17,83 @@ export function Voting({ session, onVoteSubmitted }: VotingProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [completedCategories, setCompletedCategories] = useState<Set<string>>(new Set())
-
-  // Sort categories by order
-  const sortedCategories = [...categories].sort((a, b) => a.order - b.order)
+  const [categories, setCategories] = useState<Category[]>([])
+  const [loadingCategories, setLoadingCategories] = useState(true)
+  const [categoryError, setCategoryError] = useState<string | null>(null)
 
   useEffect(() => {
-    // Mark categories already voted as completed
+    let mounted = true
+
+    getCategories()
+      .then((fetched) => {
+        if (!mounted) return
+        setCategories(fetched)
+      })
+      .catch((err) => {
+        console.error('Error loading categories:', err)
+        setCategoryError('No se pudieron cargar las categorías')
+      })
+      .finally(() => {
+        if (mounted) setLoadingCategories(false)
+      })
+
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  const sortedCategories = useMemo(() => [...categories].sort((a, b) => a.order - b.order), [categories])
+
+  useEffect(() => {
+    if (loadingCategories) return
+
     const votedCategoryIds = new Set(session.votes.map(vote => vote.categoryId))
     setCompletedCategories(votedCategoryIds)
 
-    // Find first unvoted category
     const firstUnvotedIndex = sortedCategories.findIndex(cat => !votedCategoryIds.has(cat.id))
     if (firstUnvotedIndex !== -1) {
       setActiveCategoryIndex(firstUnvotedIndex)
     }
-  }, [session.votes])
+  }, [session.votes, sortedCategories, loadingCategories])
 
   const activeCategory = sortedCategories[activeCategoryIndex]
   const hasVotedForActiveCategory = session.hasVotedForCategory(activeCategory?.id || '')
-  const progress = ((activeCategoryIndex + (hasVotedForActiveCategory ? 1 : 0)) / sortedCategories.length) * 100
+  const progress = ((activeCategoryIndex + (hasVotedForActiveCategory ? 1 : 0)) / Math.max(sortedCategories.length, 1)) * 100
+
+  if (loadingCategories) {
+    return (
+      <section className="section-padding mx-auto max-w-6xl">
+        <div className="text-center py-24">
+          <div className="inline-flex items-center gap-3 mb-4">
+            <div className="w-8 h-8 border-2 border-neon-pink/30 border-t-neon-pink rounded-full animate-spin" />
+            <span className="text-neon-pink font-semibold">Cargando categorías...</span>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  if (categoryError) {
+    return (
+      <section className="section-padding mx-auto max-w-6xl">
+        <div className="neon-card p-10 text-center">
+          <p className="text-neon-pink font-semibold">{categoryError}</p>
+        </div>
+      </section>
+    )
+  }
+
+  if (!activeCategory) {
+    return (
+      <section className="section-padding mx-auto max-w-6xl text-center">
+        <div className="neon-card p-12">
+          <Trophy className="h-20 w-20 text-neon-pink mx-auto mb-6" />
+          <h2 className="text-3xl font-bold text-white mb-3">Sin categorías disponibles</h2>
+          <p className="text-white/70">El administrador debe crear categorías para empezar la votación.</p>
+        </div>
+      </section>
+    )
+  }
 
   const handleVote = async () => {
     if (!selectedNominee || !activeCategory || hasVotedForActiveCategory) return
