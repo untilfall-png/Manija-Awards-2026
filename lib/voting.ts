@@ -236,23 +236,28 @@ export async function getAllVotesWithVoters(): Promise<Array<{
 
 // Session management
 export async function createVoterSession(email: string, name: string, phone?: string): Promise<VoterSession> {
-  let voter = await getVoterByEmail(email)
+  try {
+    let voter = await getVoterByEmail(email)
 
-  if (!voter) {
-    voter = await createVoter({ email, name, phone })
-  } else {
-    // Update voter info if changed
-    await updateVoter(voter.id, { name, phone })
-  }
-
-  const votes = await getVotesByVoter(voter.id)
-
-  return {
-    voter,
-    votes,
-    hasVotedForCategory: (categoryId: string) => {
-      return votes.some(vote => vote.categoryId === categoryId)
+    if (!voter) {
+      voter = await createVoter({ email, name, phone })
+    } else {
+      // Update voter info if changed
+      await updateVoter(voter.id, { name, phone })
     }
+
+    const votes = await getVotesByVoter(voter.id)
+
+    return {
+      voter,
+      votes,
+      hasVotedForCategory: (categoryId: string) => {
+        return votes.some(vote => vote.categoryId === categoryId)
+      }
+    }
+  } catch (error) {
+    console.error('Error creating voter session:', error)
+    throw new Error('Error al conectar con Firebase. Verifica que las credenciales estén configuradas en .env.local')
   }
 }
 

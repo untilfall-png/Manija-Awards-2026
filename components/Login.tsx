@@ -34,12 +34,19 @@ export function Login({ onAuthenticated }: LoginProps) {
         throw new Error('Ingresa un email válido')
       }
 
-      // Create voter session
-      const session = await createVoterSession(
+      // Create voter session with timeout
+      const sessionPromise = createVoterSession(
         formData.email.trim().toLowerCase(),
         formData.name.trim(),
         formData.phone.trim() || undefined
       )
+
+      // Add 45 second timeout
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Conexión a la base de datos lenta. Por favor intenta de nuevo.')), 45000)
+      )
+
+      const session = await Promise.race([sessionPromise, timeoutPromise]) as VoterSession
 
       // Store session in localStorage
       window.localStorage.setItem('voter_session', JSON.stringify({
