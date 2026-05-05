@@ -44,6 +44,7 @@ Sistema oficial de votación para los premios Manija Awards 2026, construido con
    - Habilita Firestore Database
    - Copia `.env.example` a `.env.local`
    - Completa las variables de entorno con tus credenciales de Firebase
+   - Cambia `NEXT_PUBLIC_ADMIN_PASSWORD` a una contraseña segura antes de publicar
 
 4. **Ejecuta el proyecto**
    ```bash

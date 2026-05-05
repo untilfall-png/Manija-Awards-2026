@@ -61,7 +61,7 @@ export function Login({ onAuthenticated }: LoginProps) {
   }
 
   return (
-    <section className="section-padding mx-auto max-w-2xl">
+    <section id="registro" className="section-padding mx-auto max-w-2xl">
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}

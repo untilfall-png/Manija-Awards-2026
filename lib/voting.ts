@@ -27,11 +27,20 @@ export async function createVoter(voterData: Omit<Voter, 'id' | 'createdAt' | 'u
     updatedAt: new Date(),
   }
 
-  await setDoc(voterRef, {
-    ...voter,
+  // Filter out undefined phone to avoid Firebase issues
+  const dataToSave: any = {
+    email: voterData.email,
+    name: voterData.name,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
-  })
+  }
+  
+  // Only include phone if it's provided and not empty
+  if (voterData.phone && voterData.phone.trim()) {
+    dataToSave.phone = voterData.phone.trim()
+  }
+
+  await setDoc(voterRef, dataToSave)
 
   return voter
 }
@@ -57,10 +66,20 @@ export async function getVoterByEmail(email: string): Promise<Voter | null> {
 
 export async function updateVoter(voterId: string, updates: Partial<Voter>): Promise<void> {
   const voterRef = doc(db, 'voters', voterId)
-  await updateDoc(voterRef, {
-    ...updates,
+  
+  // Filter out undefined phone and build update object
+  const updateData: any = {
     updatedAt: serverTimestamp(),
-  })
+  }
+  
+  // Only include fields that are provided and not undefined
+  if (updates.name !== undefined) updateData.name = updates.name
+  if (updates.email !== undefined) updateData.email = updates.email
+  if (updates.phone !== undefined && updates.phone.trim()) {
+    updateData.phone = updates.phone.trim()
+  }
+  
+  await updateDoc(voterRef, updateData)
 }
 
 // Vote functions

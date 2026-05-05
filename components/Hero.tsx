@@ -1,7 +1,8 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Trophy, QrCode, Sparkles, Zap, Star } from 'lucide-react'
+import { Trophy, User, Sparkles, Zap, Star, QrCode, ArrowRight } from 'lucide-react'
+import Link from 'next/link'
 
 export function Hero() {
   return (
@@ -28,8 +29,8 @@ export function Hero() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="inline-flex items-center gap-3 rounded-full border border-neon-pink/50 bg-black/50 backdrop-blur-xl px-6 py-3 text-sm uppercase tracking-[0.3em] text-neon-pink font-bold shadow-neon-pink"
           >
-            <QrCode className="h-5 w-5 animate-pulse" />
-            REGISTRO QR OBLIGATORIO
+            <Sparkles className="h-5 w-5 animate-pulse" />
+            REGISTRO RÁPIDO Y SIMPLE
             <Zap className="h-5 w-5 animate-pulse" />
           </motion.div>
 
@@ -59,7 +60,7 @@ export function Hero() {
             transition={{ duration: 0.8, delay: 0.6 }}
             className="subheading-neon max-w-4xl mx-auto text-center leading-relaxed"
           >
-            Registro con QR y votación centrada en cada categoría.
+            Registro simple con tus datos básicos y votación centrada en cada categoría.
             Una experiencia de alto impacto, con brillos eléctricos y ritmo competitivo.
           </motion.p>
 
@@ -73,11 +74,11 @@ export function Hero() {
             <div className="neon-card group hover:scale-105 transition-transform duration-300">
               <div className="flex items-center gap-4 mb-4">
                 <div className="p-3 rounded-2xl bg-neon-pink/20 border border-neon-pink/30">
-                  <QrCode className="h-8 w-8 text-neon-pink" />
+                  <User className="h-8 w-8 text-neon-pink" />
                 </div>
                 <div>
-                  <h3 className="font-display font-bold text-xl text-white">REGISTRO QR</h3>
-                  <p className="text-white/70 text-sm">Acceso exclusivo mediante código QR</p>
+                  <h3 className="font-display font-bold text-xl text-white">REGISTRO SIMPLE</h3>
+                  <p className="text-white/70 text-sm">Nombre, email y teléfono (opcional)</p>
                 </div>
               </div>
             </div>
@@ -107,39 +108,76 @@ export function Hero() {
             </div>
           </motion.div>
 
-          {/* CTA Section */}
+          {/* CTA Section - Dual Options */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 1 }}
             className="mt-16"
           >
-            <div className="glass-card p-8 max-w-2xl mx-auto">
-              <div className="flex items-center justify-center gap-4 mb-6">
-                <Sparkles className="h-8 w-8 text-neon-pink animate-pulse" />
-                <span className="text-xl font-display font-bold text-white uppercase tracking-wider">
-                  REGISTRO EXCLUSIVO
-                </span>
-                <Sparkles className="h-8 w-8 text-neon-purple animate-pulse" />
-              </div>
-
-              <div className="text-center space-y-4">
-                <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-neon p-1">
-                  <div className="w-full h-full rounded-full bg-black flex items-center justify-center">
-                    <Trophy className="h-12 w-12 text-neon-pink" />
+            <div className="grid gap-6 max-w-3xl mx-auto md:grid-cols-2">
+              {/* Direct Registration Option */}
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                className="glass-card p-8 rounded-2xl border border-neon-purple/30 hover:border-neon-purple/60 transition-all"
+              >
+                <div className="flex items-center justify-center mb-6">
+                  <div className="p-4 rounded-2xl bg-neon-purple/20 border border-neon-purple/30">
+                    <User className="h-8 w-8 text-neon-purple" />
                   </div>
                 </div>
 
-                <h3 className="text-2xl font-display font-bold text-white">
-                  Escanea el código QR para comenzar
+                <h3 className="text-xl font-display font-bold text-white mb-3">
+                  REGISTRARSE AQUÍ
                 </h3>
 
-                <p className="text-white/80 leading-relaxed">
-                  El registro con QR desbloquea la votación. Cada categoría se abre de forma secuencial,
-                  asegurando una experiencia premium y directa.
+                <p className="text-white/70 text-sm mb-6">
+                  Acceso directo sin QR requerido
                 </p>
-              </div>
+
+                <Link href="#registro" scroll={true} className="w-full btn-neon-secondary inline-flex items-center justify-center gap-2 bg-neon-purple/20 border border-neon-purple/50 hover:bg-neon-purple/30 text-white">
+                  <ArrowRight className="h-5 w-5" />
+                  <span>Comenzar votación</span>
+                </Link>
+              </motion.div>
+
+              {/* QR Registration Option */}
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                className="glass-card p-8 rounded-2xl border border-neon-pink/30 hover:border-neon-pink/60 transition-all"
+              >
+                <div className="flex items-center justify-center mb-6">
+                  <div className="p-4 rounded-2xl bg-neon-pink/20 border border-neon-pink/30">
+                    <QrCode className="h-8 w-8 text-neon-pink" />
+                  </div>
+                </div>
+
+                <h3 className="text-xl font-display font-bold text-white mb-3">
+                  ESCANEAR QR
+                </h3>
+
+                <p className="text-white/70 text-sm mb-6">
+                  Solo si deseas usar el código QR. No es obligatorio.
+                </p>
+
+                <button className="w-full btn-neon inline-flex items-center justify-center gap-2">
+                  <QrCode className="h-5 w-5" />
+                  <span>Abrir escáner</span>
+                </button>
+              </motion.div>
             </div>
+
+            {/* Info Message */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.3 }}
+              className="mt-8 text-center"
+            >
+              <p className="text-white/60 text-sm">
+                El teléfono es completamente opcional. Ambas opciones son válidas para votar.
+              </p>
+            </motion.div>
           </motion.div>
         </motion.div>
       </div>
