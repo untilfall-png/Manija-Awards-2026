@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Manija Awards 2026</title>
+<link rel="stylesheet" href="styles.css"/>
+
+<!-- Firebase v10 (modular) -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "TU_API_KEY",
+    authDomain: "TU_APP.firebaseapp.com",
+    projectId: "TU_PROJECT_ID",
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  window.submitVotes = async (e) => {
+    e.preventDefault();
+
+    if (localStorage.getItem("manija_voted")) {
+      alert("Ya votaste 👀");
+      return;
+    }
+
+    const getVal = (name) => document.querySelector(`input[name="${name}"]:checked`)?.value || null;
+
+    const votos = {
+      q1: getVal("q1"),
+      q2: getVal("q2"),
+      q3: getVal("q3"),
+      q4: getVal("q4"),
+      q5: getVal("q5"),
+      q6: getVal("q6"),
+      q7: getVal("q7"),
+      q8: getVal("q8"),
+      q9: getVal("q9"),
+      q10: getVal("q10"),
+      q11: getVal("q11"),
+      q12: getVal("q12"),
+      q13: getVal("q13"),
+      q14: getVal("q14"),
+      createdAt: serverTimestamp()
+    };
+
+    // Validación simple: al menos 10 categorías respondidas
+    const answered = Object.values(votos).filter(v => v !== null).length;
+    if (answered < 10) {
+      alert("Responde al menos 10 categorías 🙏");
+      return;
+    }
+
+    try {
+      await addDoc(collection(db, "votos"), votos);
+      localStorage.setItem("manija_voted", "true");
+      alert("🔥 Voto registrado. La noche es nuestra.");
+      document.getElementById("voteForm").reset();
+    } catch (err) {
+      console.error(err);
+      alert("Error al votar 😬");
+    }
+  };
+</script>
+</head>
+
+<body>
+<div class="container">
+
+  <header class="header">
+    <div class="logo">∿</div>
+    <h1 class="title">MANIJA AWARDS <span>2026</span></h1>
+    <p class="subtitle">Sistema Oficial de Votación</p>
+  </header>
+
+  <form id="voteForm" onsubmit="submitVotes(event)">
+
+    <!-- 1 -->
+    <section class="card">
+      <h2>🔥 El más manija del año</h2>
+      <p class="desc">El alma del carrete…</p>
+      <label><input type="radio" name="q1" value="Elias"> Elias</label>
+      <label><input type="radio" name="q1" value="Edu sin polera"> Edu sin polera</label>
+      <label><input type="radio" name="q1" value="Ayleen"> Ayleen</label>
+      <label><input type="radio" name="q1" value="Vale Biesler"> Vale Biesler</label>
+    </section>
+
+    <!-- 2 -->
+    <section class="card">
+      <h2>🎉 Mejor After del Año</h2>
+      <label><input type="radio" name="q2" value="Creamfields"> Creamfields</label>
+      <label><input type="radio" name="q2" value="Maceo Plex Viña"> Maceo Plex Viña</label>
+      <label><input type="radio" name="q2" value="Cumple Liss y Roberto"> Cumple Liss y Roberto</label>
+      <label><input type="radio" name="q2" value="Adam Beyer Viña"> Adam Beyer Viña</label>
+      <label><input type="radio" name="q2" value="After Viña Enero 2025"> After Viña Enero 2025</label>
+    </section>
+
+    <!-- 3 -->
+    <section class="card">
+      <h2>💃 Leyenda del Dancefloor</h2>
+      <label><input type="radio" name="q3" value="Roberto"> Roberto</label>
+      <label><input type="radio" name="q3" value="Freddy"> Freddy</label>
+      <label><input type="radio" name="q3" value="Kari"> Kari</label>
+    </section>
+
+    <!-- 4 -->
+    <section class="card">
+      <h2>🎧 DJ invisible</h2>
+      <label><input type="radio" name="q4" value="Juan Rodolfo"> Juan Rodolfo</label>
+      <label><input type="radio" name="q4" value="Dani Cid"> Dani Cid</label>
+      <label><input type="radio" name="q4" value="Criss Mizon"> Criss Mizon</label>
+      <label><input type="radio" name="q4" value="Edu sin polera"> Edu sin polera</label>
+    </section>
+
+    <!-- 5 -->
+    <section class="card">
+      <h2>🚀 Revival del Año</h2>
+      <label><input type="radio" name="q5" value="El Bomba"> El Bomba</label>
+    </section>
+
+    <!-- 6 -->
+    <section class="card">
+      <h2>🤝 Dupla Dinámica</h2>
+      <label><input type="radio" name="q6" value="Feli y Criss Forné"> Feli y Criss Forné</label>
+      <label><input type="radio" name="q6" value="Elías y Liss"> Elías y Liss</label>
+      <label><input type="radio" name="q6" value="Anita y Fer"> Anita y Fer</label>
+    </section>
+
+    <!-- 7 -->
+    <section class="card">
+      <h2>🧢 Mejor Outfit Raver</h2>
+      <label><input type="radio" name="q7" value="Bianca"> Bianca</label>
+      <label><input type="radio" name="q7" value="Francys"> Francys</label>
+      <label><input type="radio" name="q7" value="Seba"> Seba</label>
+      <label><input type="radio" name="q7" value="Bomba"> Bomba</label>
+    </section>
+
+    <!-- 8 -->
+    <section class="card">
+      <h2>😂 Mejor Sticker</h2>
+      <label><input type="radio" name="q8" value="Ayleen pico pico pico"> Ayleen pico pico pico</label>
+      <label><input type="radio" name="q8" value="Roberto durmiendo en el clóset"> Roberto durmiendo en el clóset</label>
+      <label><input type="radio" name="q8" value="Bianka poseída"> Bianka poseída</label>
+      <label><input type="radio" name="q8" value="Patrick y memi"> Patrick y memi</label>
+    </section>
+
+    <!-- 9 -->
+    <section class="card">
+      <h2>⚡ Espíritu Manija</h2>
+      <label><input type="radio" name="q9" value="Eric"> Eric</label>
+      <label><input type="radio" name="q9" value="Edu"> Edu</label>
+    </section>
+
+    <!-- 10 -->
+    <section class="card">
+      <h2>🎂 Mejor cumpleaños</h2>
+      <label><input type="radio" name="q10" value="Seba y Marcelo"> Seba y Marcelo</label>
+      <label><input type="radio" name="q10" value="Roberto y liss"> Roberto y liss</label>
+      <label><input type="radio" name="q10" value="4 fantásticos"> 4 fantásticos</label>
+    </section>
+
+    <!-- 11 -->
+    <section class="card">
+      <h2>💎 Diamantes de la temporada</h2>
+      <label><input type="radio" name="q11" value="Pame Celia y César"> Pame Celia y César</label>
+      <label><input type="radio" name="q11" value="Anita y Jaime"> Anita y Jaime</label>
+      <label><input type="radio" name="q11" value="Eric y vale"> Eric y vale</label>
+      <label><input type="radio" name="q11" value="Los Forné"> Los Forné</label>
+    </section>
+
+    <!-- 12 -->
+    <section class="card">
+      <h2>👀 Revelación manija</h2>
+      <label><input type="radio" name="q12" value="Los almas"> Los almas</label>
+      <label><input type="radio" name="q12" value="Freddy"> Freddy</label>
+    </section>
+
+    <!-- 13 -->
+    <section class="card">
+      <h2>🔥 Mejor parrillero</h2>
+      <label><input type="radio" name="q13" value="Perro bomba"> Perro bomba</label>
+    </section>
+
+    <!-- 14 -->
+    <section class="card">
+      <h2>✨ Miss Me Curé y Soy Otra</h2>
+      <label><input type="radio" name="q14" value="Anita Gajardo"> Anita Gajardo</label>
+    </section>
+
+    <button class="btn">ENVIAR VOTOS</button>
+  </form>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,178 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-gray-200;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background: linear-gradient(135deg, #000000 0%, #090417 100%);
+    color: #ffffff;
+    font-family: 'Montserrat', system-ui, sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Neon text effects */
+  .neon-text {
+    text-shadow:
+      0 0 5px rgba(255, 45, 219, 0.8),
+      0 0 10px rgba(255, 45, 219, 0.6),
+      0 0 15px rgba(255, 45, 219, 0.4),
+      0 0 20px rgba(255, 45, 219, 0.2);
+  }
+
+  .neon-text-purple {
+    text-shadow:
+      0 0 5px rgba(124, 58, 237, 0.8),
+      0 0 10px rgba(124, 58, 237, 0.6),
+      0 0 15px rgba(124, 58, 237, 0.4),
+      0 0 20px rgba(124, 58, 237, 0.2);
+  }
+
+  .neon-text-orange {
+    text-shadow:
+      0 0 5px rgba(255, 106, 0, 0.8),
+      0 0 10px rgba(255, 106, 0, 0.6),
+      0 0 15px rgba(255, 106, 0, 0.4),
+      0 0 20px rgba(255, 106, 0, 0.2);
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #000000;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #ff2edf, #7c3aed, #ff6a00);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #ff42f4, #8b5cf6, #ff8533);
+  }
+}
+
+@layer components {
+  /* Neon buttons */
+  .btn-neon {
+    @apply inline-flex items-center justify-center rounded-3xl border border-transparent px-8 py-4 font-bold text-white transition-all duration-300 transform hover:scale-105;
+    background: linear-gradient(135deg, #ff2edf 0%, #7c3aed 50%, #ff6a00 100%);
+    box-shadow: 0 0 30px rgba(255, 45, 219, 0.4), 0 0 60px rgba(124, 58, 237, 0.2), 0 0 90px rgba(255, 106, 0, 0.1);
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .btn-neon:hover {
+    box-shadow: 0 0 40px rgba(255, 45, 219, 0.6), 0 0 80px rgba(124, 58, 237, 0.4), 0 0 120px rgba(255, 106, 0, 0.2);
+  }
+
+  .btn-neon-pink {
+    @apply bg-[#ff2edf] hover:bg-[#ff42f4] text-white shadow-neon-pink;
+  }
+
+  .btn-neon-purple {
+    background: linear-gradient(135deg, #7c3aed 0%, #ff2edf 100%);
+    box-shadow: 0 0 30px rgba(124, 58, 237, 0.5);
+  }
+
+  .btn-neon-orange {
+    background: linear-gradient(135deg, #ff6a00 0%, #ff2edf 100%);
+    box-shadow: 0 0 30px rgba(255, 106, 0, 0.5);
+  }
+
+  /* Neon cards */
+  .neon-card {
+    @apply rounded-[40px] border backdrop-blur-xl p-8;
+    background: rgba(9, 4, 23, 0.9);
+    border: 1px solid rgba(255, 45, 219, 0.2);
+    box-shadow:
+      0 0 60px rgba(124, 58, 237, 0.18),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+  .neon-card:hover {
+    border-color: rgba(255, 45, 219, 0.4);
+    box-shadow:
+      0 0 80px rgba(124, 58, 237, 0.25),
+      0 0 40px rgba(255, 45, 219, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  }
+
+  /* Glass morphism effect */
+  .glass-card {
+    @apply backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Animated background */
+  .animated-bg {
+    background: linear-gradient(-45deg, #000000, #090417, #1a0b2e, #000000);
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
+  }
+
+  @keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  /* Typography */
+  .heading-neon {
+    @apply font-display font-bold text-6xl md:text-8xl lg:text-9xl leading-none;
+    background: linear-gradient(135deg, #ff2edf 0%, #7c3aed 50%, #ff6a00 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: none;
+  }
+
+  .subheading-neon {
+    @apply font-body font-semibold text-xl md:text-2xl text-white/90;
+    text-shadow: 0 0 10px rgba(255, 45, 219, 0.3);
+  }
+
+  /* Input styles */
+  .neon-input {
+    @apply bg-black/50 border border-white/20 rounded-2xl px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:border-[#ff2edf] transition-all duration-300;
+  }
+
+  .neon-input:focus {
+    box-shadow: 0 0 20px rgba(255, 45, 219, 0.3);
+    border-color: #ff2edf;
+  }
+
+  /* Section padding */
+  .section-padding {
+    @apply py-20 px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Grid layouts */
+  .grid-neon {
+    @apply grid gap-8 md:grid-cols-2 lg:grid-cols-3;
+  }
+
+  /* Utility classes */
+  .text-glow {
+    text-shadow: 0 0 10px currentColor;
+  }
+
+  .border-neon {
+    border: 1px solid;
+    border-image: linear-gradient(135deg, #ff2edf, #7c3aed, #ff6a00) 1;
+  }
+}
