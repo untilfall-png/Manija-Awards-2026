@@ -2,8 +2,9 @@
 
 import { useState, useEffect, lazy, Suspense } from 'react'
 import { motion } from 'framer-motion'
-import { LogOut, Lock, BarChart3, Settings, Users, Trophy } from 'lucide-react'
+import { LogOut, Lock, BarChart3, Settings, Users, Trophy, CheckCircle } from 'lucide-react'
 import { AdminLogin } from './AdminLogin'
+import { getSystemConfig, setVotingEnabled } from '@/lib/voting'
 
 // Lazy load heavy components
 const AdminResults = lazy(() => import('./AdminResults').then(mod => ({ default: mod.AdminResults })))
@@ -17,6 +18,8 @@ export function AdminDashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard')
   const [loading, setLoading] = useState(true)
+  const [votingEnabled, setVotingEnabledState] = useState(true)
+  const [checkingVotingStatus, setCheckingVotingStatus] = useState(true)
 
   useEffect(() => {
     // Check for admin authentication
@@ -27,9 +30,34 @@ export function AdminDashboard() {
     setLoading(false)
   }, [])
 
+  // Check voting status on auth
+  useEffect(() => {
+    if (isAuthenticated) {
+      checkVotingStatus()
+    }
+  }, [isAuthenticated])
+
   const handleLogin = (token: string) => {
     window.localStorage.setItem('admin_token', token)
     setIsAuthenticated(true)
+  }
+
+  const checkVotingStatus = async () => {
+    try {
+      const config = await getSystemConfig()
+      setVotingEnabledState(config?.votingEnabled || true)
+    } catch (error) {
+      console.error('Error checking voting status:', error)
+    } finally {
+      setCheckingVotingStatus(false)
+    }
+  }
+
+  const handleToggleVoting = async () => {
+    const success = await setVotingEnabled(!votingEnabled, 'admin')
+    if (success) {
+      setVotingEnabledState(!votingEnabled)
+    }
   }
 
   const handleLogout = () => {
@@ -77,7 +105,36 @@ export function AdminDashboard() {
         </div>
       </header>
 
-      <div className="mx-auto max-w-7xl">
+       <div className="mx-auto max-w-7xl">
+        {/* Voting Status Toggle */}
+        <div className="flex justify-center py-4">
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-black/50 backdrop-blur-xl border border-neon-purple/30"
+          >
+            <span className={`flex items-center gap-2 text-sm font-semibold ${votingEnabled ? 'text-green-400' : 'text-red-400'}`}>
+              <div className={`w-2 h-2 rounded-full ${votingEnabled ? 'bg-green-400 animate-pulse' : 'bg-red-400'}`}></div>
+              {votingEnabled ? 'Votación ABIERTA' : 'Votación CERRADA'}
+            </span>
+            <button
+              onClick={handleToggleVoting}
+              disabled={checkingVotingStatus}
+              className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors focus:outline-none ${
+                votingEnabled ? 'bg-green-500' : 'bg-red-500'
+              } ${checkingVotingStatus ? 'opacity-50 cursor-wait' : 'cursor-pointer'}`}
+              title={votingEnabled ? 'Cerrar votación' : 'Abrir votación'}
+            >
+              <span
+                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-lg transition-transform ${votingEnabled ? 'translate-x-8' : 'translate-x-1'}`}
+              />
+            </button>
+            <span className="text-xs text-white/60">
+              {checkingVotingStatus ? 'Cargando...' : 'Click para cambiar'}
+            </span>
+          </motion.div>
+        </div>
+
         {/* Navigation Tabs */}
         <div className="border-b border-neon-pink/20 bg-black/50 backdrop-blur-xl sticky top-16 z-30 overflow-x-auto">
           <div className="flex px-4 sm:px-6 py-2 sm:py-3 gap-1 sm:gap-2 min-w-min">
@@ -151,10 +208,15 @@ function AdminDashboardContent() {
     participationRate: 0,
   })
   const [loading, setLoading] = useState(true)
+  const [votingEnabled, setVotingEnabledState] = useState(true)
 
   useEffect(() => {
     const loadStats = async () => {
       try {
+        // Get voting status
+        const config = await getSystemConfig()
+        setVotingEnabledState(config?.votingEnabled || true)
+        
         // Simulated stats - In production, fetch from Firestore
         setStats({
           totalVoters: 0,
@@ -180,11 +242,12 @@ function AdminDashboardContent() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {[
+        {[ 
           { label: 'Votantes Registrados', value: stats.totalVoters, icon: Users, color: 'neon-cyan' },
           { label: 'Total de Votos', value: stats.totalVotes, icon: Trophy, color: 'neon-pink' },
           { label: 'Categorías', value: stats.totalCategories, icon: Settings, color: 'neon-purple' },
           { label: 'Participación', value: `${stats.participationRate}%`, icon: BarChart3, color: 'neon-orange' },
+          { label: votingEnabled ? 'Votación Activa' : 'Votación Cerrada', value: votingEnabled ? 'ABIERTA' : 'CERRADA', icon: votingEnabled ? CheckCircle : BarChart3, color: votingEnabled ? 'green-400' : 'red-400' },
         ].map(({ label, value, icon: Icon, color }, index) => (
           <motion.div
             key={index}

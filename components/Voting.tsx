@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { CheckCircle, Vote, Clock, Trophy, Sparkles, AlertCircle } from 'lucide-react'
-import { createVote, getCategories } from '@/lib/voting'
+import { createVote, getCategories, getSystemConfig } from '@/lib/voting'
 import { VoterSession, Category, Vote as VoteType } from '@/lib/types'
 
 interface VotingProps {
@@ -20,6 +20,7 @@ export function Voting({ session, onVoteSubmitted }: VotingProps) {
   const [categories, setCategories] = useState<Category[]>([])
   const [loadingCategories, setLoadingCategories] = useState(true)
   const [categoryError, setCategoryError] = useState<string | null>(null)
+  const [votingDisabled, setVotingDisabled] = useState(false)
 
   useEffect(() => {
     let mounted = true
@@ -35,6 +36,15 @@ export function Voting({ session, onVoteSubmitted }: VotingProps) {
       })
       .finally(() => {
         if (mounted) setLoadingCategories(false)
+      })
+
+    getSystemConfig()
+      .then((config) => {
+        if (!mounted) return
+        setVotingDisabled(!config?.votingEnabled)
+      })
+      .catch((err) => {
+        console.error('Error loading system config:', err)
       })
 
     return () => {
@@ -83,6 +93,30 @@ export function Voting({ session, onVoteSubmitted }: VotingProps) {
     )
   }
 
+  if (votingDisabled) {
+    return (
+      <section className="section-padding mx-auto max-w-6xl text-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="neon-card p-12"
+        >
+          <Trophy className="h-24 w-24 text-red-400 mx-auto mb-6" />
+          <h2 className="text-4xl font-display font-bold text-white mb-4">
+            VOTACIÓN CERRADA
+          </h2>
+          <p className="text-xl text-white/80 mb-8">
+            La votación ha sido cerrada por el administrador.
+          </p>
+          <div className="inline-flex items-center gap-3 text-red-400 bg-red-500/10 px-6 py-3 rounded-xl border border-red-500/20">
+            <AlertCircle className="h-5 w-5" />
+            <span className="font-semibold">No se aceptan más votos</span>
+          </div>
+        </motion.div>
+      </section>
+    )
+  }
+
   if (!activeCategory) {
     return (
       <section className="section-padding mx-auto max-w-6xl text-center">
@@ -96,12 +130,19 @@ export function Voting({ session, onVoteSubmitted }: VotingProps) {
   }
 
   const handleVote = async () => {
-    if (!selectedNominee || !activeCategory || hasVotedForActiveCategory) return
+    if (!selectedNominee || !activeCategory || hasVotedForActiveCategory || votingDisabled) return
 
     setLoading(true)
     setError(null)
 
     try {
+      const config = await getSystemConfig()
+      if (!config?.votingEnabled) {
+        setError('La votación ha sido cerrada por el administrador')
+        setLoading(false)
+        return
+      }
+
       await createVote({
         voterId: session.voter.id,
         categoryId: activeCategory.id,
@@ -118,7 +159,7 @@ export function Voting({ session, onVoteSubmitted }: VotingProps) {
       }
 
       session.votes.push(newVote)
-      setCompletedCategories(prev => new Set([...prev, activeCategory.id]))
+      setCompletedCategories(prev => new Set([...prev, activeCategory!.id]))
 
       // Move to next category or stay on current if it's the last
       const nextIndex = activeCategoryIndex + 1

@@ -21,9 +21,10 @@ export function AdminCategories() {
     try {
       const data = await getCategories()
       setCategories(data)
+      setLoading(false)
     } catch (error) {
       console.error('Error loading categories:', error)
-    } finally {
+      setCategories([])
       setLoading(false)
     }
   }
@@ -65,6 +66,7 @@ export function AdminCategories() {
       setEditingId(null)
     } catch (error) {
       console.error('Error saving category:', error)
+      alert('Error al guardar la categoría. Por favor, intente de nuevo.')
     }
   }
 
@@ -76,6 +78,7 @@ export function AdminCategories() {
       await loadCategories()
     } catch (error) {
       console.error('Error deleting category:', error)
+      alert('Error al eliminar la categoría. Por favor, intente de nuevo.')
     }
   }
 
