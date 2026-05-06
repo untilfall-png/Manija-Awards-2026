@@ -12,6 +12,8 @@ export function AdminCategories() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [formData, setFormData] = useState<Partial<Category> | null>(null)
   const [showForm, setShowForm] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState<string | null>(null)
 
   useEffect(() => {
     loadCategories()
@@ -22,8 +24,9 @@ export function AdminCategories() {
       const data = await getCategories()
       setCategories(data)
       setLoading(false)
-    } catch (error) {
-      console.error('Error loading categories:', error)
+    } catch (error: any) {
+      console.error('Error al cargar categorias:', error)
+      alert('No se pudieron cargar las categorias. Error: ' + (error?.message || 'Error desconocido'))
       setCategories([])
       setLoading(false)
     }
@@ -31,7 +34,7 @@ export function AdminCategories() {
 
   const handleNew = () => {
     setFormData({
-      id: `cat-${Date.now()}`,
+      id: 'cat-' + Date.now(),
       name: '',
       description: '',
       order: categories.length + 1,
@@ -48,15 +51,26 @@ export function AdminCategories() {
   }
 
   const handleSave = async () => {
-    if (!formData || !formData.name || !formData.id) return
+    if (!formData || !formData.name || !formData.id) {
+      alert('Por favor, complete el nombre de la categoria')
+      return
+    }
+
+    setSaving(true)
 
     try {
       const categoryToSave: Category = {
         id: formData.id,
-        name: formData.name,
-        description: formData.description || '',
+        name: formData.name.trim(),
+        description: formData.description?.trim() || '',
         order: formData.order || 1,
         nominees: formData.nominees || [],
+      }
+
+      if (!categoryToSave.name) {
+        alert('El nombre de la categoria es obligatorio')
+        setSaving(false)
+        return
       }
 
       await saveCategory(categoryToSave)
@@ -64,28 +78,38 @@ export function AdminCategories() {
       setShowForm(false)
       setFormData(null)
       setEditingId(null)
-    } catch (error) {
-      console.error('Error saving category:', error)
-      alert('Error al guardar la categoría. Por favor, intente de nuevo.')
+      setSaving(false)
+    } catch (error: any) {
+      console.error('Error al guardar categoria:', error)
+      alert('Error al guardar: ' + (error?.message || error?.toString() || 'Error desconocido') + 
+            '\\n\\nCodigo: ' + (error?.code || 'N/A'))
+      setSaving(false)
     }
   }
 
   const handleDelete = async (categoryId: string) => {
-    if (!window.confirm('¿Estás seguro de que deseas eliminar esta categoría?')) return
+    if (!window.confirm('Esta seguro de que desea eliminar esta categoria? Esta accion eliminara tambien los votos asociados.')) {
+      return
+    }
+
+    setDeleting(categoryId)
 
     try {
       await deleteCategory(categoryId)
       await loadCategories()
-    } catch (error) {
-      console.error('Error deleting category:', error)
-      alert('Error al eliminar la categoría. Por favor, intente de nuevo.')
+      setDeleting(null)
+    } catch (error: any) {
+      console.error('Error al eliminar categoria:', error)
+      alert('Error al eliminar: ' + (error?.message || error?.toString() || 'Error desconocido') +
+            '\\n\\nCodigo: ' + (error?.code || 'N/A'))
+      setDeleting(null)
     }
   }
 
   const addNominee = () => {
     if (!formData) return
     const newNominee: Nominee = {
-      id: `nom-${Date.now()}`,
+      id: 'nom-' + Date.now(),
       name: '',
       description: '',
     }
@@ -103,12 +127,19 @@ export function AdminCategories() {
     })
   }
 
+  const updateNominee = (index: number, field: keyof Nominee, value: string) => {
+    if (!formData) return
+    const updated = [...(formData.nominees || [])]
+    updated[index] = { ...updated[index], [field]: value }
+    setFormData({ ...formData, nominees: updated })
+  }
+
   if (loading) {
     return (
       <div className="text-center py-12">
         <div className="inline-flex items-center gap-2">
           <div className="w-6 h-6 border-2 border-neon-pink/30 border-t-neon-pink rounded-full animate-spin" />
-          <span className="text-neon-pink">Cargando...</span>
+          <span className="text-neon-pink">Cargando categorias...</span>
         </div>
       </div>
     )
@@ -117,13 +148,13 @@ export function AdminCategories() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-display font-bold text-white">Gestión de Categorías</h2>
+        <h2 className="text-3xl font-display font-bold text-white">Gestion de Categorias</h2>
         <button
           onClick={handleNew}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-neon-pink text-black font-semibold hover:bg-neon-pink/90 transition-all"
         >
           <Plus className="h-5 w-5" />
-          Nueva Categoría
+          Nueva Categoria
         </button>
       </div>
 
@@ -142,7 +173,7 @@ export function AdminCategories() {
             <div className="p-8 space-y-6">
               <div className="flex justify-between items-center">
                 <h3 className="text-2xl font-display font-bold text-white">
-                  {editingId ? 'Editar Categoría' : 'Nueva Categoría'}
+                  {editingId ? 'Editar Categoria' : 'Nueva Categoria'}
                 </h3>
                 <button
                   onClick={() => {
@@ -158,23 +189,23 @@ export function AdminCategories() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-semibold text-neon-cyan mb-2">Nombre</label>
+                  <label className="block text-sm font-semibold text-neon-cyan mb-2">Nombre *</label>
                   <input
                     type="text"
                     value={formData.name || ''}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     className="neon-input w-full px-4 py-3 rounded-lg"
-                    placeholder="Nombre de la categoría"
+                    placeholder="Nombre de la categoria"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-neon-cyan mb-2">Descripción</label>
+                  <label className="block text-sm font-semibold text-neon-cyan mb-2">Descripcion</label>
                   <textarea
                     value={formData.description || ''}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     className="neon-input w-full px-4 py-3 rounded-lg h-24"
-                    placeholder="Descripción de la categoría"
+                    placeholder="Descripcion de la categoria"
                   />
                 </div>
 
@@ -183,7 +214,7 @@ export function AdminCategories() {
                   <input
                     type="number"
                     value={formData.order || 1}
-                    onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) })}
+                    onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) || 1 })}
                     className="neon-input w-full px-4 py-3 rounded-lg"
                     min="1"
                   />
@@ -207,11 +238,7 @@ export function AdminCategories() {
                         <input
                           type="text"
                           value={nominee.name || ''}
-                          onChange={(e) => {
-                            const updated = [...(formData.nominees || [])]
-                            updated[index] = { ...nominee, name: e.target.value }
-                            setFormData({ ...formData, nominees: updated })
-                          }}
+                          onChange={(e) => updateNominee(index, 'name', e.target.value)}
                           placeholder="Nombre del nominado"
                           className="neon-input w-full px-3 py-2 rounded text-sm"
                         />
@@ -219,12 +246,8 @@ export function AdminCategories() {
                           <input
                             type="text"
                             value={nominee.description || ''}
-                            onChange={(e) => {
-                              const updated = [...(formData.nominees || [])]
-                              updated[index] = { ...nominee, description: e.target.value }
-                              setFormData({ ...formData, nominees: updated })
-                            }}
-                            placeholder="Descripción"
+                            onChange={(e) => updateNominee(index, 'description', e.target.value)}
+                            placeholder="Descripcion"
                             className="neon-input flex-1 px-3 py-2 rounded text-sm"
                           />
                           <button
@@ -253,10 +276,14 @@ export function AdminCategories() {
                 </button>
                 <button
                   onClick={handleSave}
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-neon-pink text-black font-semibold hover:bg-neon-pink/90 transition-all"
+                  disabled={saving}
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-neon-pink text-black font-semibold hover:bg-neon-pink/90 transition-all disabled:opacity-50"
                 >
-                  <Save className="h-5 w-5" />
-                  Guardar
+                  {saving ? (
+                    <><div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />Guardando...</>
+                  ) : (
+                    <><Save className="h-5 w-5" />Guardar</>
+                  )}
                 </button>
               </div>
             </div>
@@ -291,9 +318,14 @@ export function AdminCategories() {
               </button>
               <button
                 onClick={() => handleDelete(category.id)}
-                className="p-3 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-all"
+                disabled={deleting === category.id}
+                className="p-3 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-all disabled:opacity-50"
               >
-                <Trash2 className="h-5 w-5" />
+                {deleting === category.id ? (
+                  <div className="w-5 h-5 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Trash2 className="h-5 w-5" />
+                )}
               </button>
             </div>
           </motion.div>
@@ -302,13 +334,13 @@ export function AdminCategories() {
 
       {categories.length === 0 && (
         <div className="neon-card p-12 text-center">
-          <p className="text-white/70 mb-4">No hay categorías creadas aún</p>
+          <p className="text-white/70 mb-4">No hay categorias creadas aun</p>
           <button
             onClick={handleNew}
             className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-neon-pink text-black font-semibold"
           >
             <Plus className="h-5 w-5" />
-            Crear Primera Categoría
+            Crear Primera Categoria
           </button>
         </div>
       )}
