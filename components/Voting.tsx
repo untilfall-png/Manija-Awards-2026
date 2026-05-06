@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
+import { doc, onSnapshot, serverTimestamp } from 'firebase/firestore'
 import { CheckCircle, Vote, Clock, Trophy, Sparkles, AlertCircle } from 'lucide-react'
 import { createVote, getCategories, getSystemConfig } from '@/lib/voting'
 import { VoterSession, Category, Vote as VoteType } from '@/lib/types'
