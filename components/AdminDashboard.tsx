@@ -11,8 +11,9 @@ const AdminResults = lazy(() => import('./AdminResults').then(mod => ({ default:
 const AdminCategories = lazy(() => import('./AdminCategories').then(mod => ({ default: mod.AdminCategories })))
 const AdminCharts = lazy(() => import('./AdminCharts').then(mod => ({ default: mod.AdminCharts })))
 const AdminVoters = lazy(() => import('./AdminVoters').then(mod => ({ default: mod.AdminVoters })))
+const AdminMaintenance = lazy(() => import('./AdminMaintenance').then(mod => ({ default: mod.AdminMaintenance })))
 
-type AdminTab = 'dashboard' | 'categories' | 'results' | 'voters' | 'charts'
+type AdminTab = 'dashboard' | 'categories' | 'results' | 'voters' | 'charts' | 'maintenance'
 
 export function AdminDashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -144,6 +145,7 @@ export function AdminDashboard() {
               { id: 'results' as AdminTab, label: 'Resultados', shortLabel: 'Result', icon: BarChart3 },
               { id: 'voters' as AdminTab, label: 'Votantes', shortLabel: 'Vot', icon: Users },
               { id: 'charts' as AdminTab, label: 'Gráficos', shortLabel: 'Grá', icon: BarChart3 },
+              { id: 'maintenance' as AdminTab, label: 'Mantenimiento', shortLabel: 'Mant', icon: Settings },
             ].map(({ id, label, shortLabel, icon: Icon }) => (
               <button
                 key={id}
