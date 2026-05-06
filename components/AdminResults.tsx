@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Download, Filter, Eye, RefreshCcw } from 'lucide-react'
+import { Download, Filter, Eye, RefreshCcw, Trophy } from 'lucide-react'
 import { getAllVotesWithVoters, getCategories, deleteAllVotes } from '@/lib/voting'
 import { Category } from '@/lib/types'
+import { useDiplomaGenerator } from '@/hooks/useDiplomaGenerator'
 
 export function AdminResults() {
   const [votes, setVotes] = useState<any[]>([])
@@ -12,6 +13,8 @@ export function AdminResults() {
   const [loading, setLoading] = useState(true)
   const [filterCategory, setFilterCategory] = useState<string | null>(null)
   const [filterVoter, setFilterVoter] = useState('')
+
+  const { generateDiplomaPDF, generateAllDiplomas } = useDiplomaGenerator()
 
   useEffect(() => {
     loadData()
@@ -70,6 +73,64 @@ export function AdminResults() {
     return nominee?.name || nomineeId
   }
 
+  // Calculate winners for each category
+  const getWinners = () => {
+    const winnerMap = new Map<string, {
+      categoryName: string
+      nomineeName: string
+      votes: number
+    }>()
+    
+    categories.forEach(category => {
+      const categoryVotes = votes.filter(v => v.categoryId === category.id)
+      if (categoryVotes.length === 0) return
+      
+      const voteCount: Record<string, number> = {}
+      categoryVotes.forEach(vote => {
+        voteCount[vote.nomineeId] = (voteCount[vote.nomineeId] || 0) + 1
+      })
+      
+      let topNomineeId = ''
+      let maxVotes = 0
+      for (const [nomineeId, count] of Object.entries(voteCount)) {
+        if (count > maxVotes) {
+          maxVotes = count
+          topNomineeId = nomineeId
+        }
+      }
+      
+      if (maxVotes > 0) {
+        winnerMap.set(category.id, {
+          categoryName: category.name,
+          nomineeName: getNomineeName(category.id, topNomineeId),
+          votes: maxVotes
+        })
+      }
+    })
+    
+    return winnerMap
+  }
+
+  const handleGenerateAllDiplomas = async () => {
+    const winners = getWinners()
+    if (winners.size === 0) {
+      alert('No hay ganadores para generar diplomas')
+      return
+    }
+    
+    if (!window.confirm(`¿Generar diplomas para ${winners.size} categoría(es)?`)) {
+      return
+    }
+    
+    const results = Array.from(winners.values())
+    await generateAllDiplomas(results.map(r => ({
+      categoryName: r.categoryName,
+      winnerName: r.nomineeName,
+      votes: r.votes,
+      date: new Date().toLocaleDateString('es-ES')
+    })))
+  }
+
   const downloadCSV = () => {
     const headers = ['ID de Voto', 'Votante', 'Email', 'Categoría', 'Nominado', 'Fecha']
     const rows = filteredVotes.map(vote => [
@@ -112,6 +173,13 @@ export function AdminResults() {
           >
             <Download className="h-5 w-5" />
             Descargar CSV
+          </button>
+          <button
+            onClick={handleGenerateAllDiplomas}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30 transition-all font-semibold text-sm"
+          >
+            <Trophy className="h-5 w-5" />
+            Diplomas
           </button>
           <button
             onClick={handleResetVotes}

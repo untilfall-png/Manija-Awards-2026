@@ -1,12 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { collection, onSnapshot, QuerySnapshot, DocumentData } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { getCategories } from '@/lib/voting'
 import { Vote, Category } from '@/lib/types'
-import { Trophy, TrendingUp, Users, Award } from 'lucide-react'
+import { Trophy, TrendingUp, Users, Award, Download } from 'lucide-react'
+import { DiplomaDigital } from '@/components/DiplomaDigital'
+import { useDiplomaGenerator } from '@/hooks/useDiplomaGenerator'
 
 interface CategoryResults {
   category: Category
@@ -27,6 +29,13 @@ export function LiveResults() {
   const [totalVoters, setTotalVoters] = useState(0)
   const [totalVotes, setTotalVotes] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
+  const [showDiplomaFor, setShowDiplomaFor] = useState<{categoryId: string, nomineeId: string} | null>(null)
+
+  const { generateDiplomaPDF } = useDiplomaGenerator()
+
+  const handleDownloadDiploma = useCallback(async (categoryName: string, nomineeName: string, votes: number, date: string) => {
+    await generateDiplomaPDF(nomineeName, categoryName, votes, date)
+  }, [generateDiplomaPDF])
 
   useEffect(() => {
     let isMounted = true
@@ -235,19 +244,103 @@ export function LiveResults() {
                 <Award className="h-12 w-12 mx-auto mb-3 opacity-50" />
                 <p>Aún no hay votos en esta categoría</p>
               </div>
-            )}
+             )}
           </motion.div>
         ))}
       </div>
 
-      {/* Footer Note */}
+      {/* Winner Diplomas Section */}
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.6, delay: 1 }}
-        className="text-center mt-12 text-white/60 text-sm"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 1.2 }}
+        className="mt-16"
       >
-        <p>Los resultados se actualizan en tiempo real • Cada votante puede votar una vez por categoría</p>
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center gap-3 mb-6">
+            <div className="p-3 rounded-2xl bg-neon-orange/20 border border-neon-orange/30">
+              <Trophy className="h-8 w-8 text-neon-orange" />
+            </div>
+            <span className="text-sm uppercase tracking-[0.3em] text-neon-orange font-bold">
+              GANADORES & DIPLOMAS
+            </span>
+          </div>
+          <h3 className="text-3xl font-display font-bold text-white">
+            Ganadores por Categoría
+          </h3>
+          <p className="text-white/70 text-sm mt-2">
+            Descarga el diploma oficial de cada categoría
+          </p>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          {categoryResults.map((categoryResult, index) => {
+            const winner = categoryResult.results[0]
+            if (!winner || winner.votes === 0) {
+              return (
+                <motion.div
+                  key={categoryResult.category.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 1.3 + index * 0.05 }}
+                  className="neon-card p-6 text-center opacity-50"
+                >
+                  <Trophy className="h-12 w-12 mx-auto mb-4 text-white/30" />
+                  <h4 className="text-lg font-semibold text-white/60 mb-2">
+                    {categoryResult.category.name}
+                  </h4>
+                  <p className="text-white/40 text-sm">Sin votos aún</p>
+                </motion.div>
+              )
+            }
+            return (
+              <motion.div
+                key={categoryResult.category.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 1.3 + index * 0.05 }}
+                className="neon-card p-6 text-center group hover:scale-[1.02] transition-all duration-300"
+                onMouseEnter={() => setShowDiplomaFor({categoryId: categoryResult.category.id, nomineeId: winner.nomineeId})}
+                onMouseLeave={() => setShowDiplomaFor(null)}
+              >
+                <div className="relative min-h-[180px] mb-4">
+                  {showDiplomaFor?.categoryId === categoryResult.category.id && showDiplomaFor?.nomineeId === winner.nomineeId ? (
+                    <div className="absolute inset-0 -top-8 -left-4 -right-4 transform scale-75 origin-top">
+                      <DiplomaDigital
+                        winnerName={winner.nomineeName}
+                        categoryName={categoryResult.category.name}
+                        votes={winner.votes}
+                        date={new Date().toLocaleDateString('es-ES')}
+                      />
+                    </div>
+                  ) : (
+                    <>
+                      <div className="text-5xl mb-3">🏆</div>
+                      <p className="font-semibold text-white truncate">{winner.nomineeName}</p>
+                      <p className="text-white/60 text-sm mb-2">{categoryResult.category.name}</p>
+                      <div className="flex items-center justify-center gap-2 text-neon-cyan">
+                        <span className="text-2xl font-bold">{winner.votes}</span>
+                        <span className="text-sm">votos</span>
+                      </div>
+                    </>
+                  )}
+                </div>
+                <button
+                  onClick={() => handleDownloadDiploma(
+                    categoryResult.category.name,
+                    winner.nomineeName,
+                    winner.votes,
+                    new Date().toLocaleDateString('es-ES')
+                  )}
+                  className="w-full px-4 py-2 rounded-lg bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-semibold hover:from-yellow-400 hover:to-yellow-500 transition-all flex items-center justify-center gap-2 shadow-lg shadow-yellow-500/30"
+                >
+                  <Download className="h-4 w-4" />
+                  Descargar Diploma
+                </button>
+              </motion.div>
+            )
+          })}
+        </div>
       </motion.div>
     </section>
   )

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Trash2, Database, RefreshCw, AlertTriangle } from 'lucide-react'
+import { Trash2, Database, RefreshCw, AlertTriangle, Trophy } from 'lucide-react'
 import { deleteAllVotes, deleteAllVoters, deleteAllCategories, deleteAllData, resetAllVotes } from '@/lib/voting'
 
 export function AdminMaintenance() {
@@ -162,6 +162,26 @@ export function AdminMaintenance() {
             'Eliminar Todas las Categorías'
           )}
         </button>
+      </div>
+
+      {/* Generar Diplomas */}
+      <div className="neon-card p-6 border-2 border-yellow-500/30 bg-yellow-500/5">
+        <div className="flex items-center gap-4 mb-4">
+          <div className="p-3 rounded-xl bg-yellow-500/20 border border-yellow-500/30">
+            <Trophy className="h-6 w-6 text-yellow-400" />
+          </div>
+          <div>
+            <h4 className="text-lg font-display font-bold text-white">Generar Diplomas</h4>
+            <p className="text-white/60 text-sm">Generar diplomas PDF para todos los ganadores</p>
+          </div>
+        </div>
+        <a
+          href="/admin/results"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-semibold hover:from-yellow-400 hover:to-yellow-500 transition-all shadow-lg shadow-yellow-500/30"
+        >
+          <Trophy className="h-5 w-5" />
+          Ir a Generar Diplomas
+        </a>
       </div>
 
       {/* Reinicio Nuclear */}

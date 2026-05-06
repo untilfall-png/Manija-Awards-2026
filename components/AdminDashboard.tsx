@@ -285,6 +285,48 @@ function AdminDashboardContent() {
             <p><span className="text-neon-pink font-semibold">Base de Datos:</span> Firebase Firestore</p>
             <p><span className="text-neon-pink font-semibold">Almacenamiento:</span> Seguro en la nube</p>
             <p><span className="text-neon-pink font-semibold">Estado:</span> <span className="text-green-400">En vivo</span></p>
+           </div>
+        </div>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <div className="neon-card p-6">
+          <h3 className="text-xl font-display font-bold text-white mb-4">Guía Rápida</h3>
+          <ul className="space-y-2 text-white/80 text-sm">
+            <li>• <span className="font-semibold">Categorías:</span> Crear, editar o eliminar categorías de votación</li>
+            <li>• <span className="font-semibold">Resultados:</span> Ver resultados detallados y transparencia de votos</li>
+            <li>• <span className="font-semibold">Votantes:</span> Revisar todos los votantes registrados</li>
+            <li>• <span className="font-semibold">Gráficos:</span> Visualizar datos con gráficos dinámicos</li>
+            <li>• <span className="font-semibold">Diplomas:</span> Generar diplomas digitales para todos los ganadores</li>
+          </ul>
+        </div>
+
+        <div className="neon-card p-6">
+          <h3 className="text-xl font-display font-bold text-white mb-4">Información del Sistema</h3>
+          <div className="space-y-2 text-white/80 text-sm">
+            <p><span className="text-neon-pink font-semibold">Evento:</span> Manija Awards 2026</p>
+            <p><span className="text-neon-pink font-semibold">Base de Datos:</span> Firebase Firestore</p>
+            <p><span className="text-neon-pink font-semibold">Almacenamiento:</span> Seguro en la nube</p>
+            <p><span className="text-neon-pink font-semibold">Estado:</span> <span className="text-green-400">En vivo</span></p>
+          </div>
+        </div>
+
+        <div className="neon-card p-6 border-2 border-yellow-500/30 bg-yellow-500/5 col-span-full">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+              <h3 className="text-xl font-display font-bold text-yellow-400 mb-2">🏆 Diplomas Digitales</h3>
+              <p className="text-white/70 text-sm">
+                Los diplomas digitales se generan automáticamente desde la página de resultados. 
+                Cada ganador por categoría recibe un diploma oficial personalizado.
+              </p>
+            </div>
+            <a
+              href="/admin/results"
+              className="px-6 py-3 rounded-xl bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-semibold hover:from-yellow-400 hover:to-yellow-500 transition-all shadow-lg shadow-yellow-500/30 flex items-center gap-2 whitespace-nowrap"
+            >
+              <Trophy className="h-5 w-5" />
+              Generar Diplomas
+            </a>
           </div>
         </div>
       </div>

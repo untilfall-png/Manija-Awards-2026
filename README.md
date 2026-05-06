@@ -107,24 +107,58 @@ manija-awards-2026/
 - Tema oscuro con acentos en rosa y púrpura
 - Componentes interactivos
 
+## 🎓 Funcionalidad Diplomas Digitales (NUEVO)
+
+### Vista Pública (LiveResults)
+- **Auto-detección ganadores**: Top votos por categoría
+- **Preview hover**: Diploma animado al pasar mouse
+- **Descarga individual**: PDF oficial por categoría
+- **Grid responsive**: 1-4 columnas (mobile→desktop)
+
+### Vista Admin (AdminResults)
+- **Generación masiva**: 1 click = todos los diplomas
+- **Proceso secuencial**: Delay 500ms entre diplomas
+- **Calculo automático**: Top votos por categoría
+- **Botón "Diplomas"**: En barra de herramientas
+
+### Características
+- **Diseño premium**: Gradiente negro/púrpura, rayos neón
+- **Animaciones**: Rayos pulsantes, partículas, glow
+- **Formato**: Paisaje A4 optimizado
+- **Contenido**: Ganador, Categoría, Votos, Fecha
+
+### Tecnologías
+- **Canvas API**: Renderizado 2D animado
+- **jsPDF + html2canvas**: Generación PDF
+- **TypeScript strict**: 0 errores
+
 ## 🚀 Despliegue
 
 ### Render
-1. Crea una cuenta en https://render.com y conecta tu repositorio GitHub.
-2. Crea un nuevo servicio web y selecciona la rama `main`.
-3. Usa estos comandos:
-   - Build Command: `npm install && npm run build`
-   - Start Command: `npm start`
-4. Agrega las variables de entorno de Firebase en Render:
-   - `NEXT_PUBLIC_FIREBASE_API_KEY`
-   - `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`
-   - `NEXT_PUBLIC_FIREBASE_PROJECT_ID`
-   - `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`
-   - `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`
-   - `NEXT_PUBLIC_FIREBASE_APP_ID`
-5. Despliega y espera a que el servicio quede activo.
+1. Conectar repo GitHub → Rama `main`
+2. Build: `npm install && npm run build`
+3. Start: `npm start`
+4. Variables env: Firebase configurar en Render
 
-También puedes usar el archivo `render.yaml` incluido en el repo para crear el servicio desde la interfaz de Render o con su CLI.
+### Firebase Rules (CRÍTICO)
+1. Ir a: https://console.firebase.google.com/
+2. Firestore → Rules
+3. Pegar reglas del archivo `firestore.rules`
+4. Click **Publish**
+5. Esperar 2 min → Recargar app
+
+## 📁 Estructura
+
+```
+components/
+  ├── DiplomaDigital.tsx     # Componente diploma animado
+  ├── LiveResults.tsx        # Resultados + diplomas públicos
+  ├── AdminResults.tsx       # Dashboard admin + diplomas
+  ├── AdminDashboard.tsx     # Panel admin
+  ├── AdminMaintenance.tsx   # Mantenimiento
+  hooks/
+  └── useDiplomaGenerator.ts # Hook generación PDF
+```
 
 ### Vercel (Recomendado)
 1. Conecta tu repositorio a Vercel
