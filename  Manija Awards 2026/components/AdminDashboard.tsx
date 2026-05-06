@@ -2,17 +2,16 @@
 
 import { useState, useEffect, lazy, Suspense } from 'react'
 import { motion } from 'framer-motion'
-import { LogOut, Lock, BarChart3, Settings, Users, Trophy, CheckCircle, Play, FileVideo } from 'lucide-react'
+import { LogOut, Lock, BarChart3, Settings, Users, Trophy, CheckCircle, Play } from 'lucide-react'
 import { AdminLogin } from './AdminLogin'
 import { getSystemConfig, setVotingEnabled, getCategories, getAllVotesWithVoters } from '@/lib/voting'
-import { AdminMaintenance } from './AdminMaintenance'
-import { AdminConclusionVideo } from '@/components/AdminConclusionVideo'
 
 // Lazy load heavy components
 const AdminResults = lazy(() => import('./AdminResults').then(mod => ({ default: mod.AdminResults })))
 const AdminCategories = lazy(() => import('./AdminCategories').then(mod => ({ default: mod.AdminCategories })))
 const AdminCharts = lazy(() => import('./AdminCharts').then(mod => ({ default: mod.AdminCharts })))
 const AdminVoters = lazy(() => import('./AdminVoters').then(mod => ({ default: mod.AdminVoters })))
+const AdminMaintenance = lazy(() => import('./AdminMaintenance').then(mod => ({ default: mod.AdminMaintenance })))
 
 export type AdminTab = 'dashboard' | 'categories' | 'results' | 'voters' | 'charts' | 'maintenance' | 'conclusion'
 
@@ -77,7 +76,6 @@ export function AdminDashboard() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-black via-[#090417] to-black">
-      {/* Header */}
       <header className="sticky top-0 z-40 border-b border-neon-pink/20 bg-black/80 backdrop-blur-xl">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center gap-4">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
@@ -100,7 +98,6 @@ export function AdminDashboard() {
       </header>
 
       <div className="mx-auto max-w-7xl">
-        {/* Voting Status Toggle */}
         <div className="flex justify-center py-4">
           <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -131,10 +128,9 @@ export function AdminDashboard() {
           </motion.div>
         </div>
 
-        {/* Navigation Tabs */}
         <div className="border-b border-neon-pink/20 bg-black/50 backdrop-blur-xl sticky top-16 z-30 overflow-x-auto">
           <div className="flex px-4 sm:px-6 py-2 sm:py-3 gap-1 sm:gap-2 min-w-min">
-            {[
+            {[  
               { id: 'dashboard' as AdminTab, label: 'Panel', shortLabel: 'Panel', icon: BarChart3 },
               { id: 'categories' as AdminTab, label: 'Categorías', shortLabel: 'Cat', icon: Trophy },
               { id: 'results' as AdminTab, label: 'Resultados', shortLabel: 'Result', icon: BarChart3 },
@@ -161,7 +157,6 @@ export function AdminDashboard() {
           </div>
         </div>
 
-        {/* Content */}
         <div className="p-4 sm:p-6">
           <motion.div
             key={activeTab}
@@ -197,11 +192,60 @@ export function AdminDashboard() {
               </Suspense>
             )}
             {activeTab === 'conclusion' && (
-              <Suspense fallback={<LoadingFallback />}>
-                <AdminConclusionVideo />
-              </Suspense>
+              <div className="neon-card p-8 text-center">
+                <div className="w-full" style={{ height: '600px', background: 'radial-gradient(ellipse at center, #1a0a2e 0%, #000 70%)' }}>
+                  <h3 className="text-2xl font-bold text-cyan-400 mb-4 pt-8">🎬 Video de Conclusión</h3>
+                  <p className="text-white/70 mb-6">El video hiperframe está disponible en:</p>
+                  <a href="/public/renders/index.html" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 text-black font-semibold hover:from-cyan-400 hover:to-blue-400 transition-all shadow-lg shadow-cyan-500/30">
+                    <Play className="h-5 w-5" />
+                    Abrir Video Hiperframe
+                  </a>
+                  <p className="text-white/40 text-sm mt-4">
+                    Visualización del video con ganadores, estadísticas y celebración final
+                  </p>
+                </div>
+              </div>
             )}
           </motion.div>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2">
+          <div className="neon-card p-6">
+            <h3 className="text-xl font-display font-bold text-white mb-4">Guía Rápida</h3>
+            <ul className="space-y-2 text-white/80 text-sm">
+              <li>• <span className="font-semibold">Categorías:</span> Crear, editar o eliminar categorías</li>
+              <li>• <span className="font-semibold">Resultados:</span> Ver resultados y transparencia</li>
+              <li>• <span className="font-semibold">Votantes:</span> Revisar votantes registrados</li>
+              <li>• <span className="font-semibold">Gráficos:</span> Visualizar datos dinámicos</li>
+              <li>• <span className="font-semibold">Mantenimiento:</span> CRUD completo + reset</li>
+              <li>• <span className="font-semibold">Concl:</span> Ver video de celebración</li>
+            </ul>
+          </div>
+
+          <div className="neon-card p-6">
+            <h3 className="text-xl font-display font-bold text-white mb-4">Información del Sistema</h3>
+            <div className="space-y-2 text-white/80 text-sm">
+              <p><span className="text-neon-pink font-semibold">Evento:</span> Manija Awards 2026</p>
+              <p><span className="text-neon-pink font-semibold">Base de Datos:</span> Firebase Firestore</p>
+              <p><span className="text-neon-pink font-semibold">Almacenamiento:</span> Seguro en la nube</p>
+              <p><span className="text-neon-pink font-semibold">Estado:</span> <span className="text-green-400">En vivo</span></p>
+            </div>
+          </div>
+
+          <div className="neon-card p-6 border-2 border-yellow-500/30 bg-yellow-500/5 col-span-full">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div>
+                <h3 className="text-xl font-display font-bold text-yellow-400 mb-2">🏆 Diplomas Digitales</h3>
+                <p className="text-white/70 text-sm">
+                  Genera diplomas PDF oficiales para cada ganador
+                </p>
+              </div>
+              <a href="/admin/results" className="px-6 py-3 rounded-xl bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-semibold hover:from-yellow-400 hover:to-yellow-500 transition-all shadow-lg shadow-yellow-500/30 flex items-center gap-2 whitespace-nowrap">
+                <Trophy className="h-5 w-5" />
+                Generar Diplomas
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     </main>
@@ -224,7 +268,6 @@ function AdminDashboardContent() {
         const config = await getSystemConfig()
         setVotingEnabledState(config?.votingEnabled || true)
 
-        // Fetch real stats from Firestore
         const [categories, votes] = await Promise.all([
           getCategories(),
           getAllVotesWithVoters()
@@ -288,67 +331,6 @@ function AdminDashboardContent() {
             <div className="text-white/70 text-sm mt-1">{label}</div>
           </motion.div>
         ))}
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2">
-        <div className="neon-card p-6">
-          <h3 className="text-xl font-display font-bold text-white mb-4">Guía Rápida</h3>
-          <ul className="space-y-2 text-white/80 text-sm">
-            <li>• <span className="font-semibold">Categorías:</span> Crear, editar o eliminar categorías de votación</li>
-            <li>• <span className="font-semibold">Resultados:</span> Ver resultados detallados y transparencia de votos</li>
-            <li>• <span className="font-semibold">Votantes:</span> Revisar todos los votantes registrados</li>
-            <li>• <span className="font-semibold">Gráficos:</span> Visualizar datos con gráficos dinámicos</li>
-            <li>• <span className="font-semibold">Diplomas:</span> Generar diplomas digitales para todos los ganadores</li>
-          </ul>
-        </div>
-
-        <div className="neon-card p-6">
-          <h3 className="text-xl font-display font-bold text-white mb-4">Información del Sistema</h3>
-          <div className="space-y-2 text-white/80 text-sm">
-            <p><span className="text-neon-pink font-semibold">Evento:</span> Manija Awards 2026</p>
-            <p><span className="text-neon-pink font-semibold">Base de Datos:</span> Firebase Firestore</p>
-            <p><span className="text-neon-pink font-semibold">Almacenamiento:</span> Seguro en la nube</p>
-            <p><span className="text-neon-pink font-semibold">Estado:</span> <span className="text-green-400">En vivo</span></p>
-          </div>
-        </div>
-
-        <div className="neon-card p-6 border-2 border-yellow-500/30 bg-yellow-500/5 col-span-full">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div>
-              <h3 className="text-xl font-display font-bold text-yellow-400 mb-2">🏆 Diplomas Digitales</h3>
-              <p className="text-white/70 text-sm">
-                Los diplomas digitales se generan automáticamente desde la página de resultados. 
-                Cada ganador por categoría recibe un diploma oficial personalizado.
-              </p>
-            </div>
-            <a
-              href="/admin/results"
-              className="px-6 py-3 rounded-xl bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-semibold hover:from-yellow-400 hover:to-yellow-500 transition-all shadow-lg shadow-yellow-500/30 flex items-center gap-2 whitespace-nowrap"
-            >
-              <Trophy className="h-5 w-5" />
-              Generar Diplomas
-            </a>
-          </div>
-        </div>
-
-        <div className="neon-card p-6 border-2 border-cyan-500/30 bg-cyan-500/5 col-span-full">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div>
-              <h3 className="text-xl font-display font-bold text-cyan-400 mb-2">🎬 Video de Conclusión</h3>
-              <p className="text-white/70 text-sm">
-                Visualiza el video de conclusión épico con todos los ganadores, estadísticas y celebración final.
-                Disponible tras cerrar la votación.
-              </p>
-            </div>
-            <button
-              onClick={() => setActiveTab('conclusion')}
-              className="px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-black font-semibold hover:from-cyan-400 hover:to-blue-400 transition-all shadow-lg shadow-cyan-500/30 flex items-center gap-2 whitespace-nowrap"
-            >
-              <Play className="h-5 w-5" />
-              Ver Video
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   )
