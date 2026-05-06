@@ -2,9 +2,10 @@
 
 import { useState, useEffect, lazy, Suspense } from 'react'
 import { motion } from 'framer-motion'
-import { LogOut, Lock, BarChart3, Settings, Users, Trophy, CheckCircle } from 'lucide-react'
+import { LogOut, Lock, BarChart3, Settings, Users, Trophy, CheckCircle, Play, X, Sparkles } from 'lucide-react'
 import { AdminLogin } from './AdminLogin'
 import { getSystemConfig, setVotingEnabled } from '@/lib/voting'
+import { AdminTeam } from './AdminTeam'
 
 // Lazy load heavy components
 const AdminResults = lazy(() => import('./AdminResults').then(mod => ({ default: mod.AdminResults })))
@@ -13,7 +14,7 @@ const AdminCharts = lazy(() => import('./AdminCharts').then(mod => ({ default: m
 const AdminVoters = lazy(() => import('./AdminVoters').then(mod => ({ default: mod.AdminVoters })))
 const AdminMaintenance = lazy(() => import('./AdminMaintenance').then(mod => ({ default: mod.AdminMaintenance })))
 
-type AdminTab = 'dashboard' | 'categories' | 'results' | 'voters' | 'charts' | 'maintenance'
+type AdminTab = 'dashboard' | 'categories' | 'results' | 'voters' | 'charts' | 'maintenance' | 'team' | 'conclusion'
 
 export function AdminDashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -127,7 +128,9 @@ export function AdminDashboard() {
               title={votingEnabled ? 'Cerrar votación' : 'Abrir votación'}
             >
               <span
-                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-lg transition-transform ${votingEnabled ? 'translate-x-8' : 'translate-x-1'}`}
+                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-lg transition-transform ${
+                  votingEnabled ? 'translate-x-8' : 'translate-x-1'
+                }`}
               />
             </button>
             <span className="text-xs text-white/60">
@@ -146,6 +149,8 @@ export function AdminDashboard() {
               { id: 'voters' as AdminTab, label: 'Votantes', shortLabel: 'Vot', icon: Users },
               { id: 'charts' as AdminTab, label: 'Gráficos', shortLabel: 'Grá', icon: BarChart3 },
               { id: 'maintenance' as AdminTab, label: 'Mantenimiento', shortLabel: 'Mant', icon: Settings },
+              { id: 'conclusion' as AdminTab, label: 'Concl', shortLabel: 'Concl', icon: Trophy },
+              { id: 'team' as AdminTab, label: 'Team', shortLabel: 'Team', icon: Users },
             ].map(({ id, label, shortLabel, icon: Icon }) => (
               <button
                 key={id}
@@ -195,6 +200,28 @@ export function AdminDashboard() {
                 <AdminCharts />
               </Suspense>
             )}
+            {activeTab === 'maintenance' && (
+              <Suspense fallback={<LoadingFallback />}>
+                <AdminMaintenance />
+              </Suspense>
+            )}
+            {activeTab === 'conclusion' && (
+              <div className="p-8 text-center">
+                <h3 className="text-2xl font-display font-bold text-white mb-4">Video de Conclusión</h3>
+                <p className="text-white/70 mb-6">Funcionalidad de video de conclusión próximamente disponible.</p>
+                <div className="neon-card p-8 rounded-2xl flex items-center justify-center">
+                  <div className="text-neon-pink">
+                    <Play className="h-16 w-16 mx-auto mb-4" />
+                    <p className="text-lg font-semibold">Video no disponible</p>
+                  </div>
+                </div>
+              </div>
+            )}
+            {activeTab === 'team' && (
+              <Suspense fallback={<LoadingFallback />}>
+                <AdminTeam />
+              </Suspense>
+            )}
           </motion.div>
         </div>
       </div>
@@ -215,11 +242,8 @@ function AdminDashboardContent() {
   useEffect(() => {
     const loadStats = async () => {
       try {
-        // Get voting status
         const config = await getSystemConfig()
         setVotingEnabledState(config?.votingEnabled || true)
-        
-        // Simulated stats - In production, fetch from Firestore
         setStats({
           totalVoters: 0,
           totalVotes: 0,
@@ -232,7 +256,6 @@ function AdminDashboardContent() {
         setLoading(false)
       }
     }
-
     loadStats()
   }, [])
 
@@ -271,10 +294,11 @@ function AdminDashboardContent() {
         <div className="neon-card p-6">
           <h3 className="text-xl font-display font-bold text-white mb-4">Guía Rápida</h3>
           <ul className="space-y-2 text-white/80 text-sm">
-            <li>• <span className="font-semibold">Categorías:</span> Crear, editar o eliminar categorías de votación</li>
-            <li>• <span className="font-semibold">Resultados:</span> Ver resultados detallados y transparencia de votos</li>
-            <li>• <span className="font-semibold">Votantes:</span> Revisar todos los votantes registrados</li>
-            <li>• <span className="font-semibold">Gráficos:</span> Visualizar datos con gráficos dinámicos</li>
+            <li>• <span className="font-semibold">Categorías:</span> Crear, editar o eliminar categorías</li>
+            <li>• <span className="font-semibold">Resultados:</span> Ver resultados y transparencia</li>
+            <li>• <span className="font-semibold">Votantes:</span> Revisar votantes registrados</li>
+            <li>• <span className="font-semibold">Gráficos:</span> Visualizar datos dinámicos</li>
+            <li>• <span className="font-semibold">Diplomas:</span> Generar diplomas digitales</li>
           </ul>
         </div>
 
@@ -289,45 +313,21 @@ function AdminDashboardContent() {
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <div className="neon-card p-6">
-          <h3 className="text-xl font-display font-bold text-white mb-4">Guía Rápida</h3>
-          <ul className="space-y-2 text-white/80 text-sm">
-            <li>• <span className="font-semibold">Categorías:</span> Crear, editar o eliminar categorías de votación</li>
-            <li>• <span className="font-semibold">Resultados:</span> Ver resultados detallados y transparencia de votos</li>
-            <li>• <span className="font-semibold">Votantes:</span> Revisar todos los votantes registrados</li>
-            <li>• <span className="font-semibold">Gráficos:</span> Visualizar datos con gráficos dinámicos</li>
-            <li>• <span className="font-semibold">Diplomas:</span> Generar diplomas digitales para todos los ganadores</li>
-          </ul>
-        </div>
-
-        <div className="neon-card p-6">
-          <h3 className="text-xl font-display font-bold text-white mb-4">Información del Sistema</h3>
-          <div className="space-y-2 text-white/80 text-sm">
-            <p><span className="text-neon-pink font-semibold">Evento:</span> Manija Awards 2026</p>
-            <p><span className="text-neon-pink font-semibold">Base de Datos:</span> Firebase Firestore</p>
-            <p><span className="text-neon-pink font-semibold">Almacenamiento:</span> Seguro en la nube</p>
-            <p><span className="text-neon-pink font-semibold">Estado:</span> <span className="text-green-400">En vivo</span></p>
+      <div className="neon-card p-6 border-2 border-yellow-500/30 bg-yellow-500/5">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div>
+            <h3 className="text-xl font-display font-bold text-yellow-400 mb-2">🏆 Diplomas Digitales</h3>
+            <p className="text-white/70 text-sm">
+              Los diplomas digitales se generan automáticamente. Cada ganador recibe un diploma oficial.
+            </p>
           </div>
-        </div>
-
-        <div className="neon-card p-6 border-2 border-yellow-500/30 bg-yellow-500/5 col-span-full">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div>
-              <h3 className="text-xl font-display font-bold text-yellow-400 mb-2">🏆 Diplomas Digitales</h3>
-              <p className="text-white/70 text-sm">
-                Los diplomas digitales se generan automáticamente desde la página de resultados. 
-                Cada ganador por categoría recibe un diploma oficial personalizado.
-              </p>
-            </div>
-            <a
-              href="/admin/results"
-              className="px-6 py-3 rounded-xl bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-semibold hover:from-yellow-400 hover:to-yellow-500 transition-all shadow-lg shadow-yellow-500/30 flex items-center gap-2 whitespace-nowrap"
-            >
-              <Trophy className="h-5 w-5" />
-              Generar Diplomas
-            </a>
-          </div>
+          <a
+            href="/admin/results"
+            className="px-6 py-3 rounded-xl bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-semibold hover:from-yellow-400 hover:to-yellow-500 transition-all shadow-lg shadow-yellow-500/30 flex items-center gap-2 whitespace-nowrap"
+          >
+            <Trophy className="h-5 w-5" />
+            Generar Diplomas
+          </a>
         </div>
       </div>
     </div>
