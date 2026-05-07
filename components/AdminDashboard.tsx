@@ -3,7 +3,7 @@
 import { useState, useEffect, lazy, Suspense } from 'react'
 import { motion } from 'framer-motion'
 import { LogOut, Lock, BarChart3, Settings, Users, Trophy, CheckCircle, Play, X, Sparkles } from 'lucide-react'
-import { AdminLogin } from './AdminLogin'
+import { AdminLogin } from './AdminLogin.tsx'
 import { getSystemConfig, setVotingEnabled } from '@/lib/voting'
 import { AdminTeam } from './AdminTeam'
 
