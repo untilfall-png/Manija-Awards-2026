@@ -4,3 +4,11 @@ dist
 build
 .env.local
 .env.*.local
+
+# Archivos temporales / basura
+*.backup
+*.bak
+*.err
+*.log
+temp.css
+hyperframes.config.js

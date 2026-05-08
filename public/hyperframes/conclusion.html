@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Manija Awards 2026 – Conclusión</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; background: #000; overflow: hidden; font-family: 'Arial Black', Arial, sans-serif; }
+    #stage { width: 1920px; height: 1080px; transform-origin: top left; position: relative; }
+
+    @keyframes pulse  { 0%,100%{transform:scale(1)}   50%{transform:scale(1.06)} }
+    @keyframes glow   { from{filter:drop-shadow(0 0 20px currentColor)} to{filter:drop-shadow(0 0 50px currentColor)} }
+    @keyframes floatY { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(-18px)} }
+  </style>
+</head>
+<body>
+<div id="stage"></div>
+
+<script>
+// ─── Default data (replaced when real data arrives via postMessage) ───────────
+let DATA = {
+  totalVoters:  0,
+  totalVotes:   0,
+  results: [
+    { categoryName:'Mejor Director',  winnerName:'Por Definir', votes:0, categoryDescription:'' },
+    { categoryName:'Mejor Actor',     winnerName:'Por Definir', votes:0, categoryDescription:'' },
+    { categoryName:'Mejor Actriz',    winnerName:'Por Definir', votes:0, categoryDescription:'' },
+    { categoryName:'Mejor Película',  winnerName:'Por Definir', votes:0, categoryDescription:'' },
+  ],
+  topCategory: null,
+};
+
+// ─── Stage scaling ────────────────────────────────────────────────────────────
+function scaleStage() {
+  const s  = document.getElementById('stage');
+  const sx = window.innerWidth  / 1920;
+  const sy = window.innerHeight / 1080;
+  const sc = Math.min(sx, sy);
+  s.style.transform  = `scale(${sc})`;
+  s.style.marginLeft = ((window.innerWidth  - 1920 * sc) / 2) + 'px';
+  s.style.marginTop  = ((window.innerHeight - 1080 * sc) / 2) + 'px';
+}
+window.addEventListener('resize', scaleStage);
+scaleStage();
+
+// ─── Playback ─────────────────────────────────────────────────────────────────
+const FPS   = 30;
+const TOTAL = 420; // 14s loop
+
+let frame   = 0;
+let playing = false;
+let rafId   = null;
+let lastTs  = null;
+let accum   = 0;
+
+// ─── Render ───────────────────────────────────────────────────────────────────
+function renderFrame(f) {
+  const stage = document.getElementById('stage');
+  if (!stage) return;
+
+  const top     = DATA.topCategory || DATA.results[0] || {};
+  const results = DATA.results;
+  const cols    = results.length <= 4 ? results.length : Math.ceil(results.length / 2);
+  const rows    = results.length <= 4 ? 1 : 2;
+
+  // Animated background
+  const hue1 = (f * 0.3) % 360;
+  const hue2 = (f * 0.2 + 120) % 360;
+  const bg   = `radial-gradient(ellipse at ${30 + Math.sin(f*0.02)*20}% ${40 + Math.cos(f*0.015)*15}%, hsl(${hue1},80%,8%) 0%, #000 70%)`;
+
+  // Laser lines
+  const l1x  = (f * 4)    % 1920;
+  const l2x  = (f * 2.5)  % 1920;
+  const l3y  = (f * 3)    % 1080;
+
+  // Section opacity helpers
+  const sec1 = f < 105  ? Math.min(f / 30, 1)              : Math.max(1 - (f - 90) / 30, 0);   // title  0–105
+  const sec2 = f >= 90  && f < 210 ? Math.min((f-90)/30,1) : f >= 210 ? Math.max(1-(f-195)/30,0) : 0;  // top cat 90–210
+  const sec3 = f >= 180 && f < 315 ? Math.min((f-180)/30,1): f >= 315 ? Math.max(1-(f-300)/30,0): 0;   // stats   180–315
+  const sec4 = f >= 285 ? Math.min((f-285)/30,1)           : 0;                                  // all cats 285+
+
+  // Card grid for all categories
+  const gridCols = results.length <= 3 ? results.length : Math.min(results.length, 4);
+  const cardW    = results.length <= 3 ? 480 : 420;
+  const cardH    = 180;
+  const totalW   = gridCols * cardW + (gridCols - 1) * 20;
+  const startX   = (1920 - totalW) / 2;
+  const needTwo  = results.length > gridCols;
+  const row2     = needTwo ? Math.ceil(results.length / gridCols) > 1 : false;
+
+  const cards = results.map((r, i) => {
+    const col    = i % gridCols;
+    const row    = Math.floor(i / gridCols);
+    const cx     = startX + col * (cardW + 20);
+    const cy     = 720   + row * (cardH + 20);
+    const pct    = DATA.totalVotes > 0 ? Math.round(r.votes / DATA.totalVotes * 100) : 0;
+    const isTop  = top && r.categoryName === top.categoryName;
+    const border = isTop ? '#ff2edb' : '#ffffff22';
+    const glow   = isTop ? '0 0 30px rgba(255,46,219,0.6)' : 'none';
+    const delay  = i * 0.08;
+    const barW   = Math.round(pct / 100 * (cardW - 40));
+    return `
+      <div style="position:absolute;left:${cx}px;top:${cy}px;width:${cardW}px;height:${cardH}px;
+          background:rgba(255,255,255,0.05);border:2px solid ${border};border-radius:14px;
+          box-shadow:${glow};padding:14px 20px;">
+        <div style="font-size:${isTop?22:18}px;color:${isTop?'#ff2edb':'#aaa'};letter-spacing:3px;margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.categoryName.toUpperCase()}</div>
+        <div style="font-size:${isTop?32:26}px;font-weight:900;color:#fff;letter-spacing:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-shadow:${isTop?'0 0 20px rgba(255,46,219,0.7)':'none'}">${r.winnerName}</div>
+        <div style="margin-top:8px;background:rgba(255,255,255,0.1);border-radius:4px;height:6px;overflow:hidden;">
+          <div style="height:6px;width:${barW}px;background:linear-gradient(90deg,#ff2edb,#9b00ff);border-radius:4px;"></div>
+        </div>
+        <div style="margin-top:4px;font-size:15px;color:#888;">${r.votes} votos · ${pct}%${isTop?' 🏆':''}</div>
+      </div>`;
+  }).join('');
+
+  stage.innerHTML = `
+<div style="width:1920px;height:1080px;background:${bg};position:relative;overflow:hidden;">
+
+  <!-- Laser lines -->
+  <div style="position:absolute;top:0;left:${l1x}px;width:3px;height:1080px;background:linear-gradient(to bottom,transparent,#ff2edb,#9b00ff,transparent);opacity:0.5;"></div>
+  <div style="position:absolute;top:0;right:${l2x}px;width:2px;height:1080px;background:linear-gradient(to bottom,transparent,#00ffff,transparent);opacity:0.4;"></div>
+  <div style="position:absolute;top:${l3y}px;left:0;width:1920px;height:2px;background:linear-gradient(to right,transparent,#ffff00,transparent);opacity:0.25;"></div>
+
+  <!-- SECTION 1: Título -->
+  <div style="position:absolute;top:60px;left:50%;transform:translateX(-50%);text-align:center;opacity:${sec1};width:1700px;">
+    <h1 style="font-size:96px;font-weight:900;background:linear-gradient(90deg,#ff2edb,#00ffff,#ffff00);-webkit-background-clip:text;background-clip:text;color:transparent;letter-spacing:8px;line-height:1;">🏆 MANIJA AWARDS 2026 🏆</h1>
+    <p style="font-size:38px;color:#fff;letter-spacing:10px;margin-top:16px;text-shadow:0 0 20px rgba(255,255,255,0.5);">RESUMEN FINAL DE VOTACIÓN</p>
+  </div>
+
+  <!-- SECTION 2: Campeón de campeones -->
+  <div style="position:absolute;top:200px;left:50%;transform:translateX(-50%);text-align:center;opacity:${sec2};width:1400px;">
+    <p style="font-size:28px;color:#aaa;letter-spacing:8px;margin-bottom:10px;">CATEGORÍA CON MÁS VOTOS</p>
+    <div style="font-size:56px;margin:10px 0;">⚡</div>
+    <h2 style="font-size:52px;color:#ffff00;letter-spacing:6px;text-shadow:0 0 30px #ffff00;">${(top.categoryName||'').toUpperCase()}</h2>
+    <h3 style="font-size:80px;font-weight:900;color:#fff;letter-spacing:8px;margin:10px 0;text-shadow:0 0 40px #ff2edb;">${top.winnerName||'Por Definir'}</h3>
+    <div style="display:inline-block;background:linear-gradient(90deg,#ff2edb,#9b00ff);border-radius:40px;padding:12px 50px;margin-top:10px;">
+      <span style="font-size:38px;font-weight:900;color:#fff;letter-spacing:4px;">⚡ ${top.votes||0} VOTOS ⚡</span>
+    </div>
+  </div>
+
+  <!-- SECTION 3: Stats globales -->
+  <div style="position:absolute;top:540px;left:50%;transform:translateX(-50%);display:flex;gap:50px;opacity:${sec3};">
+    <div style="text-align:center;padding:30px 50px;background:rgba(255,46,219,0.15);border:2px solid #ff2edb;border-radius:20px;box-shadow:0 0 40px rgba(255,46,219,0.4);">
+      <div style="font-size:64px;color:#ff2edb;">👥</div>
+      <div style="font-size:56px;font-weight:900;color:#fff;">${DATA.totalVoters}</div>
+      <div style="font-size:22px;color:#aaa;letter-spacing:4px;">PARTICIPANTES</div>
+    </div>
+    <div style="text-align:center;padding:30px 50px;background:rgba(0,255,255,0.15);border:2px solid #00ffff;border-radius:20px;box-shadow:0 0 40px rgba(0,255,255,0.4);">
+      <div style="font-size:64px;color:#00ffff;">🗳️</div>
+      <div style="font-size:56px;font-weight:900;color:#fff;">${DATA.totalVotes}</div>
+      <div style="font-size:22px;color:#aaa;letter-spacing:4px;">VOTOS TOTALES</div>
+    </div>
+    <div style="text-align:center;padding:30px 50px;background:rgba(255,255,0,0.15);border:2px solid #ffff00;border-radius:20px;box-shadow:0 0 40px rgba(255,255,0,0.4);">
+      <div style="font-size:64px;color:#ffff00;">🏆</div>
+      <div style="font-size:56px;font-weight:900;color:#fff;">${DATA.results.length}</div>
+      <div style="font-size:22px;color:#aaa;letter-spacing:4px;">CATEGORÍAS</div>
+    </div>
+  </div>
+
+  <!-- SECTION 4: Todas las categorías -->
+  <div style="position:absolute;top:680px;left:0;width:1920px;opacity:${sec4};">
+    <p style="text-align:center;font-size:26px;color:#fff;letter-spacing:6px;margin-bottom:14px;">TODOS LOS GANADORES</p>
+    ${cards}
+  </div>
+
+  <!-- Mensaje final loop -->
+  ${f > 390 ? `<div style="position:absolute;bottom:20px;left:50%;transform:translateX(-50%);opacity:${Math.min((f-390)/20,1)};text-align:center;">
+    <p style="font-size:32px;color:#00ff88;text-shadow:0 0 20px #00ff88;letter-spacing:6px;">🌟 LA NOCHE ES NUESTRA 🌟</p>
+  </div>` : ''}
+
+</div>`;
+}
+
+// ─── RAF loop ────────────────────────────────────────────────────────────────
+function loop(ts) {
+  if (!lastTs) lastTs = ts;
+  accum += ts - lastTs;
+  lastTs = ts;
+  const mpf = 1000 / FPS;
+  while (accum >= mpf) { accum -= mpf; frame++; if (frame >= TOTAL) frame = 0; }
+  renderFrame(frame);
+  if (playing) rafId = requestAnimationFrame(loop);
+}
+
+function play()    { if (playing) return; playing = true; lastTs = null; accum = 0; rafId = requestAnimationFrame(loop); }
+function pause()   { playing = false; if (rafId) { cancelAnimationFrame(rafId); rafId = null; } }
+function restart() { frame = 0; lastTs = null; accum = 0; if (!playing) renderFrame(0); }
+
+// ─── postMessage API ─────────────────────────────────────────────────────────
+window.addEventListener('message', e => {
+  const msg = e.data;
+  if (!msg) return;
+  if (msg === 'play')    { play();    return; }
+  if (msg === 'pause')   { pause();   return; }
+  if (msg === 'restart') { restart(); play(); return; }
+  if (msg.type === 'data') {
+    if (msg.totalVoters  !== undefined) DATA.totalVoters  = msg.totalVoters;
+    if (msg.totalVotes   !== undefined) DATA.totalVotes   = msg.totalVotes;
+    if (msg.results      !== undefined) DATA.results      = msg.results;
+    if (msg.topCategory  !== undefined) DATA.topCategory  = msg.topCategory;
+    frame = 0;
+    renderFrame(0);
+    if (!playing) play();
+  }
+});
+
+// ─── Boot ────────────────────────────────────────────────────────────────────
+renderFrame(0);
+play();
+</script>
+</body>
+</html>

@@ -69,3 +69,11 @@ label {
   border-radius: 10px;
   cursor: pointer;
 }
+
+.logo-img {
+  max-width: 120px;
+  height: auto;
+  display: block;
+  margin: 0 auto 20px;
+  filter: drop-shadow(0 0 10px #FF2EDB);
+}

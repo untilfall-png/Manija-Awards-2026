@@ -69,7 +69,7 @@ export async function getSystemConfig(): Promise<SystemConfig | null> {
     }
     const data = configDoc.data();
     return {
-      votingEnabled: data.votingEnabled || true,
+      votingEnabled: data.votingEnabled ?? true,
       updatedAt: data.updatedAt?.toDate() || new Date(),
       updatedBy: data.updatedBy,
     };

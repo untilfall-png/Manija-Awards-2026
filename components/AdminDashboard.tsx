@@ -1,18 +1,21 @@
 'use client'
 
 import { useState, useEffect, lazy, Suspense } from 'react'
-import { motion } from 'framer-motion'
-import { LogOut, Lock, BarChart3, Settings, Users, Trophy, CheckCircle, Play, X, Sparkles } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { LogOut, Lock, BarChart3, Settings, Users, Trophy, CheckCircle, Play, X, Sparkles, Loader2 } from 'lucide-react'
 import { AdminLogin } from './AdminLogin.tsx'
 import { getSystemConfig, setVotingEnabled } from '@/lib/voting'
+import { getVotingResults, type VotingStats } from '@/lib/results'
 import { AdminTeam } from './AdminTeam'
 
 // Lazy load heavy components
-const AdminResults = lazy(() => import('./AdminResults').then(mod => ({ default: mod.AdminResults })))
-const AdminCategories = lazy(() => import('./AdminCategories').then(mod => ({ default: mod.AdminCategories })))
-const AdminCharts = lazy(() => import('./AdminCharts').then(mod => ({ default: mod.AdminCharts })))
-const AdminVoters = lazy(() => import('./AdminVoters').then(mod => ({ default: mod.AdminVoters })))
+const AdminResults     = lazy(() => import('./AdminResults').then(mod => ({ default: mod.AdminResults })))
+const AdminCategories  = lazy(() => import('./AdminCategories').then(mod => ({ default: mod.AdminCategories })))
+const AdminCharts      = lazy(() => import('./AdminCharts').then(mod => ({ default: mod.AdminCharts })))
+const AdminVoters      = lazy(() => import('./AdminVoters').then(mod => ({ default: mod.AdminVoters })))
 const AdminMaintenance = lazy(() => import('./AdminMaintenance').then(mod => ({ default: mod.AdminMaintenance })))
+const AdminConclusionVideo = lazy(() => import('./AdminConclusionVideo').then(mod => ({ default: mod.AdminConclusionVideo })))
+const AdminDiplomasVideo   = lazy(() => import('./AdminDiplomasVideo').then(mod => ({ default: mod.AdminDiplomasVideo })))
 
 type AdminTab = 'dashboard' | 'categories' | 'results' | 'voters' | 'charts' | 'maintenance' | 'team' | 'conclusion'
 
@@ -22,6 +25,8 @@ export function AdminDashboard() {
   const [loading, setLoading] = useState(true)
   const [votingEnabled, setVotingEnabledState] = useState(true)
   const [checkingVotingStatus, setCheckingVotingStatus] = useState(true)
+  const [votingStats, setVotingStats] = useState<VotingStats | null>(null)
+  const [generatingVideos, setGeneratingVideos] = useState(false)
 
   useEffect(() => {
     // Check for admin authentication
@@ -47,7 +52,7 @@ export function AdminDashboard() {
   const checkVotingStatus = async () => {
     try {
       const config = await getSystemConfig()
-      setVotingEnabledState(config?.votingEnabled || true)
+      setVotingEnabledState(config?.votingEnabled ?? true)
     } catch (error) {
       console.error('Error checking voting status:', error)
     } finally {
@@ -56,9 +61,23 @@ export function AdminDashboard() {
   }
 
   const handleToggleVoting = async () => {
-    const success = await setVotingEnabled(!votingEnabled, 'admin')
-    if (success) {
-      setVotingEnabledState(!votingEnabled)
+    const newState = !votingEnabled
+    const success = await setVotingEnabled(newState, 'admin')
+    if (!success) return
+    setVotingEnabledState(newState)
+
+    // When closing voting, fetch real results and generate videos
+    if (!newState) {
+      setGeneratingVideos(true)
+      try {
+        const stats = await getVotingResults()
+        setVotingStats(stats)
+        setActiveTab('conclusion')
+      } catch (err) {
+        console.error('Error fetching voting results:', err)
+      } finally {
+        setGeneratingVideos(false)
+      }
     }
   }
 
@@ -206,14 +225,48 @@ export function AdminDashboard() {
               </Suspense>
             )}
             {activeTab === 'conclusion' && (
-              <div className="p-8 text-center">
-                <h3 className="text-2xl font-display font-bold text-white mb-4">Video de Conclusión</h3>
-                <p className="text-white/70 mb-6">Funcionalidad de video de conclusión próximamente disponible.</p>
-                <div className="neon-card p-8 rounded-2xl flex items-center justify-center">
-                  <div className="text-neon-pink">
-                    <Play className="h-16 w-16 mx-auto mb-4" />
-                    <p className="text-lg font-semibold">Video no disponible</p>
-                  </div>
+              <div className="space-y-10">
+                {/* Generating banner */}
+                <AnimatePresence>
+                  {generatingVideos && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="flex items-center justify-center gap-3 px-6 py-4 rounded-2xl bg-neon-pink/10 border border-neon-pink/40"
+                    >
+                      <Loader2 className="h-5 w-5 text-neon-pink animate-spin" />
+                      <span className="text-neon-pink font-semibold">Generando videos con datos reales...</span>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Stats badge when data is loaded */}
+                {votingStats && !generatingVideos && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="flex items-center justify-center gap-6 text-sm"
+                  >
+                    <span className="px-4 py-2 rounded-full bg-neon-pink/15 border border-neon-pink/30 text-neon-pink font-semibold">
+                      ✅ Datos reales cargados
+                    </span>
+                    <span className="text-white/60">{votingStats.totalVoters} votantes · {votingStats.totalVotes} votos · {votingStats.results.length} categorías</span>
+                  </motion.div>
+                )}
+
+                {/* Diplomas video */}
+                <div className="neon-card p-6 rounded-2xl border border-neon-purple/30">
+                  <Suspense fallback={<LoadingFallback />}>
+                    <AdminDiplomasVideo stats={votingStats} />
+                  </Suspense>
+                </div>
+
+                {/* Conclusion stats video */}
+                <div className="neon-card p-6 rounded-2xl border border-neon-pink/30">
+                  <Suspense fallback={<LoadingFallback />}>
+                    <AdminConclusionVideo stats={votingStats} />
+                  </Suspense>
                 </div>
               </div>
             )}
@@ -243,7 +296,7 @@ function AdminDashboardContent() {
     const loadStats = async () => {
       try {
         const config = await getSystemConfig()
-        setVotingEnabledState(config?.votingEnabled || true)
+        setVotingEnabledState(config?.votingEnabled ?? true)
         setStats({
           totalVoters: 0,
           totalVotes: 0,
