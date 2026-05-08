@@ -24,21 +24,25 @@ const nextConfig = {
   async headers() {
     return [
       {
+        // Hyperframes: sin caché → siempre sirve la versión más nueva
         source: '/hyperframes/:path*',
         headers: [
-          { key: 'Cache-Control', value: 'public, max-age=86400, stale-while-revalidate=604800' },
+          { key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' },
+          { key: 'Pragma',        value: 'no-cache' },
+          { key: 'Expires',       value: '0' },
         ],
       },
       {
+        // Imágenes: caché corta (1 día) para que cambios sean visibles
         source: '/:path*.jpeg',
         headers: [
-          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+          { key: 'Cache-Control', value: 'public, max-age=86400, must-revalidate' },
         ],
       },
       {
         source: '/:path*.jpg',
         headers: [
-          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+          { key: 'Cache-Control', value: 'public, max-age=86400, must-revalidate' },
         ],
       },
     ]

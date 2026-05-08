@@ -65,7 +65,7 @@ export function AdminDiplomasVideo({ stats }: AdminDiplomasVideoProps) {
       >
         <iframe
           ref={iframeRef}
-          src="/hyperframes/diplomas.html"
+          src="/hyperframes/diplomas.html?v=4"
           className="w-full h-full border-0"
           title="Diplomas Manija Awards 2026"
           allow="fullscreen"
