@@ -3,7 +3,27 @@
 
 import { useCallback } from 'react'
 
+// ── Helper: carga el logo como base64 para embeber en HTML sin problemas de CORS ──
+async function fetchLogoBase64(): Promise<string> {
+  try {
+    const resp = await fetch('/logo.jpeg')
+    const blob = await resp.blob()
+    return new Promise(resolve => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror  = () => resolve('')
+      reader.readAsDataURL(blob)
+    })
+  } catch {
+    return ''
+  }
+}
+
 export function useDiplomaGenerator() {
+
+  // ════════════════════════════════════════════════════════════
+  //  DIPLOMA REGULAR — estética neon
+  // ════════════════════════════════════════════════════════════
   const generateDiplomaPDF = useCallback(async (
     winnerName: string,
     categoryName: string,
@@ -11,28 +31,30 @@ export function useDiplomaGenerator() {
     date: string
   ) => {
     try {
-      // Carga diferida: solo importa estas bibliotecas pesadas cuando se necesitan
-      const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+      const [{ default: jsPDF }, { default: html2canvas }, logoB64] = await Promise.all([
         import('jspdf'),
         import('html2canvas'),
+        fetchLogoBase64(),
       ])
 
-      // ── Render diploma HTML ──────────────────────────────────────────────
       const W = 1100, H = 770
       const tempDiv = document.createElement('div')
       tempDiv.style.cssText = `position:fixed;left:-9999px;top:-9999px;width:${W}px;height:${H}px;`
       document.body.appendChild(tempDiv)
 
-      // Parse date for large display (day / month / year)
-      const dateParts = date.split('/') // dd/mm/yyyy
-      const day   = dateParts[0] || ''
-      const month = dateParts[1] || ''
+      const dateParts = date.split('/')
+      const day   = dateParts[0] || '21'
+      const month = dateParts[1] || '05'
       const year  = dateParts[2] || '2026'
       const months: Record<string,string> = {
         '01':'ENE','02':'FEB','03':'MAR','04':'ABR','05':'MAY','06':'JUN',
         '07':'JUL','08':'AGO','09':'SEP','10':'OCT','11':'NOV','12':'DIC',
       }
       const monthName = months[month] || 'MAYO'
+
+      const logoHtml = logoB64
+        ? `<img src="${logoB64}" style="width:70px;height:70px;border-radius:50%;border:2.5px solid rgba(255,46,219,0.7);object-fit:cover;display:block;margin:0 auto;" />`
+        : `<div style="width:60px;height:60px;border:2px solid rgba(255,46,219,0.5);border-radius:50%;margin:0 auto;line-height:60px;text-align:center;font-size:22px;color:rgba(255,255,255,0.5);">⊞</div>`
 
       tempDiv.innerHTML = `
 <div style="
@@ -54,40 +76,37 @@ export function useDiplomaGenerator() {
   <!-- Outer border frame -->
   <div style="position:absolute;inset:10px;border:1px solid rgba(255,46,219,0.18);"></div>
 
-  <!-- HUD corners top-left -->
+  <!-- HUD corners -->
   <div style="position:absolute;top:18px;left:18px;width:44px;height:44px;border-top:2px solid #ff2edb;border-left:2px solid #ff2edb;"></div>
-  <!-- HUD corners top-right -->
   <div style="position:absolute;top:18px;right:18px;width:44px;height:44px;border-top:2px solid #ff2edb;border-right:2px solid #ff2edb;"></div>
-  <!-- HUD corners bottom-left -->
   <div style="position:absolute;bottom:18px;left:18px;width:44px;height:44px;border-bottom:2px solid #22d3ee;border-left:2px solid #22d3ee;"></div>
-  <!-- HUD corners bottom-right -->
   <div style="position:absolute;bottom:18px;right:18px;width:44px;height:44px;border-bottom:2px solid #22d3ee;border-right:2px solid #22d3ee;"></div>
 
   <!-- TOP LEFT: location -->
   <div style="position:absolute;top:30px;left:68px;">
-    <div style="font-size:13px;font-weight:900;color:#cc00ff;letter-spacing:4px;line-height:1;">IBIZA</div>
-    <div style="font-size:7.5px;color:rgba(255,255,255,0.35);letter-spacing:2px;margin-top:3px;line-height:1.8;">WHITE ISLAND<br>BALEARIC NIGHTS</div>
+    <div style="font-size:13px;font-weight:900;color:#cc00ff;letter-spacing:4px;line-height:1;">SANTIAGO DE CHILE</div>
+    <div style="font-size:7.5px;color:rgba(255,255,255,0.35);letter-spacing:2px;margin-top:3px;line-height:1.8;">ANIVERSARIO MANIJA 2026</div>
   </div>
 
   <!-- TOP RIGHT: date -->
   <div style="position:absolute;top:22px;right:68px;text-align:right;">
-    <div style="font-size:30px;font-weight:900;color:#ff2edb;line-height:1;">${day || '21'}</div>
+    <div style="font-size:30px;font-weight:900;color:#ff2edb;line-height:1;">${day}</div>
     <div style="font-size:9px;color:rgba(255,255,255,0.55);letter-spacing:3px;line-height:2;">${monthName}</div>
     <div style="font-size:13px;color:rgba(255,255,255,0.65);letter-spacing:2px;">${year}</div>
   </div>
 
-  <!-- Center icon -->
-  <div style="text-align:center;padding-top:30px;">
-    <div style="display:inline-block;width:38px;height:38px;border:1.5px solid rgba(255,255,255,0.25);border-radius:50%;line-height:38px;font-size:16px;color:rgba(255,255,255,0.5);">⊞</div>
+  <!-- TOP CENTER: Logo -->
+  <div style="text-align:center;padding-top:24px;">
+    ${logoHtml}
   </div>
 
-  <!-- Tagline with waveform style -->
+  <!-- Tagline -->
   <div style="text-align:center;margin-top:6px;">
-    <span style="font-size:8px;color:rgba(255,255,255,0.3);letter-spacing:6px;">—— LA NOCHE ES NUESTRA ——</span>
+    <span style="font-size:8px;color:rgba(255,255,255,0.3);letter-spacing:6px;">—— CLUB LOS MANIJAS 2026 ——</span>
   </div>
 
   <!-- MANIJA (white glow) -->
-  <div style="text-align:center;margin-top:10px;line-height:1;">
+  <div style="text-align:center;margin-top:8px;line-height:1;">
     <div style="font-size:82px;font-weight:900;color:#ffffff;letter-spacing:10px;text-shadow:0 0 25px rgba(200,100,255,0.9),0 0 60px rgba(170,0,255,0.5);">MANIJA</div>
   </div>
   <!-- AWARDS (neon pink) -->
@@ -99,7 +118,7 @@ export function useDiplomaGenerator() {
     <div style="font-size:18px;color:rgba(255,255,255,0.4);letter-spacing:16px;">2 0 2 6</div>
   </div>
 
-  <!-- Neon separator line -->
+  <!-- Neon separator -->
   <div style="margin:14px 70px 0;height:2px;background:linear-gradient(90deg,transparent,#ff2edb 30%,#a855f7 50%,#22d3ee 70%,transparent);"></div>
 
   <!-- OTORGADO A -->
@@ -134,32 +153,20 @@ export function useDiplomaGenerator() {
   <!-- Bottom neon line -->
   <div style="margin:14px 70px;height:1px;background:linear-gradient(90deg,transparent,rgba(255,46,219,0.4) 30%,rgba(34,211,238,0.3) 70%,transparent);"></div>
 
-  <!-- BOTTOM SECTION: QR | Signature | Badge -->
-  <div style="display:flex;justify-content:space-between;align-items:flex-end;padding:0 70px 28px;">
-
-    <!-- QR area -->
-    <div style="text-align:center;min-width:80px;">
-      <!-- QR placeholder grid -->
-      <div style="width:70px;height:70px;background:#fff;padding:6px;display:inline-block;">
-        <div style="width:100%;height:100%;display:grid;grid-template-columns:repeat(5,1fr);gap:1px;">
-          ${Array.from({length:25}).map((_,i)=>`<div style="background:${[0,1,2,5,6,7,10,12,17,18,19,22,23,24].includes(i)?'#000':'#fff'}"></div>`).join('')}
-        </div>
-      </div>
-      <div style="font-size:7px;color:rgba(255,255,255,0.3);letter-spacing:1px;margin-top:5px;line-height:1.6;">ESCANEA PARA<br>REVIVIR LA NOCHE</div>
-    </div>
+  <!-- BOTTOM SECTION: Signature centered + Badge right -->
+  <div style="display:flex;justify-content:center;align-items:flex-end;padding:0 70px 28px;position:relative;">
 
     <!-- Signature -->
     <div style="text-align:center;">
-      <div style="font-size:13px;color:rgba(255,255,255,0.35);font-style:italic;margin-bottom:5px;letter-spacing:1px;">&#x1d4d2;&#x1d4f5;&#x1d4eb; &#x1d4ed;&#x1d4ee; &#x1d4e3;&#x1d4f8;&#x1d4eb;&#x1d4f8;</div>
-      <div style="width:130px;height:1px;background:rgba(255,255,255,0.2);margin:0 auto 6px;"></div>
-      <div style="font-size:8px;color:rgba(255,255,255,0.4);letter-spacing:3px;">CLUB DE TOBY</div>
-      <div style="font-size:8px;color:rgba(255,255,255,0.3);letter-spacing:3px;margin-top:2px;">LOS MANIJAS</div>
-      <div style="font-size:7px;color:rgba(255,46,219,0.4);letter-spacing:2px;margin-top:4px;">${votes} votos · ${date}</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.35);font-style:italic;margin-bottom:5px;letter-spacing:1px;">Club los Manijas</div>
+      <div style="width:160px;height:1px;background:rgba(255,255,255,0.2);margin:0 auto 6px;"></div>
+      <div style="font-size:8px;color:rgba(255,255,255,0.4);letter-spacing:3px;">CLUB LOS MANIJAS 2026</div>
+      <div style="font-size:7px;color:rgba(255,46,219,0.4);letter-spacing:2px;margin-top:6px;">${votes} votos · ${date}</div>
     </div>
 
-    <!-- Badge -->
-    <div style="width:70px;height:70px;border:1.5px solid rgba(170,0,255,0.6);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:8px;box-sizing:border-box;">
-      <div style="font-size:6.5px;color:rgba(255,255,255,0.55);letter-spacing:1px;line-height:1.7;text-align:center;">CLUB<br>DE TOBY<br><span style="color:#a855f7;font-size:14px;">⊞</span><br>LOS<br>MANIJAS</div>
+    <!-- Badge (absolute right) -->
+    <div style="position:absolute;right:70px;bottom:28px;width:70px;height:70px;border:1.5px solid rgba(170,0,255,0.6);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:8px;box-sizing:border-box;">
+      <div style="font-size:6.5px;color:rgba(255,255,255,0.55);letter-spacing:1px;line-height:1.7;text-align:center;">CLUB<br>LOS<br><span style="color:#a855f7;font-size:14px;">⊞</span><br>MANIJAS<br>2026</div>
     </div>
   </div>
 
@@ -178,12 +185,9 @@ export function useDiplomaGenerator() {
       })
 
       document.body.removeChild(tempDiv)
-
-      // Landscape PDF at 300dpi equivalent
       const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [W, H] })
       pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, W, H)
-      pdf.save(`Diploma_${categoryName.replace(/\s+/g, '_')}_${winnerName.replace(/\s+/g, '_')}.pdf`)
-
+      pdf.save(`Diploma_${categoryName.replace(/\s+/g,'_')}_${winnerName.replace(/\s+/g,'_')}.pdf`)
       return true
     } catch (error) {
       console.error('Error generando diploma PDF:', error)
@@ -191,6 +195,9 @@ export function useDiplomaGenerator() {
     }
   }, [])
 
+  // ════════════════════════════════════════════════════════════
+  //  Generar todos los diplomas en secuencia
+  // ════════════════════════════════════════════════════════════
   const generateAllDiplomas = useCallback(async (
     results: Array<{ categoryName: string; winnerName: string; votes: number; date: string }>
   ) => {
@@ -204,15 +211,19 @@ export function useDiplomaGenerator() {
     return successCount
   }, [generateDiplomaPDF])
 
+  // ════════════════════════════════════════════════════════════
+  //  DIPLOMA ESPECIAL — estética gold / metallic
+  // ════════════════════════════════════════════════════════════
   const generateSpecialDiplomaPDF = useCallback(async (
     winnerName: string,
     categoryName: string,
     date: string
   ) => {
     try {
-      const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+      const [{ default: jsPDF }, { default: html2canvas }, logoB64] = await Promise.all([
         import('jspdf'),
         import('html2canvas'),
+        fetchLogoBase64(),
       ])
 
       const W = 1100, H = 770
@@ -229,6 +240,10 @@ export function useDiplomaGenerator() {
         '07':'JUL','08':'AGO','09':'SEP','10':'OCT','11':'NOV','12':'DIC',
       }
       const monthName = months[month] || 'MAYO'
+
+      const logoHtml = logoB64
+        ? `<img src="${logoB64}" style="width:70px;height:70px;border-radius:50%;border:2.5px solid rgba(255,215,0,0.7);object-fit:cover;display:block;margin:0 auto;" />`
+        : `<div style="width:60px;height:60px;border:2px solid rgba(255,215,0,0.5);border-radius:50%;margin:0 auto;line-height:60px;text-align:center;font-size:22px;">★</div>`
 
       tempDiv.innerHTML = `
 <div style="
@@ -259,8 +274,8 @@ export function useDiplomaGenerator() {
 
   <!-- TOP LEFT -->
   <div style="position:absolute;top:30px;left:68px;">
-    <div style="font-size:13px;font-weight:900;color:#FFD700;letter-spacing:4px;line-height:1;">IBIZA</div>
-    <div style="font-size:7.5px;color:rgba(255,215,0,0.4);letter-spacing:2px;margin-top:3px;line-height:1.8;">WHITE ISLAND<br>BALEARIC NIGHTS</div>
+    <div style="font-size:13px;font-weight:900;color:#FFD700;letter-spacing:4px;line-height:1;">SANTIAGO DE CHILE</div>
+    <div style="font-size:7.5px;color:rgba(255,215,0,0.4);letter-spacing:2px;margin-top:3px;line-height:1.8;">ANIVERSARIO MANIJA 2026</div>
   </div>
 
   <!-- TOP RIGHT date -->
@@ -270,13 +285,13 @@ export function useDiplomaGenerator() {
     <div style="font-size:13px;color:rgba(255,215,0,0.7);letter-spacing:2px;">${year}</div>
   </div>
 
-  <!-- Center star icon -->
-  <div style="text-align:center;padding-top:28px;">
-    <div style="display:inline-block;width:42px;height:42px;border:1.5px solid rgba(255,215,0,0.45);border-radius:50%;line-height:40px;font-size:22px;">★</div>
+  <!-- TOP CENTER: Logo -->
+  <div style="text-align:center;padding-top:24px;">
+    ${logoHtml}
   </div>
 
   <!-- Tagline -->
-  <div style="text-align:center;margin-top:5px;">
+  <div style="text-align:center;margin-top:6px;">
     <span style="font-size:8px;color:rgba(255,215,0,0.35);letter-spacing:6px;">—— RECONOCIMIENTO ESPECIAL ——</span>
   </div>
 
@@ -332,27 +347,20 @@ export function useDiplomaGenerator() {
   <!-- Bottom gold line -->
   <div style="margin:12px 70px;height:1px;background:linear-gradient(90deg,transparent,rgba(255,215,0,0.4) 30%,rgba(255,193,7,0.3) 70%,transparent);"></div>
 
-  <!-- BOTTOM SECTION -->
-  <div style="display:flex;justify-content:space-between;align-items:flex-end;padding:0 70px 26px;">
-
-    <!-- Star left -->
-    <div style="text-align:center;min-width:80px;">
-      <div style="font-size:48px;color:rgba(255,215,0,0.45);line-height:1;">★</div>
-      <div style="font-size:7px;color:rgba(255,215,0,0.30);letter-spacing:1px;margin-top:4px;line-height:1.6;">RECONOCIMIENTO<br>ESPECIAL</div>
-    </div>
+  <!-- BOTTOM SECTION: Signature centered + Badge right -->
+  <div style="display:flex;justify-content:center;align-items:flex-end;padding:0 70px 26px;position:relative;">
 
     <!-- Signature -->
     <div style="text-align:center;">
-      <div style="font-size:12px;color:rgba(255,215,0,0.30);font-style:italic;margin-bottom:5px;">Club de Toby</div>
-      <div style="width:130px;height:1px;background:rgba(255,215,0,0.2);margin:0 auto 6px;"></div>
-      <div style="font-size:8px;color:rgba(255,215,0,0.45);letter-spacing:3px;">CLUB DE TOBY</div>
-      <div style="font-size:8px;color:rgba(255,215,0,0.30);letter-spacing:3px;margin-top:2px;">LOS MANIJAS</div>
+      <div style="font-size:12px;color:rgba(255,215,0,0.30);font-style:italic;margin-bottom:5px;">Club los Manijas</div>
+      <div style="width:160px;height:1px;background:rgba(255,215,0,0.2);margin:0 auto 6px;"></div>
+      <div style="font-size:8px;color:rgba(255,215,0,0.45);letter-spacing:3px;">CLUB LOS MANIJAS 2026</div>
       <div style="font-size:7px;color:rgba(255,215,0,0.25);letter-spacing:2px;margin-top:4px;">${date}</div>
     </div>
 
-    <!-- Badge -->
-    <div style="width:72px;height:72px;border:1.5px solid rgba(255,215,0,0.5);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:8px;box-sizing:border-box;">
-      <div style="font-size:6.5px;color:rgba(255,215,0,0.6);letter-spacing:1px;line-height:1.7;">CLUB<br>DE TOBY<br><span style="color:#FFD700;font-size:14px;">★</span><br>LOS<br>MANIJAS</div>
+    <!-- Badge (absolute right) -->
+    <div style="position:absolute;right:70px;bottom:26px;width:72px;height:72px;border:1.5px solid rgba(255,215,0,0.5);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:8px;box-sizing:border-box;">
+      <div style="font-size:6.5px;color:rgba(255,215,0,0.6);letter-spacing:1px;line-height:1.7;">CLUB<br>LOS<br><span style="color:#FFD700;font-size:14px;">★</span><br>MANIJAS<br>2026</div>
     </div>
   </div>
 

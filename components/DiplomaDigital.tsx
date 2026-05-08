@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Trophy, Sparkles, Zap, Star } from 'lucide-react'
+import Image from 'next/image'
 
 interface DiplomaProps {
   winnerName: string
@@ -13,184 +13,210 @@ interface DiplomaProps {
 
 export function DiplomaDigital({ winnerName, categoryName, votes, date, onDownload }: DiplomaProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const [animating, setAnimating] = useState(true)
+  const rafRef    = useRef<number>(0)
+  const [ready, setReady] = useState(false)
 
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
-
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    canvas.width = 800
-    canvas.height = 600
+    canvas.width  = 800
+    canvas.height = 560
 
-    // Cargar template font.jpeg
-    const bgImage = new Image()
-    bgImage.src = '/font.jpeg'
-    
-    bgImage.onload = () => {
-      ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height)
-      iniciarAnimacionNeon(ctx, canvas)
-    }
-
-    bgImage.onerror = () => {
-      // Si no hay font.jpeg, crear fondo elegante por defecto
-      crearFondoElegante(ctx, canvas)
-      iniciarAnimacionNeon(ctx, canvas)
-    }
-
-    const animacion = setTimeout(() => setAnimating(false), 5000)
-    return () => clearTimeout(animacion)
-  }, [winnerName, categoryName])
-
-  function crearFondoElegante(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) {
-    // Gradiente dramático
-    const gradiente = ctx.createLinearGradient(0, 0, canvas.width, canvas.height)
-    gradiente.addColorStop(0, '#0a0a0f')
-    gradiente.addColorStop(0.5, '#1a0a2e')
-    gradiente.addColorStop(1, '#0f0c29')
-    ctx.fillStyle = gradiente
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
-
-    // Borde decorativo
-    ctx.strokeStyle = '#ff00ff'
-    ctx.lineWidth = 4
-    ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40)
-  }
-
-  function iniciarAnimacionNeon(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) {
     let frame = 0
-    const animar = () => {
+    let logoImg: HTMLImageElement | null = null
+
+    // Cargar logo
+    const logo = new window.Image()
+    logo.src = '/logo.jpeg'
+    logo.onload  = () => { logoImg = logo; setReady(true) }
+    logo.onerror = () => { logoImg = null; setReady(true) }
+
+    const draw = () => {
       frame++
 
-      // Rayos neon desde los bordes hacia el centro
-      for (let i = 0; i < 5; i++) {
-        const x = Math.sin(frame * 0.05 + i) * 200 + 400
-        const y = Math.cos(frame * 0.03 + i) * 150 + 300
-        const radio = Math.sin(frame * 0.1 + i) * 50 + 100
+      // ── Fondo ──
+      const bg = ctx.createLinearGradient(0, 0, canvas.width, canvas.height)
+      bg.addColorStop(0, '#0a0a0f')
+      bg.addColorStop(0.5, '#1a0a2e')
+      bg.addColorStop(1, '#0f0c29')
+      ctx.fillStyle = bg
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-        const gradiente = ctx.createRadialGradient(x, y, 0, x, y, radio)
-        gradiente.addColorStop(0, `rgba(255, 0, 255, ${0.3 - i * 0.05})`)
-        gradiente.addColorStop(0.5, `rgba(0, 255, 255, ${0.1 - i * 0.02})`)
-        gradiente.addColorStop(1, 'rgba(255, 255, 0, 0)')
-
-        ctx.fillStyle = gradiente
-        ctx.beginPath()
-        ctx.arc(x, y, radio, 0, Math.PI * 2)
-        ctx.fill()
+      // ── Rayos neon animados ──
+      for (let i = 0; i < 4; i++) {
+        const x = Math.sin(frame * 0.04 + i * 1.4) * 180 + 400
+        const y = Math.cos(frame * 0.025 + i * 1.1) * 120 + 280
+        const r = Math.sin(frame * 0.08 + i) * 45 + 90
+        const g = ctx.createRadialGradient(x, y, 0, x, y, r)
+        g.addColorStop(0, `rgba(255,0,255,${0.22 - i * 0.04})`)
+        g.addColorStop(0.5, `rgba(0,200,255,${0.08 - i * 0.01})`)
+        g.addColorStop(1, 'rgba(0,0,0,0)')
+        ctx.fillStyle = g
+        ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill()
       }
 
-      // Dibujar texto
-      ctx.fillStyle = '#fff'
-      ctx.font = 'bold 40px Arial'
+      // ── Marco exterior neon ──
+      ctx.strokeStyle = 'rgba(255,46,219,0.5)'
+      ctx.lineWidth = 2
+      ctx.strokeRect(14, 14, canvas.width - 28, canvas.height - 28)
+      ctx.strokeStyle = 'rgba(34,211,238,0.2)'
+      ctx.lineWidth = 1
+      ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40)
+
+      // ── Esquinas HUD ──
+      const drawCorner = (x: number, y: number, dx: number, dy: number, color: string) => {
+        ctx.strokeStyle = color; ctx.lineWidth = 2.5; ctx.beginPath()
+        ctx.moveTo(x, y + dy * 28); ctx.lineTo(x, y); ctx.lineTo(x + dx * 28, y)
+        ctx.stroke()
+      }
+      drawCorner(24, 24, 1, 1, '#ff2edb')
+      drawCorner(canvas.width - 24, 24, -1, 1, '#ff2edb')
+      drawCorner(24, canvas.height - 24, 1, -1, '#22d3ee')
+      drawCorner(canvas.width - 24, canvas.height - 24, -1, -1, '#22d3ee')
+
+      // ── TOP LEFT ──
+      ctx.fillStyle = '#cc00ff'; ctx.font = 'bold 11px Arial'
+      ctx.textAlign = 'left'
+      ctx.fillText('SANTIAGO DE CHILE', 48, 44)
+      ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.font = '7px Arial'
+      ctx.fillText('ANIVERSARIO MANIJA 2026', 48, 58)
+
+      // ── TOP RIGHT: fecha ──
+      ctx.textAlign = 'right'
+      ctx.fillStyle = '#ff2edb'; ctx.font = 'bold 24px Arial'
+      ctx.fillText(date.split('/')[0] || '21', canvas.width - 48, 46)
+      ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = '8px Arial'
+      ctx.fillText(date.split('/')[1] || 'MAYO', canvas.width - 48, 58)
+      ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.font = '10px Arial'
+      ctx.fillText(date.split('/')[2] || '2026', canvas.width - 48, 70)
+
+      // ── Logo centrado arriba ──
+      ctx.save()
+      ctx.beginPath()
+      ctx.arc(canvas.width / 2, 56, 36, 0, Math.PI * 2)
+      ctx.clip()
+      if (logoImg) {
+        ctx.drawImage(logoImg, canvas.width / 2 - 36, 20, 72, 72)
+      } else {
+        ctx.fillStyle = 'rgba(170,0,255,0.3)'; ctx.fill()
+        ctx.fillStyle = '#fff'; ctx.font = '26px Arial'; ctx.textAlign = 'center'
+        ctx.fillText('M', canvas.width / 2, 64)
+      }
+      ctx.restore()
+      // Borde del logo
+      const pulseGlow = Math.sin(frame * 0.08) * 0.4 + 0.6
+      ctx.strokeStyle = `rgba(255,46,219,${pulseGlow})`
+      ctx.lineWidth = 2.5
+      ctx.beginPath(); ctx.arc(canvas.width / 2, 56, 36, 0, Math.PI * 2); ctx.stroke()
+
+      // ── MANIJA AWARDS ──
       ctx.textAlign = 'center'
-      ctx.fillText('MANIJA AWARDS 2026', canvas.width / 2, 120)
+      ctx.shadowColor = 'rgba(200,100,255,0.8)'; ctx.shadowBlur = 18
+      ctx.fillStyle = '#ffffff'; ctx.font = 'bold 62px Arial'
+      ctx.fillText('MANIJA', canvas.width / 2, 162)
+      ctx.shadowColor = 'rgba(255,46,219,0.9)'; ctx.shadowBlur = 14
+      ctx.fillStyle = '#ff2edb'; ctx.font = 'bold 44px Arial'
+      ctx.fillText('AWARDS', canvas.width / 2, 210)
+      ctx.shadowBlur = 0
+      ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.font = '13px Arial'
+      ctx.fillText('2  0  2  6', canvas.width / 2, 232)
 
-      ctx.fillStyle = '#ffd700'
-      ctx.font = 'bold 32px Arial'
-      ctx.fillText(categoryName.toUpperCase(), canvas.width / 2, 180)
+      // ── Separator ──
+      const sep = ctx.createLinearGradient(60, 0, canvas.width - 60, 0)
+      sep.addColorStop(0, 'transparent'); sep.addColorStop(0.3, '#ff2edb')
+      sep.addColorStop(0.5, '#a855f7');  sep.addColorStop(0.7, '#22d3ee')
+      sep.addColorStop(1, 'transparent')
+      ctx.strokeStyle = sep; ctx.lineWidth = 1.5
+      ctx.beginPath(); ctx.moveTo(60, 246); ctx.lineTo(canvas.width - 60, 246); ctx.stroke()
 
-      // Destello estelar
-      const estrellaAlpha = Math.sin(frame * 0.1) * 0.5 + 0.5
-      ctx.fillStyle = `rgba(255, 215, 0, ${estrellaAlpha})`
-      ctx.font = 'bold 24px Arial'
-      ctx.fillText('★ GANADOR ABSOLUTO ★', canvas.width / 2, 240)
+      // ── OTORGADO A ──
+      ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.font = '7.5px Arial'
+      ctx.fillText('ESTE DIPLOMA SE OTORGA A:', canvas.width / 2, 266)
 
-      // Nombre del ganador - Efecto glow
-      ctx.shadowColor = '#ff00ff'
-      ctx.shadowBlur = 20
-      ctx.fillStyle = '#fff'
-      ctx.font = 'bold 48px Arial'
-      ctx.fillText(winnerName, canvas.width / 2, 330)
+      // ── WINNER NAME ──
+      ctx.shadowColor = 'rgba(255,255,255,0.5)'; ctx.shadowBlur = 12
+      ctx.fillStyle = '#ffffff'; ctx.font = 'bold 32px Arial'
+      ctx.fillText(winnerName.toUpperCase(), canvas.width / 2, 304)
       ctx.shadowBlur = 0
 
-      // Detalles
-      ctx.fillStyle = '#ccc'
-      ctx.font = '20px Arial'
-      ctx.fillText(`Votos obtenidos: ${votes}`, canvas.width / 2, 390)
-      ctx.fillText(`Fecha: ${date}`, canvas.width / 2, 430)
+      // ── CATEGORIA ──
+      ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.font = '7px Arial'
+      ctx.fillText('POR HABER SIDO RECONOCIDO EN LA CATEGORÍA:', canvas.width / 2, 328)
 
-      // Decoración con estrellas parpadeantes
-      if (frame % 20 < 10) {
-        ctx.fillStyle = '#fff'
-        ctx.font = '30px Arial'
-        ctx.fillText('⭐', 100, 500)
-        ctx.fillText('⭐', canvas.width - 100, 500)
-        ctx.fillText('⭐', canvas.width / 2, 520)
-      }
+      // Category pill
+      const pillW = Math.min(ctx.measureText(categoryName.toUpperCase()).width + 80, 500)
+      const pillX = canvas.width / 2 - pillW / 2
+      ctx.strokeStyle = '#ff2edb'; ctx.lineWidth = 1.5
+      ctx.fillStyle = 'rgba(255,46,219,0.10)'
+      ctx.beginPath(); ctx.rect(pillX, 336, pillW, 38); ctx.fill(); ctx.stroke()
+      ctx.shadowColor = 'rgba(255,46,219,0.8)'; ctx.shadowBlur = 8
+      ctx.fillStyle = '#ff2edb'; ctx.font = 'bold 18px Arial'
+      ctx.fillText(categoryName.toUpperCase(), canvas.width / 2, 361)
+      ctx.shadowBlur = 0
 
-      if (animating) {
-        requestAnimationFrame(animar)
-      }
+      // ── Votos ──
+      ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.font = '7px Arial'
+      ctx.fillText('POR SU ENERGÍA INAGOTABLE Y SU VERDADERO ESPÍRITU MANIJA', canvas.width / 2, 395)
+
+      // ── Bottom line ──
+      const bl = ctx.createLinearGradient(60, 0, canvas.width - 60, 0)
+      bl.addColorStop(0, 'transparent'); bl.addColorStop(0.3, 'rgba(255,46,219,0.35)')
+      bl.addColorStop(0.7, 'rgba(34,211,238,0.25)'); bl.addColorStop(1, 'transparent')
+      ctx.strokeStyle = bl; ctx.lineWidth = 1
+      ctx.beginPath(); ctx.moveTo(60, 415); ctx.lineTo(canvas.width - 60, 415); ctx.stroke()
+
+      // ── BOTTOM: firma centrada ──
+      ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.font = 'italic 11px Arial'
+      ctx.fillText('Club los Manijas', canvas.width / 2, 448)
+      ctx.strokeStyle = 'rgba(255,255,255,0.18)'; ctx.lineWidth = 1
+      ctx.beginPath(); ctx.moveTo(canvas.width / 2 - 80, 456); ctx.lineTo(canvas.width / 2 + 80, 456); ctx.stroke()
+      ctx.fillStyle = 'rgba(255,255,255,0.38)'; ctx.font = '7px Arial'
+      ctx.fillText('CLUB LOS MANIJAS 2026', canvas.width / 2, 470)
+      ctx.fillStyle = 'rgba(255,46,219,0.4)'; ctx.font = '7px Arial'
+      ctx.fillText(`${votes} votos · ${date}`, canvas.width / 2, 484)
+
+      // ── Badge círculo derecha ──
+      ctx.strokeStyle = 'rgba(170,0,255,0.55)'; ctx.lineWidth = 1.5
+      ctx.beginPath(); ctx.arc(canvas.width - 75, 462, 36, 0, Math.PI * 2); ctx.stroke()
+      ctx.fillStyle = 'rgba(170,0,255,0.10)'; ctx.fill()
+      ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = '6px Arial'
+      ctx.fillText('CLUB LOS', canvas.width - 75, 453)
+      ctx.fillStyle = '#a855f7'; ctx.font = '14px Arial'
+      ctx.fillText('⊞', canvas.width - 75, 467)
+      ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = '6px Arial'
+      ctx.fillText('MANIJAS 2026', canvas.width - 75, 479)
+
+      // ── Waveform bottom ──
+      ctx.fillStyle = 'rgba(255,46,219,0.2)'; ctx.font = '7px Arial'
+      ctx.fillText('▌▍▎▏▎▍▌▍▎▏▎▍▌ ▌▍▎▏▎▍▌▍▎▏▎▍▌', canvas.width / 2, 526)
+
+      rafRef.current = requestAnimationFrame(draw)
     }
-    animar()
-  }
+
+    rafRef.current = requestAnimationFrame(draw)
+    return () => cancelAnimationFrame(rafRef.current)
+  }, [winnerName, categoryName, votes, date])
 
   return (
-    <div className="diploma-container relative bg-black rounded-2xl overflow-hidden border-2 border-pink-500/50 shadow-2xl shadow-pink-500/30">
-      {/* Efecto de rayos neon */}
-      {animating && (
-        <>
-          <div className="absolute top-0 left-0 w-full h-full animate-neon-rays opacity-50" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,0,255,0.1),transparent_70%)] animate-pulse" />
-        </>
-      )}
-
-      {/* Canvas del diploma */}
+    <div className="relative rounded-xl overflow-hidden border border-neon-pink/30 shadow-2xl shadow-neon-pink/20 bg-black">
       <canvas
         ref={canvasRef}
-        className="w-full h-auto max-w-full"
-        style={{ maxHeight: '600px' }}
+        className="w-full h-auto"
+        style={{ display: 'block' }}
       />
-
-      {/* Overlay de confetti digital cuando termina */}
-      {!animating && (
-        <div className="absolute inset-0 pointer-events-none">
-          {[...Array(20)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute animate-confetti-fall"
-              style={{
-                left: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 2}s`,
-                color: ['#ff00ff', '#00ffff', '#ffff00', '#ff0080'][Math.floor(Math.random() * 4)]
-              }}
-            >
-              ★
-            </div>
-          ))}
+      {onDownload && (
+        <div className="absolute bottom-3 right-3">
+          <button
+            onClick={onDownload}
+            className="px-3 py-1.5 bg-gradient-to-r from-neon-pink to-neon-purple text-white text-xs font-bold rounded-lg hover:opacity-90 transition-all shadow-lg"
+          >
+            Descargar PDF
+          </button>
         </div>
       )}
-
-      {/* Botón descargar */}
-      <div className="absolute bottom-4 right-4">
-        <button
-          onClick={onDownload}
-          className="px-4 py-2 bg-gradient-to-r from-pink-600 to-purple-600 text-white rounded-lg hover:from-pink-500 hover:to-purple-500 transition-all shadow-lg shadow-pink-500/50 flex items-center gap-2"
-        >
-          <Trophy className="h-4 w-4" />
-          Descargar PDF
-        </button>
-      </div>
-
-      <style jsx>{`
-        @keyframes neon-rays {
-          0%, 100% { opacity: 0.3; transform: rotate(0deg); }
-          50% { opacity: 0.8; transform: rotate(180deg); }
-        }
-        .animate-neon-rays {
-          animation: neon-rays 3s ease-in-out infinite;
-          background: conic-gradient(from 0deg, transparent, rgba(255,0,255,0.3), transparent, rgba(0,255,255,0.3), transparent);
-        }
-        @keyframes confetti-fall {
-          0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
-          100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
-        }
-        .animate-confetti-fall {
-          animation: confetti-fall 3s ease-in forwards;
-        }
-      `}</style>
     </div>
   )
 }
