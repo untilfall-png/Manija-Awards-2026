@@ -44,6 +44,16 @@ export function AdminDashboard() {
     }
   }, [isAuthenticated])
 
+  // Auto-load voting stats whenever the Conclusiones tab is opened
+  useEffect(() => {
+    if (activeTab !== 'conclusion' || !isAuthenticated) return
+    setGeneratingVideos(true)
+    getVotingResults()
+      .then(stats => setVotingStats(stats))
+      .catch(err => console.error('Error fetching voting results:', err))
+      .finally(() => setGeneratingVideos(false))
+  }, [activeTab, isAuthenticated])
+
   const handleLogin = (token: string) => {
     window.localStorage.setItem('admin_token', token)
     setIsAuthenticated(true)
@@ -247,16 +257,30 @@ export function AdminDashboard() {
                 </AnimatePresence>
 
                 {/* Stats badge when data is loaded */}
-                {votingStats && !generatingVideos && (
+                {!generatingVideos && (
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="flex items-center justify-center gap-6 text-sm"
+                    className="flex items-center justify-center gap-4 text-sm flex-wrap"
                   >
-                    <span className="px-4 py-2 rounded-full bg-neon-pink/15 border border-neon-pink/30 text-neon-pink font-semibold">
-                      ✅ Datos reales cargados
-                    </span>
-                    <span className="text-white/60">{votingStats.totalVoters} votantes · {votingStats.totalVotes} votos · {votingStats.results.length} categorías</span>
+                    {votingStats && (
+                      <span className="px-4 py-2 rounded-full bg-neon-pink/15 border border-neon-pink/30 text-neon-pink font-semibold">
+                        ✅ {votingStats.totalVoters} votantes · {votingStats.totalVotes} votos · {votingStats.results.length} categorías ({votingStats.results.filter(r => r.isSpecial).length} especiales)
+                      </span>
+                    )}
+                    <button
+                      onClick={() => {
+                        setGeneratingVideos(true)
+                        getVotingResults()
+                          .then(s => setVotingStats(s))
+                          .catch(err => console.error(err))
+                          .finally(() => setGeneratingVideos(false))
+                      }}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-neon-purple/40 text-neon-purple hover:bg-neon-purple/10 transition-all text-xs font-semibold"
+                    >
+                      <Loader2 className="h-3.5 w-3.5" />
+                      Recargar datos
+                    </button>
                   </motion.div>
                 )}
 
