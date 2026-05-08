@@ -1,551 +1,787 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Manija Awards 2026 – Diplomas</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body {
-      width: 100%; height: 100%;
-      background: #000;
-      overflow: hidden;
-      font-family: 'Arial Black', Arial, sans-serif;
-    }
-    #stage {
-      width: 1920px; height: 1080px;
-      transform-origin: top left;
-      position: relative;
-      background: #000;
-    }
+<meta charset="UTF-8">
+<title>Manija Awards 2026 – Diplomas</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+html,body { width:100%; height:100%; background:#000; overflow:hidden; font-family:'Arial Black',Arial,sans-serif; }
 
-    /* ── Diploma card (regular – neon) ── */
-    .diploma {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 0;
-    }
-    .diploma-card {
-      position: relative;
-      width: 1300px;
-      height: 920px;
-      border-radius: 12px;
-      overflow: hidden;
-    }
-    .diploma-bg {
-      position: absolute;
-      inset: 0;
-      background-image: url('/Font.jpeg?v=3');
-      background-size: cover;
-      background-position: center;
-    }
-    .diploma-overlay {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(
-        to bottom,
-        rgba(255,255,255,0.05) 0%,
-        rgba(255,255,255,0.0) 40%,
-        rgba(0,0,0,0.08) 80%,
-        rgba(0,0,0,0.05) 100%
-      );
-    }
-    .dip-otorga {
-      position: absolute; top: 47%; left: 50%; transform: translateX(-50%);
-      font-size: 22px; letter-spacing: 6px; color: rgba(60,20,80,0.65);
-      text-transform: uppercase; white-space: nowrap;
-    }
-    .dip-winner {
-      position: absolute; top: 52%; left: 50%; transform: translateX(-50%);
-      font-size: 58px; font-weight: 900; letter-spacing: 14px;
-      background: linear-gradient(90deg, #6b00c8, #cc00ff, #9b00ff, #cc00ff, #6b00c8);
-      -webkit-background-clip: text; background-clip: text; color: transparent;
-      text-transform: uppercase; white-space: nowrap;
-      text-align: center;
-      filter: drop-shadow(0 2px 8px rgba(150,0,255,0.35));
-      opacity: 0;
-    }
-    .dip-reconocido {
-      position: absolute; top: 62%; left: 50%; transform: translateX(-50%);
-      font-size: 18px; letter-spacing: 4px; color: rgba(60,20,80,0.55);
-      text-transform: uppercase; white-space: nowrap;
-    }
-    .dip-category {
-      position: absolute; top: 66.5%; left: 50%; transform: translateX(-50%);
-      background: linear-gradient(90deg, #ff2edb, #9b00ff);
-      border-radius: 40px; padding: 12px 48px;
-      font-size: 36px; font-weight: 900; letter-spacing: 6px;
-      color: #fff; text-transform: uppercase; white-space: nowrap;
-      box-shadow: 0 0 40px rgba(255,46,219,0.7);
-      opacity: 0;
-    }
-    .dip-description {
-      position: absolute; top: 77%; left: 50%; transform: translateX(-50%);
-      font-size: 20px; color: rgba(60,20,80,0.6); text-align: center; letter-spacing: 2px;
-      max-width: 800px; line-height: 1.5; opacity: 0;
-    }
-    .dip-votes {
-      position: absolute; top: 86%; left: 50%; transform: translateX(-50%);
-      font-size: 26px; font-weight: 700; color: #cc00ff; letter-spacing: 4px;
-      text-shadow: 0 0 12px rgba(200,0,255,0.5); opacity: 0;
-    }
+#stage {
+  width:1920px; height:1080px;
+  transform-origin:top left;
+  position:relative;
+  background:#000;
+}
 
-    /* ── Special diploma card (gold) ── */
-    .special-diploma {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 0;
-    }
-    .special-card {
-      position: relative;
-      width: 1300px;
-      height: 920px;
-      border-radius: 12px;
-      overflow: hidden;
-      border: 3px solid rgba(255,215,0,0.6);
-      box-shadow: 0 0 60px rgba(255,215,0,0.3), 0 0 120px rgba(255,165,0,0.15);
-    }
-    .special-bg {
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(ellipse at 50% 30%, #2a1800 0%, #140d00 40%, #000 100%);
-    }
-    /* Gold shimmer lines */
-    .special-bg::before {
-      content: '';
-      position: absolute; inset: 0;
-      background: repeating-linear-gradient(
-        135deg,
-        transparent 0px,
-        transparent 40px,
-        rgba(255,215,0,0.03) 40px,
-        rgba(255,215,0,0.03) 41px
-      );
-    }
-    .special-top-bar {
-      position: absolute; top: 0; left: 0; right: 0; height: 4px;
-      background: linear-gradient(90deg, transparent, #FFD700, #FFC107, #FF8C00, #FFD700, transparent);
-    }
-    .special-bottom-bar {
-      position: absolute; bottom: 0; left: 0; right: 0; height: 4px;
-      background: linear-gradient(90deg, transparent, #FF8C00, #FFD700, #FFC107, #FF8C00, transparent);
-    }
-    .special-badge-label {
-      position: absolute; top: 8%; left: 50%; transform: translateX(-50%);
-      font-size: 18px; letter-spacing: 8px; font-weight: 700;
-      color: rgba(255,215,0,0.6); text-transform: uppercase; white-space: nowrap;
-    }
-    .special-star {
-      position: absolute; top: 15%; left: 50%; transform: translateX(-50%);
-      font-size: 64px; opacity: 0;
-    }
-    .special-otorga {
-      position: absolute; top: 42%; left: 50%; transform: translateX(-50%);
-      font-size: 20px; letter-spacing: 6px;
-      color: rgba(255,215,0,0.5); text-transform: uppercase; white-space: nowrap;
-    }
-    .special-winner {
-      position: absolute; top: 48%; left: 50%; transform: translateX(-50%);
-      font-size: 64px; font-weight: 900; letter-spacing: 10px;
-      text-transform: uppercase; white-space: nowrap; text-align: center;
-      background: linear-gradient(90deg, #FFD700, #FFF8DC, #FFD700, #FFC107, #FFD700);
-      -webkit-background-clip: text; background-clip: text; color: transparent;
-      text-shadow: none; filter: drop-shadow(0 0 20px rgba(255,215,0,0.8));
-      opacity: 0;
-    }
-    .special-reconocido {
-      position: absolute; top: 60%; left: 50%; transform: translateX(-50%);
-      font-size: 16px; letter-spacing: 4px;
-      color: rgba(255,255,255,0.4); text-transform: uppercase; white-space: nowrap;
-    }
-    .special-category {
-      position: absolute; top: 64.5%; left: 50%; transform: translateX(-50%);
-      background: linear-gradient(90deg, #B8860B, #FFD700, #DAA520, #FFC107, #B8860B);
-      border-radius: 40px; padding: 14px 56px;
-      font-size: 34px; font-weight: 900; letter-spacing: 5px;
-      color: #000; text-transform: uppercase; white-space: nowrap;
-      box-shadow: 0 0 40px rgba(255,215,0,0.6), inset 0 1px 0 rgba(255,255,255,0.3);
-      opacity: 0;
-    }
-    .special-reconocimiento {
-      position: absolute; top: 77%; left: 50%; transform: translateX(-50%);
-      font-size: 20px; color: rgba(255,215,0,0.6); text-align: center;
-      letter-spacing: 3px; text-transform: uppercase; white-space: nowrap;
-      opacity: 0;
-    }
+/* ── Particle canvas (bottom layer) ── */
+#bgCanvas {
+  position:absolute; inset:0;
+  width:1920px; height:1080px;
+  z-index:1; pointer-events:none;
+}
 
-    /* ── Special section transition ── */
-    #special-transition {
-      position: absolute; inset: 0;
-      background: radial-gradient(ellipse at center, #1a1000 0%, #000 100%);
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      opacity: 0; pointer-events: none;
-    }
-    #special-transition h2 {
-      font-size: 80px; font-weight: 900; letter-spacing: 12px;
-      background: linear-gradient(90deg, #FFD700, #FFC107, #FF8C00, #FFD700);
-      -webkit-background-clip: text; background-clip: text; color: transparent;
-      text-shadow: none; filter: drop-shadow(0 0 30px rgba(255,215,0,0.6));
-      margin-bottom: 24px;
-    }
-    #special-transition p {
-      font-size: 32px; color: rgba(255,215,0,0.6); letter-spacing: 6px;
-      text-transform: uppercase;
-    }
+/* ── Content layer ── */
+#content { position:absolute; inset:0; z-index:2; }
 
-    /* ── Laser scanline ── */
-    #scanline {
-      position: absolute;
-      left: 0; width: 1920px; height: 4px;
-      background: linear-gradient(90deg, transparent, #ff2edb, #00ffff, transparent);
-      box-shadow: 0 0 20px #ff2edb;
-      opacity: 0.8; top: 0; pointer-events: none;
-    }
-    /* Gold scanline (during special section) */
-    #scanline.gold {
-      background: linear-gradient(90deg, transparent, #FFD700, #FFF8DC, transparent);
-      box-shadow: 0 0 20px #FFD700;
-    }
+/* ── INTRO ── */
+#intro {
+  position:absolute; inset:0;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  opacity:0; pointer-events:none;
+}
+#intro-manija {
+  font-size:200px; font-weight:900; letter-spacing:24px;
+  color:#fff;
+  text-shadow: 0 0 40px #ff2edb, 0 0 80px #ff2edb, 0 0 160px rgba(255,46,219,0.5);
+  transform: translateY(-60px);
+  opacity:0;
+}
+#intro-awards {
+  font-size:120px; font-weight:900; letter-spacing:30px;
+  background: linear-gradient(90deg,#ff2edb,#cc00ff,#00d4ff,#ff2edb);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  filter: drop-shadow(0 0 30px rgba(255,46,219,0.9));
+  transform: translateY(60px); opacity:0;
+}
+#intro-year {
+  font-size:48px; letter-spacing:20px; color:rgba(255,255,255,0.5);
+  margin-top:16px; opacity:0;
+}
+#intro-sub {
+  font-size:28px; letter-spacing:10px; color:rgba(255,46,219,0.6);
+  margin-top:8px; opacity:0;
+}
 
-    /* ── Category counter ── */
-    #counter {
-      position: absolute; bottom: 30px; right: 60px;
-      font-size: 28px; color: rgba(255,255,255,0.4); letter-spacing: 4px;
-    }
+/* ── Flash overlay ── */
+#flash {
+  position:absolute; inset:0;
+  background:#fff;
+  opacity:0; pointer-events:none; z-index:20;
+}
 
-    /* ── Intro ── */
-    #intro {
-      position: absolute; inset: 0;
-      background: radial-gradient(ellipse at center, #1a0a2e 0%, #000 100%);
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      opacity: 1;
-    }
-    #intro h1 {
-      font-size: 90px; font-weight: 900;
-      background: linear-gradient(90deg, #ff2edb, #00ffff, #ffff00);
-      -webkit-background-clip: text; background-clip: text; color: transparent;
-      letter-spacing: 10px; margin-bottom: 20px;
-    }
-    #intro p { font-size: 36px; color: #fff; letter-spacing: 6px; }
+/* ── DIPLOMA SLIDE ── */
+.dslide {
+  position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; pointer-events:none;
+}
+.dcard {
+  position:relative;
+  width:1160px; height:870px;
+  transform:scale(0.85) translateY(60px);
+  border-radius:6px;
+  /* glow ring pulsed via JS */
+  box-shadow: 0 0 0px rgba(255,46,219,0);
+}
+.dcard img {
+  width:100%; height:100%;
+  object-fit:fill;
+  border-radius:6px;
+  display:block;
+}
+/* Neon overlays ON the diploma */
+.d-name {
+  position:absolute;
+  /* "ESTE DIPLOMA SE OTORGA A:" line sits at ~55% from top */
+  top:54%; left:50%;
+  transform:translateX(-50%) translateY(-50%);
+  width:900px; text-align:center;
+  font-size:52px; font-weight:900; letter-spacing:8px;
+  text-transform:uppercase;
+  background: linear-gradient(90deg,#ff2edb,#cc00ff,#7b2fff,#cc00ff,#ff2edb);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  filter: drop-shadow(0 0 14px rgba(255,46,219,0.95)) drop-shadow(0 2px 6px rgba(120,0,255,0.8));
+  opacity:0; white-space:nowrap; overflow:hidden;
+}
+.d-cat {
+  position:absolute;
+  /* category rectangle at ~67.5% */
+  top:67.5%; left:50%;
+  transform:translateX(-50%) translateY(-50%);
+  width:780px; text-align:center;
+  font-size:36px; font-weight:900; letter-spacing:5px;
+  text-transform:uppercase;
+  color:#fff;
+  text-shadow: 0 0 20px #ff2edb, 0 0 40px rgba(255,46,219,0.7), 0 0 2px #000;
+  opacity:0; white-space:nowrap; overflow:hidden;
+}
+.d-votes {
+  position:absolute;
+  top:86%; left:50%;
+  transform:translateX(-50%);
+  font-size:22px; font-weight:700; letter-spacing:6px;
+  color:#00d4ff;
+  text-shadow: 0 0 16px #00d4ff, 0 0 32px rgba(0,212,255,0.6);
+  opacity:0;
+}
 
-    /* ── Particles ── */
-    .particle {
-      position: absolute; width: 4px; height: 4px;
-      border-radius: 50%; pointer-events: none;
-    }
+/* ── SPECIAL TRANSITION ── */
+#spec-trans {
+  position:absolute; inset:0;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  background: radial-gradient(ellipse at center, #1a1000 0%, #000 100%);
+  opacity:0; pointer-events:none;
+}
+#spec-trans h2 {
+  font-size:96px; font-weight:900; letter-spacing:14px;
+  background: linear-gradient(90deg,#FFD700,#FFF8DC,#FFC107,#FF8C00,#FFD700);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  filter: drop-shadow(0 0 40px rgba(255,215,0,0.8));
+  margin-bottom:20px;
+}
+#spec-trans p {
+  font-size:36px; letter-spacing:8px;
+  color:rgba(255,215,0,0.6);
+}
 
-    /* ── Outro ── */
-    #outro {
-      position: absolute; inset: 0;
-      background: radial-gradient(ellipse at center, #1a0a2e 0%, #000 100%);
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      opacity: 0; pointer-events: none;
-    }
-    #outro h2 { font-size: 72px; font-weight: 900; color: #ff2edb; letter-spacing: 8px; text-shadow: 0 0 40px #ff2edb; }
-    #outro p { font-size: 36px; color: #00ffff; margin-top: 20px; letter-spacing: 4px; }
-  </style>
+/* ── SPECIAL SLIDE ── */
+.sslide {
+  position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; pointer-events:none;
+}
+.scard {
+  position:relative;
+  width:1160px; height:870px;
+  transform:scale(0.85) translateY(60px);
+  border-radius:6px;
+  box-shadow: 0 0 60px rgba(255,215,0,0.4), 0 0 120px rgba(255,165,0,0.2);
+}
+.scard img { width:100%; height:100%; object-fit:fill; border-radius:6px; display:block; }
+/* Gold tint overlay */
+.scard::after {
+  content:'';
+  position:absolute; inset:0;
+  background: linear-gradient(to bottom,
+    rgba(255,215,0,0.08) 0%,
+    rgba(255,165,0,0.04) 50%,
+    rgba(255,215,0,0.08) 100%
+  );
+  border-radius:6px;
+  pointer-events:none;
+}
+.s-badge {
+  position:absolute;
+  top:10%; left:50%;
+  transform:translateX(-50%);
+  font-size:22px; letter-spacing:10px; font-weight:700;
+  color:rgba(255,215,0,0.7);
+  text-transform:uppercase;
+  text-shadow: 0 0 20px rgba(255,215,0,0.5);
+  opacity:0;
+}
+.s-name {
+  position:absolute;
+  top:54%; left:50%;
+  transform:translateX(-50%) translateY(-50%);
+  width:900px; text-align:center;
+  font-size:58px; font-weight:900; letter-spacing:10px;
+  text-transform:uppercase;
+  background: linear-gradient(90deg,#FFD700,#FFF8DC,#FFD700,#FFC107,#FFD700);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  filter: drop-shadow(0 0 20px rgba(255,215,0,1)) drop-shadow(0 0 40px rgba(255,165,0,0.7));
+  opacity:0; white-space:nowrap; overflow:hidden;
+}
+.s-cat {
+  position:absolute;
+  top:67.5%; left:50%;
+  transform:translateX(-50%) translateY(-50%);
+  width:780px; text-align:center;
+  font-size:36px; font-weight:900; letter-spacing:5px;
+  text-transform:uppercase;
+  color:#FFD700;
+  text-shadow: 0 0 20px #FFD700, 0 0 40px rgba(255,215,0,0.7), 0 0 2px #000;
+  opacity:0; white-space:nowrap;
+}
+.s-premio {
+  position:absolute;
+  top:86%; left:50%;
+  transform:translateX(-50%);
+  font-size:20px; font-weight:700; letter-spacing:8px;
+  color:#FFC107;
+  text-shadow: 0 0 16px rgba(255,193,7,0.8);
+  opacity:0;
+}
+
+/* ── OUTRO ── */
+#outro {
+  position:absolute; inset:0;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  opacity:0; pointer-events:none;
+}
+#outro h1 {
+  font-size:88px; font-weight:900; letter-spacing:10px; text-align:center;
+  background: linear-gradient(90deg,#ff2edb,#cc00ff,#00d4ff,#ff2edb);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  filter: drop-shadow(0 0 30px rgba(255,46,219,0.8));
+  opacity:0;
+}
+#outro p {
+  font-size:36px; letter-spacing:12px; margin-top:20px;
+  color:rgba(255,255,255,0.5); opacity:0;
+}
+#outro .club {
+  font-size:28px; letter-spacing:8px; margin-top:12px;
+  color:rgba(255,46,219,0.5); opacity:0;
+}
+
+/* ── Counter badge (top right) ── */
+#counter {
+  position:absolute;
+  top:32px; right:60px;
+  font-size:26px; font-weight:700; letter-spacing:4px;
+  color:rgba(255,255,255,0.35);
+  z-index:10;
+}
+/* ── Category label (top center during diploma) ── */
+#topLabel {
+  position:absolute;
+  top:28px; left:50%;
+  transform:translateX(-50%);
+  font-size:18px; letter-spacing:10px;
+  color:rgba(255,46,219,0.5);
+  text-transform:uppercase;
+  z-index:10; opacity:0;
+}
+</style>
 </head>
 <body>
 <div id="stage">
-  <div id="scanline"></div>
+  <!-- Particle background -->
+  <canvas id="bgCanvas"></canvas>
 
-  <!-- Intro -->
-  <div id="intro">
-    <h1>🏆 MANIJA AWARDS 2026</h1>
-    <p>REVELACIÓN DE GANADORES</p>
-  </div>
+  <div id="content">
+    <!-- Intro -->
+    <div id="intro">
+      <div id="intro-manija">MANIJA</div>
+      <div id="intro-awards">AWARDS</div>
+      <div id="intro-year">2 0 2 6</div>
+      <div id="intro-sub">PRESENTACIÓN DE GANADORES</div>
+    </div>
 
-  <!-- Diplomas normales -->
-  <div id="diploma-container"></div>
+    <!-- Diploma slides (built dynamically) -->
 
-  <!-- Transición especiales -->
-  <div id="special-transition">
-    <h2>★ CATEGORÍAS ESPECIALES ★</h2>
-    <p>Reconocimientos de la Organización</p>
-  </div>
+    <!-- Special transition -->
+    <div id="spec-trans">
+      <h2>★ CATEGORÍAS ESPECIALES ★</h2>
+      <p>RECONOCIMIENTOS EXTRAORDINARIOS</p>
+    </div>
 
-  <!-- Diplomas especiales -->
-  <div id="special-container"></div>
+    <!-- Special slides (built dynamically) -->
 
-  <!-- Counter -->
-  <div id="counter"></div>
+    <!-- Outro -->
+    <div id="outro">
+      <h1>¡FELICITACIONES<br>A TODOS LOS<br>GANADORES!</h1>
+      <p>PREMIOS MANIJA AWARDS 2026</p>
+      <div class="club">CLUB LOS MANIJAS · SANTIAGO DE CHILE</div>
+    </div>
 
-  <!-- Outro -->
-  <div id="outro">
-    <h2>🎉 FELICITACIONES A TODOS 🎉</h2>
-    <p>LA NOCHE ES NUESTRA ⚡</p>
+    <!-- Flash -->
+    <div id="flash"></div>
+
+    <!-- HUD -->
+    <div id="counter"></div>
+    <div id="topLabel">MANIJA AWARDS 2026</div>
   </div>
 </div>
 
 <script>
-// ─── Config ──────────────────────────────────────────────────────────────
-const FPS              = 30;
-const INTRO_FRAMES     = 60;   // 2s
-const PER_DIP_FRAMES   = 210;  // 7s por diploma normal
-const SPEC_TRANS_FRAMES= 60;   // 2s transición especiales
-const PER_SPEC_FRAMES  = 180;  // 6s por especial
-const OUTRO_FRAMES     = 90;   // 3s
+// ── Constants ──
+const W = 1920, H = 1080;
+const FPS = 30;
 
+// Frame budgets
+const INTRO_F     = 100;   // 3.3s cinematic intro
+const DIP_F       = 260;   // 8.6s per regular diploma
+const SPEC_TRANS_F= 100;   // 3.3s special transition
+const SPEC_F      = 280;   // 9.3s per special diploma
+const OUTRO_F     = 100;   // 3.3s outro
+
+// ── Data (placeholders, replaced via postMessage) ──
 let categories = [
-  { categoryName: 'Categoría 1', winnerName: 'Por Definir', winnerDescription: 'Esperando datos...', votes: 0 },
+  { categoryName:'Mejor Momento', winnerName:'GANADOR DEMO', winnerDescription:'', votes:10 },
 ];
 let specialCategories = [];
-let dataReady = false;
 
-// ─── Stage scaling ────────────────────────────────────────────────────────
-function scaleStage() {
-  const s = document.getElementById('stage');
-  const sx = window.innerWidth  / 1920;
-  const sy = window.innerHeight / 1080;
-  const sc = Math.min(sx, sy);
-  s.style.transform = `scale(${sc})`;
-  s.style.marginLeft = ((window.innerWidth  - 1920 * sc) / 2) + 'px';
-  s.style.marginTop  = ((window.innerHeight - 1080 * sc) / 2) + 'px';
-}
-window.addEventListener('resize', scaleStage);
-scaleStage();
-
-// ─── Playback ─────────────────────────────────────────────────────────────
+// ── State ──
 let frame   = 0;
-let playing = false;
-let rafId   = null;
-let lastTs  = null;
-let accum   = 0;
-const MS_PER_FRAME = 1000 / FPS;
+let paused  = false;
+let rafId   = 0;
+let built   = false;
 
-// ─── Build DOM ────────────────────────────────────────────────────────────
-function buildDiplomas() {
-  // Regular
-  const container = document.getElementById('diploma-container');
-  container.innerHTML = '';
+// ── DOM refs ──
+const stage     = document.getElementById('stage');
+const intro     = document.getElementById('intro');
+const specTrans = document.getElementById('spec-trans');
+const outro     = document.getElementById('outro');
+const flash     = document.getElementById('flash');
+const counter   = document.getElementById('counter');
+const topLabel  = document.getElementById('topLabel');
+const bgCanvas  = document.getElementById('bgCanvas');
+const ctx       = bgCanvas.getContext('2d');
+bgCanvas.width  = W;
+bgCanvas.height = H;
+
+// ── Scale stage to viewport ──
+function scaleStage() {
+  const sx = window.innerWidth  / W;
+  const sy = window.innerHeight / H;
+  const s  = Math.min(sx, sy);
+  stage.style.transform = `scale(${s})`;
+  stage.style.marginLeft = ((window.innerWidth  - W * s) / 2) + 'px';
+  stage.style.marginTop  = ((window.innerHeight - H * s) / 2) + 'px';
+}
+scaleStage();
+window.addEventListener('resize', scaleStage);
+
+// ── Easing helpers ──
+function clamp(v,a,b)   { return Math.max(a,Math.min(b,v)); }
+function fadeIn(f,s,d)  { return clamp((f-s)/d,0,1); }
+function fadeOut(f,s,d) { return clamp(1-(f-s)/d,0,1); }
+function ease(t)        { return t<0.5 ? 2*t*t : -1+(4-2*t)*t; }
+function easeIn(f,s,d)  { return ease(fadeIn(f,s,d)); }
+
+// ── Particle system ──
+const particles = [];
+for (let i=0; i<120; i++) {
+  particles.push({
+    x: Math.random()*W, y: Math.random()*H,
+    vx:(Math.random()-0.5)*0.6, vy:(Math.random()-0.5)*0.6,
+    r: Math.random()*2+0.5,
+    hue: Math.random()*60 + 280,  // purple→pink
+    a: Math.random()*0.6+0.2,
+    life: Math.random()*200+100,
+    age:0,
+  });
+}
+const lasers = [];
+for (let i=0; i<8; i++) {
+  lasers.push({
+    x1:Math.random()*W, y1:Math.random()*H,
+    x2:Math.random()*W, y2:Math.random()*H,
+    hue: Math.random()*60+280,
+    speed: (Math.random()+0.5)*0.5,
+    phase: Math.random()*Math.PI*2,
+    a: 0,
+  });
+}
+
+function drawBg(f) {
+  ctx.clearRect(0,0,W,H);
+
+  // Deep neon background gradient
+  const bg = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, 900);
+  bg.addColorStop(0,'#0d0020');
+  bg.addColorStop(0.5,'#080015');
+  bg.addColorStop(1,'#000');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0,0,W,H);
+
+  // Animated neon blobs
+  for (let i=0; i<5; i++) {
+    const bx = Math.sin(f*0.018 + i*1.3)*350 + W/2;
+    const by = Math.cos(f*0.012 + i*1.0)*200 + H/2;
+    const br = Math.sin(f*0.04+i)*60+180;
+    const hue = (f*0.5 + i*60) % 360;
+    const g = ctx.createRadialGradient(bx,by,0,bx,by,br);
+    g.addColorStop(0,`hsla(${hue},100%,60%,0.12)`);
+    g.addColorStop(0.5,`hsla(${hue},100%,50%,0.04)`);
+    g.addColorStop(1,'transparent');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(bx,by,br,0,Math.PI*2); ctx.fill();
+  }
+
+  // Laser beams
+  lasers.forEach(l => {
+    l.a = (Math.sin(f*l.speed*0.05 + l.phase)+1)*0.5 * 0.25;
+    if (l.a < 0.02) return;
+    const lx2 = l.x1 + Math.sin(f*0.02+l.phase)*400;
+    const ly2 = l.y1 + Math.cos(f*0.015+l.phase)*300;
+    const gr = ctx.createLinearGradient(l.x1,l.y1,lx2,ly2);
+    gr.addColorStop(0,'transparent');
+    gr.addColorStop(0.5,`hsla(${l.hue},100%,70%,${l.a})`);
+    gr.addColorStop(1,'transparent');
+    ctx.strokeStyle = gr;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(l.x1,l.y1); ctx.lineTo(lx2,ly2); ctx.stroke();
+  });
+
+  // Particles
+  particles.forEach(p => {
+    p.age++; p.x += p.vx; p.y += p.vy;
+    if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+    if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+    const alpha = p.a * Math.sin(p.age/p.life * Math.PI);
+    ctx.fillStyle = `hsla(${p.hue},100%,75%,${alpha})`;
+    ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill();
+  });
+}
+
+// ── Build DOM slides dynamically ──
+function buildSlides() {
+  if (built) return;
+  built = true;
+
+  const content = document.getElementById('content');
+
+  // Regular diploma slides
   categories.forEach((cat, i) => {
-    const div = document.createElement('div');
-    div.className = 'diploma';
-    div.id = `dip-${i}`;
-    div.innerHTML = `
-      <div class="diploma-card">
-        <div class="diploma-bg"></div>
-        <div class="diploma-overlay"></div>
-        <div class="dip-otorga">ESTE DIPLOMA SE OTORGA A:</div>
-        <div class="dip-winner" id="dw-${i}">${cat.winnerName}</div>
-        <div class="dip-reconocido">POR HABER SIDO RECONOCIDO EN LA CATEGORÍA:</div>
-        <div class="dip-category" id="dc-${i}">${cat.categoryName.toUpperCase()}</div>
-        <div class="dip-description" id="dd-${i}">${cat.winnerDescription || ''}</div>
-        <div class="dip-votes" id="dv-${i}">${cat.votes > 0 ? '⚡ ' + cat.votes + ' VOTOS ⚡' : ''}</div>
+    const slide = document.createElement('div');
+    slide.className = 'dslide';
+    slide.id = `ds${i}`;
+    slide.innerHTML = `
+      <div class="dcard" id="dc${i}">
+        <img src="/Font.jpeg?v=4" alt="diploma" draggable="false">
+        <div class="d-name" id="dn${i}">${cat.winnerName.toUpperCase()}</div>
+        <div class="d-cat"  id="dcat${i}">${cat.categoryName.toUpperCase()}</div>
+        <div class="d-votes" id="dv${i}">▌ ${cat.votes} VOTOS ▌</div>
       </div>`;
-    container.appendChild(div);
+    content.insertBefore(slide, specTrans);
   });
 
-  // Special
-  const specContainer = document.getElementById('special-container');
-  specContainer.innerHTML = '';
+  // Special diploma slides
   specialCategories.forEach((cat, i) => {
-    const div = document.createElement('div');
-    div.className = 'special-diploma';
-    div.id = `sdip-${i}`;
-    div.innerHTML = `
-      <div class="special-card">
-        <div class="special-bg"></div>
-        <div class="special-top-bar"></div>
-        <div class="special-bottom-bar"></div>
-        <div class="special-badge-label">🏅 Reconocimiento Especial · Club Los Manijas 2026</div>
-        <div class="special-star" id="sstar-${i}">★</div>
-        <div class="special-otorga">ESTE DIPLOMA SE OTORGA A:</div>
-        <div class="special-winner" id="sw-${i}">${cat.winnerName}</div>
-        <div class="special-reconocido">POR SER RECONOCIDO EN LA CATEGORÍA ESPECIAL:</div>
-        <div class="special-category" id="sc-${i}">${cat.categoryName.toUpperCase()}</div>
-        <div class="special-reconocimiento" id="sr-${i}">Premiación Directa por la Organización</div>
+    const slide = document.createElement('div');
+    slide.className = 'sslide';
+    slide.id = `ss${i}`;
+    slide.innerHTML = `
+      <div class="scard" id="sc${i}">
+        <img src="/Font.jpeg?v=4" alt="diploma" draggable="false">
+        <div class="s-badge" id="sb${i}">★ PREMIO ESPECIAL ★</div>
+        <div class="s-name"  id="sn${i}">${cat.winnerName.toUpperCase()}</div>
+        <div class="s-cat"   id="scat${i}">${cat.categoryName.toUpperCase()}</div>
+        <div class="s-premio" id="sp${i}">RECONOCIMIENTO EXTRAORDINARIO · MANIJA AWARDS 2026</div>
       </div>`;
-    specContainer.appendChild(div);
+    content.appendChild(slide);
   });
 }
 
-// ─── Timing helpers ──────────────────────────────────────────────────────
-function hasSpecials()   { return specialCategories.length > 0; }
-function specialOffset() {
-  return INTRO_FRAMES + categories.length * PER_DIP_FRAMES;
-}
-function outroOffset() {
-  return specialOffset()
-    + (hasSpecials() ? SPEC_TRANS_FRAMES + specialCategories.length * PER_SPEC_FRAMES : 0);
-}
+// ── Timeline math ──
 function totalFrames() {
-  return outroOffset() + OUTRO_FRAMES;
+  const hasSpec = specialCategories.length > 0;
+  return INTRO_F
+    + categories.length * DIP_F
+    + (hasSpec ? SPEC_TRANS_F + specialCategories.length * SPEC_F : 0)
+    + OUTRO_F;
 }
 
-// ─── Frame renderer ───────────────────────────────────────────────────────
-function renderFrame(f) {
-  const intro   = document.getElementById('intro');
-  const outro   = document.getElementById('outro');
-  const specTrans = document.getElementById('special-transition');
-  const scan    = document.getElementById('scanline');
-  const counter = document.getElementById('counter');
+function getPhase(f) {
+  if (f < INTRO_F) return { phase:'intro', local: f };
+  f -= INTRO_F;
+  for (let i=0; i<categories.length; i++) {
+    if (f < DIP_F) return { phase:'dip', idx:i, local:f };
+    f -= DIP_F;
+  }
+  if (specialCategories.length > 0) {
+    if (f < SPEC_TRANS_F) return { phase:'spectrans', local:f };
+    f -= SPEC_TRANS_F;
+    for (let i=0; i<specialCategories.length; i++) {
+      if (f < SPEC_F) return { phase:'spec', idx:i, local:f };
+      f -= SPEC_F;
+    }
+  }
+  return { phase:'outro', local: f };
+}
 
-  // Default: hide everything
-  const hideAll = () => {
-    categories.forEach((_, i) => {
-      const d = document.getElementById(`dip-${i}`); if (d) d.style.opacity = '0';
-    });
-    specialCategories.forEach((_, i) => {
-      const d = document.getElementById(`sdip-${i}`); if (d) d.style.opacity = '0';
-    });
-    specTrans.style.opacity = '0';
-    intro.style.opacity = '0';
-    outro.style.opacity = '0';
-    counter.textContent = '';
-    scan.classList.remove('gold');
-  };
+// ── Set element opacity ──
+function op(id,v) {
+  const el=document.getElementById(id);
+  if(el) el.style.opacity=v;
+}
+function tr(id,v) {
+  const el=document.getElementById(id);
+  if(el) el.style.transform=v;
+}
 
+// ── Neon glow ring on card ──
+function cardGlow(id, intensity) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const g = Math.round(intensity * 255);
+  el.style.boxShadow = intensity > 0.01
+    ? `0 0 ${40*intensity}px rgba(255,46,219,${0.6*intensity}),
+       0 0 ${80*intensity}px rgba(200,0,255,${0.3*intensity}),
+       0 0 ${20*intensity}px rgba(255,46,219,${0.8*intensity})`
+    : 'none';
+}
+function cardGlowGold(id, intensity) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.style.boxShadow = intensity > 0.01
+    ? `0 0 ${50*intensity}px rgba(255,215,0,${0.7*intensity}),
+       0 0 ${100*intensity}px rgba(255,165,0,${0.3*intensity}),
+       0 0 ${25*intensity}px rgba(255,215,0,${0.9*intensity})`
+    : 'none';
+}
+
+// ── Flash ──
+function doFlash(intensity) {
+  flash.style.opacity = intensity;
+  flash.style.background = '#fff';
+}
+function doFlashPink(intensity) {
+  flash.style.opacity = intensity;
+  flash.style.background = 'linear-gradient(135deg,#ff2edb,#cc00ff)';
+}
+function doFlashGold(intensity) {
+  flash.style.opacity = intensity;
+  flash.style.background = 'linear-gradient(135deg,#FFD700,#FF8C00)';
+}
+
+// ── Hide all slides ──
+function hideAll() {
+  intro.style.opacity      = 0;
+  specTrans.style.opacity  = 0;
+  outro.style.opacity      = 0;
+  flash.style.opacity      = 0;
+  for(let i=0;i<categories.length;i++){
+    const s=document.getElementById(`ds${i}`);
+    if(s) s.style.opacity=0;
+  }
+  for(let i=0;i<specialCategories.length;i++){
+    const s=document.getElementById(`ss${i}`);
+    if(s) s.style.opacity=0;
+  }
+}
+
+// ── Render one frame ──
+function render(f) {
+  drawBg(f);
   hideAll();
 
-  // Scanline
-  scan.style.top = ((f * 5) % 1080) + 'px';
+  const { phase, idx, local: lf } = getPhase(f);
+  const total = totalFrames();
+  const dipTotal = categories.length + specialCategories.length;
 
-  // ── INTRO ──────────────────────────────────────────────────────────────
-  if (f < INTRO_FRAMES) {
-    intro.style.opacity = f < 30 ? f / 30 : (f > 50 ? (60 - f) / 10 : 1);
+  // HUD
+  topLabel.style.opacity = (phase==='intro'||phase==='outro') ? 0 : 0.6;
+
+  // ── INTRO ──
+  if (phase === 'intro') {
+    intro.style.opacity = 1;
+    const m = document.getElementById('intro-manija');
+    const a = document.getElementById('intro-awards');
+    const y = document.getElementById('intro-year');
+    const s = document.getElementById('intro-sub');
+
+    // MANIJA slams in
+    const mi = easeIn(lf, 8, 18);
+    m.style.opacity   = mi;
+    m.style.transform = `translateY(${(1-mi)*-80}px) scale(${0.6+mi*0.4})`;
+
+    // AWARDS rises
+    const ai = easeIn(lf, 22, 18);
+    a.style.opacity   = ai;
+    a.style.transform = `translateY(${(1-ai)*80}px) scale(${0.6+ai*0.4})`;
+
+    y.style.opacity = fadeIn(lf, 42, 12);
+    s.style.opacity = fadeIn(lf, 55, 14);
+
+    // exit fade
+    if (lf > 75) {
+      const ex = fadeOut(lf, 75, 20);
+      intro.style.opacity = ex;
+      doFlashPink(1 - ex);
+    }
+    counter.textContent = '';
     return;
   }
 
-  const afterIntro = f - INTRO_FRAMES;
+  // ── REGULAR DIPLOMA ──
+  if (phase === 'dip') {
+    const slide = document.getElementById(`ds${idx}`);
+    const card  = document.getElementById(`dc${idx}`);
+    const dname = document.getElementById(`dn${idx}`);
+    const dcat  = document.getElementById(`dcat${idx}`);
+    const dvot  = document.getElementById(`dv${idx}`);
+    if (!slide || !card) return;
 
-  // ── REGULAR DIPLOMAS ───────────────────────────────────────────────────
-  if (afterIntro < categories.length * PER_DIP_FRAMES) {
-    const dipIdx   = Math.floor(afterIntro / PER_DIP_FRAMES);
-    const dipFrame = afterIntro % PER_DIP_FRAMES;
-    counter.textContent = (dipIdx + 1) + ' / ' + (categories.length + specialCategories.length);
+    // Slide in: 0-35f
+    const enterT = clamp(lf/35, 0, 1);
+    const entered = ease(enterT);
+    slide.style.opacity = entered > 0.01 ? 1 : 0;
+    card.style.transform = `scale(${0.82+entered*0.18}) translateY(${(1-entered)*70}px)`;
+    cardGlow(`dc${idx}`, entered * 0.8 * (0.85 + Math.sin(lf*0.12)*0.15));
 
-    const d = document.getElementById(`dip-${dipIdx}`);
-    if (!d) return;
-    const cardOpacity = dipFrame < 20 ? dipFrame / 20 : 1;
-    d.style.opacity = (dipFrame > PER_DIP_FRAMES - 20)
-      ? (PER_DIP_FRAMES - dipFrame) / 20
-      : cardOpacity;
+    // Flash burst on entry
+    doFlash(lf < 8 ? (1-lf/8)*0.8 : 0);
 
-    const dw = document.getElementById(`dw-${dipIdx}`);
-    if (dw) {
-      dw.style.opacity = dipFrame > 24 ? Math.min((dipFrame - 24) / 15, 1) : 0;
-      const pulse = Math.sin(dipFrame * 0.15) * 15;
-      dw.style.textShadow = `0 0 ${30 + pulse}px rgba(255,255,255,0.9), 0 0 ${60 + pulse}px rgba(255,255,255,0.4)`;
+    // Winner name reveal: 35-65f (glitch typewriter effect)
+    const nameT = fadeIn(lf, 35, 22);
+    dname.style.opacity = nameT;
+    // Clip width for typewriter
+    const nameEl = dname;
+    const clipPct = Math.round(nameT * 100);
+    nameEl.style.clipPath = `inset(0 ${100-clipPct}% 0 0)`;
+
+    // Category badge: 58-80f
+    const catT = easeIn(lf, 58, 22);
+    dcat.style.opacity   = catT;
+    dcat.style.transform = `translateX(-50%) translateY(-50%) scale(${0.7+catT*0.3})`;
+
+    // Votes: 80-100f
+    const votT = fadeIn(lf, 80, 20);
+    dvot.style.opacity = votT;
+
+    // Glow pulse while on screen
+    if (lf > 35) {
+      const pulse = 0.7 + Math.sin(lf*0.18)*0.3;
+      cardGlow(`dc${idx}`, pulse);
     }
-    const dc = document.getElementById(`dc-${dipIdx}`);
-    if (dc) dc.style.opacity = dipFrame > 49 ? Math.min((dipFrame - 49) / 15, 1) : 0;
-    const dd = document.getElementById(`dd-${dipIdx}`);
-    if (dd) dd.style.opacity = dipFrame > 69 ? Math.min((dipFrame - 69) / 15, 1) : 0;
-    const dv = document.getElementById(`dv-${dipIdx}`);
-    if (dv) {
-      dv.style.opacity = dipFrame > 89 ? Math.min((dipFrame - 89) / 15, 1) : 0;
-      const glow = Math.abs(Math.sin(dipFrame * 0.1)) * 30;
-      dv.style.textShadow = `0 0 ${20 + glow}px rgba(255,46,219,0.9)`;
+
+    // Counter HUD
+    counter.textContent = `${idx+1} / ${dipTotal}`;
+    topLabel.style.opacity = fadeIn(lf, 40, 20) * 0.6;
+
+    // Exit: last 25 frames
+    if (lf > DIP_F - 30) {
+      const ex = fadeOut(lf, DIP_F-30, 20);
+      slide.style.opacity = ex;
+      doFlashPink(1-ex);
     }
     return;
   }
 
-  // ── SPECIAL SECTION ────────────────────────────────────────────────────
-  if (hasSpecials()) {
-    const afterSpecStart = afterIntro - categories.length * PER_DIP_FRAMES;
-    scan.classList.add('gold');
+  // ── SPECIAL TRANSITION ──
+  if (phase === 'spectrans') {
+    specTrans.style.opacity = 1;
+    const el1 = specTrans.querySelector('h2');
+    const el2 = specTrans.querySelector('p');
 
-    // Transition slide
-    if (afterSpecStart < SPEC_TRANS_FRAMES) {
-      const tf = afterSpecStart;
-      specTrans.style.opacity = tf < 20 ? tf / 20 : (tf > SPEC_TRANS_FRAMES - 15 ? (SPEC_TRANS_FRAMES - tf) / 15 : 1);
-      return;
+    const si = easeIn(lf, 5, 20);
+    el1.style.opacity   = si;
+    el1.style.transform = `scale(${0.7+si*0.3}) translateY(${(1-si)*-40}px)`;
+    el2.style.opacity   = fadeIn(lf, 28, 16);
+
+    // Gold flashes
+    doFlashGold(lf < 6 ? (1-lf/6)*0.9 : 0);
+
+    if (lf > SPEC_TRANS_F - 25) {
+      const ex = fadeOut(lf, SPEC_TRANS_F-25, 20);
+      specTrans.style.opacity = ex;
+      doFlashGold(1-ex);
     }
-
-    // Special diplomas
-    const afterSpecTrans  = afterSpecStart - SPEC_TRANS_FRAMES;
-    const specDipCount    = specialCategories.length;
-    if (afterSpecTrans < specDipCount * PER_SPEC_FRAMES) {
-      const si   = Math.floor(afterSpecTrans / PER_SPEC_FRAMES);
-      const sf   = afterSpecTrans % PER_SPEC_FRAMES;
-      const total = categories.length + specialCategories.length;
-      counter.textContent = (categories.length + si + 1) + ' / ' + total;
-
-      const sd = document.getElementById(`sdip-${si}`);
-      if (!sd) return;
-
-      const cardOp = sf < 20 ? sf / 20 : 1;
-      sd.style.opacity = sf > PER_SPEC_FRAMES - 20
-        ? (PER_SPEC_FRAMES - sf) / 20
-        : cardOp;
-
-      // Star appears at frame 15
-      const sstar = document.getElementById(`sstar-${si}`);
-      if (sstar) {
-        const starOp = sf > 14 ? Math.min((sf - 14) / 12, 1) : 0;
-        sstar.style.opacity = starOp;
-        const spinDeg = sf * 3;
-        sstar.style.transform = `translateX(-50%) rotate(${spinDeg}deg) scale(${1 + Math.sin(sf * 0.1) * 0.1})`;
-      }
-      // Winner at frame 30
-      const sw = document.getElementById(`sw-${si}`);
-      if (sw) {
-        sw.style.opacity = sf > 29 ? Math.min((sf - 29) / 15, 1) : 0;
-      }
-      // Category badge at frame 55
-      const sc = document.getElementById(`sc-${si}`);
-      if (sc) sc.style.opacity = sf > 54 ? Math.min((sf - 54) / 15, 1) : 0;
-      // Reconocimiento at frame 80
-      const sr = document.getElementById(`sr-${si}`);
-      if (sr) sr.style.opacity = sf > 79 ? Math.min((sf - 79) / 12, 1) : 0;
-
-      return;
-    }
+    counter.textContent = '';
+    return;
   }
 
-  // ── OUTRO ─────────────────────────────────────────────────────────────
-  const outroF = f - outroOffset();
-  outro.style.opacity = outroF < 30 ? outroF / 30 : 1;
+  // ── SPECIAL DIPLOMA ──
+  if (phase === 'spec') {
+    const slide = document.getElementById(`ss${idx}`);
+    const card  = document.getElementById(`sc${idx}`);
+    const badge = document.getElementById(`sb${idx}`);
+    const sname = document.getElementById(`sn${idx}`);
+    const scat  = document.getElementById(`scat${idx}`);
+    const sprm  = document.getElementById(`sp${idx}`);
+    if (!slide || !card) return;
 
-  if (f >= totalFrames() - 1) frame = 0;
+    const enterT = clamp(lf/40, 0, 1);
+    const entered = ease(enterT);
+    slide.style.opacity = entered > 0.01 ? 1 : 0;
+    card.style.transform = `scale(${0.82+entered*0.18}) translateY(${(1-entered)*70}px)`;
+    cardGlowGold(`sc${idx}`, entered * 0.9 * (0.85 + Math.sin(lf*0.1)*0.15));
+
+    doFlashGold(lf < 8 ? (1-lf/8)*0.8 : 0);
+
+    badge.style.opacity = fadeIn(lf, 30, 18);
+
+    const nameT = fadeIn(lf, 42, 24);
+    sname.style.opacity  = nameT;
+    sname.style.clipPath = `inset(0 ${100-Math.round(nameT*100)}% 0 0)`;
+
+    const catT = easeIn(lf, 68, 22);
+    scat.style.opacity   = catT;
+    scat.style.transform = `translateX(-50%) translateY(-50%) scale(${0.7+catT*0.3})`;
+
+    sprm.style.opacity = fadeIn(lf, 92, 20);
+
+    // Continuous gold pulse
+    if (lf > 40) {
+      const pulse = 0.75 + Math.sin(lf*0.14)*0.25;
+      cardGlowGold(`sc${idx}`, pulse);
+    }
+
+    const dipSpecIdx = categories.length + idx + 1;
+    counter.textContent = `${dipSpecIdx} / ${dipTotal}`;
+    topLabel.style.opacity = fadeIn(lf, 50, 20) * 0.6;
+
+    if (lf > SPEC_F - 30) {
+      const ex = fadeOut(lf, SPEC_F-30, 22);
+      slide.style.opacity = ex;
+      doFlashGold(1-ex);
+    }
+    return;
+  }
+
+  // ── OUTRO ──
+  if (phase === 'outro') {
+    outro.style.opacity = 1;
+    const h1 = outro.querySelector('h1');
+    const p  = outro.querySelector('p');
+    const cl = outro.querySelector('.club');
+
+    const si = easeIn(lf, 4, 24);
+    h1.style.opacity   = si;
+    h1.style.transform = `scale(${0.7+si*0.3})`;
+    p.style.opacity    = fadeIn(lf, 30, 18);
+    cl.style.opacity   = fadeIn(lf, 48, 18);
+
+    doFlash(lf < 6 ? (1-lf/6)*0.9 : 0);
+
+    if (lf > OUTRO_F - 20) {
+      outro.style.opacity = fadeOut(lf, OUTRO_F-20, 18);
+    }
+    counter.textContent = '';
+    return;
+  }
 }
 
-// ─── RAF loop ─────────────────────────────────────────────────────────────
+// ── Animation loop ──
+let lastTime = 0;
+const FRAME_MS = 1000 / FPS;
+
 function loop(ts) {
-  if (!lastTs) lastTs = ts;
-  accum += ts - lastTs;
-  lastTs = ts;
-  while (accum >= MS_PER_FRAME) {
-    accum -= MS_PER_FRAME;
-    frame++;
-    if (frame >= totalFrames()) frame = 0;
-  }
-  renderFrame(frame);
-  if (playing) rafId = requestAnimationFrame(loop);
+  rafId = requestAnimationFrame(loop);
+  if (paused) return;
+  if (ts - lastTime < FRAME_MS - 2) return;
+  lastTime = ts;
+
+  const total = totalFrames();
+  render(frame);
+  frame++;
+  if (frame >= total) frame = 0;
 }
 
-function play()    { if (playing) return; playing = true; lastTs = null; accum = 0; rafId = requestAnimationFrame(loop); }
-function pause()   { playing = false; if (rafId) { cancelAnimationFrame(rafId); rafId = null; } }
-function restart() { frame = 0; lastTs = null; accum = 0; if (!playing) renderFrame(0); }
-
-// ─── postMessage API ──────────────────────────────────────────────────────
+// ── postMessage ──
 window.addEventListener('message', e => {
   const msg = e.data;
   if (!msg) return;
-  if (msg === 'play')    { play(); return; }
-  if (msg === 'pause')   { pause(); return; }
-  if (msg === 'restart') { restart(); play(); return; }
-  if (msg.type === 'data' && Array.isArray(msg.categories)) {
-    categories        = msg.categories;
-    specialCategories = Array.isArray(msg.specialCategories) ? msg.specialCategories : [];
-    dataReady = true;
-    buildDiplomas();
+
+  if (msg === 'play')    { paused = false; return; }
+  if (msg === 'pause')   { paused = true;  return; }
+  if (msg === 'restart') { frame = 0; paused = false; return; }
+
+  if (msg.type === 'data') {
+    if (Array.isArray(msg.categories) && msg.categories.length)
+      categories = msg.categories;
+    if (Array.isArray(msg.specialCategories))
+      specialCategories = msg.specialCategories;
+
+    // Rebuild slides
+    document.querySelectorAll('.dslide,.sslide').forEach(el => el.remove());
+    built = false;
+    buildSlides();
     frame = 0;
-    renderFrame(0);
-    if (!playing) play();
   }
 });
 
-// ─── Boot ─────────────────────────────────────────────────────────────────
-buildDiplomas();
-renderFrame(0);
-play();
+// ── Start ──
+buildSlides();
+requestAnimationFrame(loop);
 </script>
 </body>
 </html>
