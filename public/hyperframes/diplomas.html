@@ -17,7 +17,8 @@
       position: relative;
       background: #000;
     }
-    /* ---- Diploma card ---- */
+
+    /* ── Diploma card (regular – neon) ── */
     .diploma {
       position: absolute;
       inset: 0;
@@ -25,7 +26,6 @@
       align-items: center;
       justify-content: center;
       opacity: 0;
-      transition: none;
     }
     .diploma-card {
       position: relative;
@@ -41,7 +41,6 @@
       background-size: cover;
       background-position: center;
     }
-    /* Dark overlay so text reads better */
     .diploma-overlay {
       position: absolute;
       inset: 0;
@@ -53,146 +52,197 @@
         rgba(0,0,0,0.20) 100%
       );
     }
-    /* Dynamic text fields (positions match Font.jpeg layout) */
     .dip-otorga {
-      position: absolute;
-      top: 47%;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 22px;
-      letter-spacing: 6px;
-      color: #aaa;
-      text-transform: uppercase;
-      white-space: nowrap;
+      position: absolute; top: 47%; left: 50%; transform: translateX(-50%);
+      font-size: 22px; letter-spacing: 6px; color: #aaa;
+      text-transform: uppercase; white-space: nowrap;
     }
     .dip-winner {
-      position: absolute;
-      top: 52%;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 58px;
-      font-weight: 900;
-      letter-spacing: 14px;
-      color: #ffffff;
-      text-transform: uppercase;
-      white-space: nowrap;
+      position: absolute; top: 52%; left: 50%; transform: translateX(-50%);
+      font-size: 58px; font-weight: 900; letter-spacing: 14px;
+      color: #ffffff; text-transform: uppercase; white-space: nowrap;
       text-align: center;
-      text-shadow:
-        0 0 30px rgba(255,255,255,0.9),
-        0 0 60px rgba(255,255,255,0.4);
+      text-shadow: 0 0 30px rgba(255,255,255,0.9), 0 0 60px rgba(255,255,255,0.4);
       opacity: 0;
     }
     .dip-reconocido {
-      position: absolute;
-      top: 62%;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 18px;
-      letter-spacing: 4px;
-      color: #999;
-      text-transform: uppercase;
-      white-space: nowrap;
+      position: absolute; top: 62%; left: 50%; transform: translateX(-50%);
+      font-size: 18px; letter-spacing: 4px; color: #999;
+      text-transform: uppercase; white-space: nowrap;
     }
     .dip-category {
-      position: absolute;
-      top: 66.5%;
-      left: 50%;
-      transform: translateX(-50%);
+      position: absolute; top: 66.5%; left: 50%; transform: translateX(-50%);
       background: linear-gradient(90deg, #ff2edb, #9b00ff);
-      border-radius: 40px;
-      padding: 12px 48px;
-      font-size: 36px;
-      font-weight: 900;
-      letter-spacing: 6px;
-      color: #fff;
-      text-transform: uppercase;
-      white-space: nowrap;
+      border-radius: 40px; padding: 12px 48px;
+      font-size: 36px; font-weight: 900; letter-spacing: 6px;
+      color: #fff; text-transform: uppercase; white-space: nowrap;
       box-shadow: 0 0 40px rgba(255,46,219,0.7);
       opacity: 0;
     }
     .dip-description {
-      position: absolute;
-      top: 77%;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 20px;
-      color: #ccc;
-      text-align: center;
-      letter-spacing: 2px;
-      max-width: 800px;
-      line-height: 1.5;
-      opacity: 0;
+      position: absolute; top: 77%; left: 50%; transform: translateX(-50%);
+      font-size: 20px; color: #ccc; text-align: center; letter-spacing: 2px;
+      max-width: 800px; line-height: 1.5; opacity: 0;
     }
     .dip-votes {
+      position: absolute; top: 86%; left: 50%; transform: translateX(-50%);
+      font-size: 26px; font-weight: 700; color: #ff2edb; letter-spacing: 4px;
+      text-shadow: 0 0 20px rgba(255,46,219,0.8); opacity: 0;
+    }
+
+    /* ── Special diploma card (gold) ── */
+    .special-diploma {
       position: absolute;
-      top: 86%;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 26px;
-      font-weight: 700;
-      color: #ff2edb;
-      letter-spacing: 4px;
-      text-shadow: 0 0 20px rgba(255,46,219,0.8);
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       opacity: 0;
     }
-    /* Laser scanline */
+    .special-card {
+      position: relative;
+      width: 1300px;
+      height: 920px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 3px solid rgba(255,215,0,0.6);
+      box-shadow: 0 0 60px rgba(255,215,0,0.3), 0 0 120px rgba(255,165,0,0.15);
+    }
+    .special-bg {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 30%, #2a1800 0%, #140d00 40%, #000 100%);
+    }
+    /* Gold shimmer lines */
+    .special-bg::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: repeating-linear-gradient(
+        135deg,
+        transparent 0px,
+        transparent 40px,
+        rgba(255,215,0,0.03) 40px,
+        rgba(255,215,0,0.03) 41px
+      );
+    }
+    .special-top-bar {
+      position: absolute; top: 0; left: 0; right: 0; height: 4px;
+      background: linear-gradient(90deg, transparent, #FFD700, #FFC107, #FF8C00, #FFD700, transparent);
+    }
+    .special-bottom-bar {
+      position: absolute; bottom: 0; left: 0; right: 0; height: 4px;
+      background: linear-gradient(90deg, transparent, #FF8C00, #FFD700, #FFC107, #FF8C00, transparent);
+    }
+    .special-badge-label {
+      position: absolute; top: 8%; left: 50%; transform: translateX(-50%);
+      font-size: 18px; letter-spacing: 8px; font-weight: 700;
+      color: rgba(255,215,0,0.6); text-transform: uppercase; white-space: nowrap;
+    }
+    .special-star {
+      position: absolute; top: 15%; left: 50%; transform: translateX(-50%);
+      font-size: 64px; opacity: 0;
+    }
+    .special-otorga {
+      position: absolute; top: 42%; left: 50%; transform: translateX(-50%);
+      font-size: 20px; letter-spacing: 6px;
+      color: rgba(255,215,0,0.5); text-transform: uppercase; white-space: nowrap;
+    }
+    .special-winner {
+      position: absolute; top: 48%; left: 50%; transform: translateX(-50%);
+      font-size: 64px; font-weight: 900; letter-spacing: 10px;
+      text-transform: uppercase; white-space: nowrap; text-align: center;
+      background: linear-gradient(90deg, #FFD700, #FFF8DC, #FFD700, #FFC107, #FFD700);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+      text-shadow: none; filter: drop-shadow(0 0 20px rgba(255,215,0,0.8));
+      opacity: 0;
+    }
+    .special-reconocido {
+      position: absolute; top: 60%; left: 50%; transform: translateX(-50%);
+      font-size: 16px; letter-spacing: 4px;
+      color: rgba(255,255,255,0.4); text-transform: uppercase; white-space: nowrap;
+    }
+    .special-category {
+      position: absolute; top: 64.5%; left: 50%; transform: translateX(-50%);
+      background: linear-gradient(90deg, #B8860B, #FFD700, #DAA520, #FFC107, #B8860B);
+      border-radius: 40px; padding: 14px 56px;
+      font-size: 34px; font-weight: 900; letter-spacing: 5px;
+      color: #000; text-transform: uppercase; white-space: nowrap;
+      box-shadow: 0 0 40px rgba(255,215,0,0.6), inset 0 1px 0 rgba(255,255,255,0.3);
+      opacity: 0;
+    }
+    .special-reconocimiento {
+      position: absolute; top: 77%; left: 50%; transform: translateX(-50%);
+      font-size: 20px; color: rgba(255,215,0,0.6); text-align: center;
+      letter-spacing: 3px; text-transform: uppercase; white-space: nowrap;
+      opacity: 0;
+    }
+
+    /* ── Special section transition ── */
+    #special-transition {
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at center, #1a1000 0%, #000 100%);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none;
+    }
+    #special-transition h2 {
+      font-size: 80px; font-weight: 900; letter-spacing: 12px;
+      background: linear-gradient(90deg, #FFD700, #FFC107, #FF8C00, #FFD700);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+      text-shadow: none; filter: drop-shadow(0 0 30px rgba(255,215,0,0.6));
+      margin-bottom: 24px;
+    }
+    #special-transition p {
+      font-size: 32px; color: rgba(255,215,0,0.6); letter-spacing: 6px;
+      text-transform: uppercase;
+    }
+
+    /* ── Laser scanline ── */
     #scanline {
       position: absolute;
       left: 0; width: 1920px; height: 4px;
       background: linear-gradient(90deg, transparent, #ff2edb, #00ffff, transparent);
       box-shadow: 0 0 20px #ff2edb;
-      opacity: 0.8;
-      top: 0;
-      pointer-events: none;
+      opacity: 0.8; top: 0; pointer-events: none;
     }
-    /* Category counter */
+    /* Gold scanline (during special section) */
+    #scanline.gold {
+      background: linear-gradient(90deg, transparent, #FFD700, #FFF8DC, transparent);
+      box-shadow: 0 0 20px #FFD700;
+    }
+
+    /* ── Category counter ── */
     #counter {
-      position: absolute;
-      bottom: 30px; right: 60px;
-      font-size: 28px;
-      color: rgba(255,255,255,0.4);
-      letter-spacing: 4px;
+      position: absolute; bottom: 30px; right: 60px;
+      font-size: 28px; color: rgba(255,255,255,0.4); letter-spacing: 4px;
     }
-    /* Intro screen */
+
+    /* ── Intro ── */
     #intro {
-      position: absolute;
-      inset: 0;
+      position: absolute; inset: 0;
       background: radial-gradient(ellipse at center, #1a0a2e 0%, #000 100%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
       opacity: 1;
     }
     #intro h1 {
-      font-size: 90px;
-      font-weight: 900;
+      font-size: 90px; font-weight: 900;
       background: linear-gradient(90deg, #ff2edb, #00ffff, #ffff00);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      letter-spacing: 10px;
-      margin-bottom: 20px;
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+      letter-spacing: 10px; margin-bottom: 20px;
     }
     #intro p { font-size: 36px; color: #fff; letter-spacing: 6px; }
-    /* Particles */
+
+    /* ── Particles ── */
     .particle {
-      position: absolute;
-      width: 4px; height: 4px;
-      border-radius: 50%;
-      pointer-events: none;
+      position: absolute; width: 4px; height: 4px;
+      border-radius: 50%; pointer-events: none;
     }
-    /* Outro */
+
+    /* ── Outro ── */
     #outro {
-      position: absolute;
-      inset: 0;
+      position: absolute; inset: 0;
       background: radial-gradient(ellipse at center, #1a0a2e 0%, #000 100%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      opacity: 0;
-      pointer-events: none;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none;
     }
     #outro h2 { font-size: 72px; font-weight: 900; color: #ff2edb; letter-spacing: 8px; text-shadow: 0 0 40px #ff2edb; }
     #outro p { font-size: 36px; color: #00ffff; margin-top: 20px; letter-spacing: 4px; }
@@ -208,10 +258,19 @@
     <p>REVELACIÓN DE GANADORES</p>
   </div>
 
-  <!-- Diploma template (cloned per category via JS) -->
+  <!-- Diplomas normales -->
   <div id="diploma-container"></div>
 
-  <!-- Category counter -->
+  <!-- Transición especiales -->
+  <div id="special-transition">
+    <h2>★ CATEGORÍAS ESPECIALES ★</h2>
+    <p>Reconocimientos de la Organización</p>
+  </div>
+
+  <!-- Diplomas especiales -->
+  <div id="special-container"></div>
+
+  <!-- Counter -->
   <div id="counter"></div>
 
   <!-- Outro -->
@@ -222,20 +281,21 @@
 </div>
 
 <script>
-// ─── Config ──────────────────────────────────────────────
-const FPS             = 30;
-const INTRO_FRAMES    = 60;   // 2s  intro
-const PER_DIP_FRAMES  = 210;  // 7s  per diploma
-const OUTRO_FRAMES    = 90;   // 3s  outro
+// ─── Config ──────────────────────────────────────────────────────────────
+const FPS              = 30;
+const INTRO_FRAMES     = 60;   // 2s
+const PER_DIP_FRAMES   = 210;  // 7s por diploma normal
+const SPEC_TRANS_FRAMES= 60;   // 2s transición especiales
+const PER_SPEC_FRAMES  = 180;  // 6s por especial
+const OUTRO_FRAMES     = 90;   // 3s
 
-// Default placeholder until real data arrives
 let categories = [
   { categoryName: 'Categoría 1', winnerName: 'Por Definir', winnerDescription: 'Esperando datos...', votes: 0 },
-  { categoryName: 'Categoría 2', winnerName: 'Por Definir', winnerDescription: 'Esperando datos...', votes: 0 },
 ];
+let specialCategories = [];
 let dataReady = false;
 
-// ─── Stage scaling ────────────────────────────────────────
+// ─── Stage scaling ────────────────────────────────────────────────────────
 function scaleStage() {
   const s = document.getElementById('stage');
   const sx = window.innerWidth  / 1920;
@@ -248,16 +308,17 @@ function scaleStage() {
 window.addEventListener('resize', scaleStage);
 scaleStage();
 
-// ─── Playback state ───────────────────────────────────────
-let frame = 0;
+// ─── Playback ─────────────────────────────────────────────────────────────
+let frame   = 0;
 let playing = false;
-let rafId = null;
-let lastTs = null;
-let accum = 0;
+let rafId   = null;
+let lastTs  = null;
+let accum   = 0;
 const MS_PER_FRAME = 1000 / FPS;
 
-// ─── DOM helpers ─────────────────────────────────────────
+// ─── Build DOM ────────────────────────────────────────────────────────────
 function buildDiplomas() {
+  // Regular
   const container = document.getElementById('diploma-container');
   container.innerHTML = '';
   categories.forEach((cat, i) => {
@@ -274,100 +335,176 @@ function buildDiplomas() {
         <div class="dip-category" id="dc-${i}">${cat.categoryName.toUpperCase()}</div>
         <div class="dip-description" id="dd-${i}">${cat.winnerDescription || ''}</div>
         <div class="dip-votes" id="dv-${i}">${cat.votes > 0 ? '⚡ ' + cat.votes + ' VOTOS ⚡' : ''}</div>
-      </div>
-    `;
+      </div>`;
     container.appendChild(div);
   });
+
+  // Special
+  const specContainer = document.getElementById('special-container');
+  specContainer.innerHTML = '';
+  specialCategories.forEach((cat, i) => {
+    const div = document.createElement('div');
+    div.className = 'special-diploma';
+    div.id = `sdip-${i}`;
+    div.innerHTML = `
+      <div class="special-card">
+        <div class="special-bg"></div>
+        <div class="special-top-bar"></div>
+        <div class="special-bottom-bar"></div>
+        <div class="special-badge-label">🏅 Reconocimiento Especial · Club Los Manijas 2026</div>
+        <div class="special-star" id="sstar-${i}">★</div>
+        <div class="special-otorga">ESTE DIPLOMA SE OTORGA A:</div>
+        <div class="special-winner" id="sw-${i}">${cat.winnerName}</div>
+        <div class="special-reconocido">POR SER RECONOCIDO EN LA CATEGORÍA ESPECIAL:</div>
+        <div class="special-category" id="sc-${i}">${cat.categoryName.toUpperCase()}</div>
+        <div class="special-reconocimiento" id="sr-${i}">Premiación Directa por la Organización</div>
+      </div>`;
+    specContainer.appendChild(div);
+  });
 }
 
-// ─── Frame renderer ───────────────────────────────────────
+// ─── Timing helpers ──────────────────────────────────────────────────────
+function hasSpecials()   { return specialCategories.length > 0; }
+function specialOffset() {
+  return INTRO_FRAMES + categories.length * PER_DIP_FRAMES;
+}
+function outroOffset() {
+  return specialOffset()
+    + (hasSpecials() ? SPEC_TRANS_FRAMES + specialCategories.length * PER_SPEC_FRAMES : 0);
+}
 function totalFrames() {
-  return INTRO_FRAMES + categories.length * PER_DIP_FRAMES + OUTRO_FRAMES;
+  return outroOffset() + OUTRO_FRAMES;
 }
 
+// ─── Frame renderer ───────────────────────────────────────────────────────
 function renderFrame(f) {
-  const intro  = document.getElementById('intro');
-  const outro  = document.getElementById('outro');
-  const scan   = document.getElementById('scanline');
-  const counter= document.getElementById('counter');
+  const intro   = document.getElementById('intro');
+  const outro   = document.getElementById('outro');
+  const specTrans = document.getElementById('special-transition');
+  const scan    = document.getElementById('scanline');
+  const counter = document.getElementById('counter');
 
-  // Scanline animation
+  // Default: hide everything
+  const hideAll = () => {
+    categories.forEach((_, i) => {
+      const d = document.getElementById(`dip-${i}`); if (d) d.style.opacity = '0';
+    });
+    specialCategories.forEach((_, i) => {
+      const d = document.getElementById(`sdip-${i}`); if (d) d.style.opacity = '0';
+    });
+    specTrans.style.opacity = '0';
+    intro.style.opacity = '0';
+    outro.style.opacity = '0';
+    counter.textContent = '';
+    scan.classList.remove('gold');
+  };
+
+  hideAll();
+
+  // Scanline
   scan.style.top = ((f * 5) % 1080) + 'px';
 
-  // ── Intro phase ──────────────────────────────────────────
+  // ── INTRO ──────────────────────────────────────────────────────────────
   if (f < INTRO_FRAMES) {
     intro.style.opacity = f < 30 ? f / 30 : (f > 50 ? (60 - f) / 10 : 1);
-    outro.style.opacity = '0';
-    categories.forEach((_, i) => {
-      const d = document.getElementById(`dip-${i}`);
-      if (d) d.style.opacity = '0';
-    });
-    counter.textContent = '';
     return;
   }
 
-  intro.style.opacity = '0';
-
-  // ── Diploma phases ───────────────────────────────────────
   const afterIntro = f - INTRO_FRAMES;
-  const dipIdx     = Math.floor(afterIntro / PER_DIP_FRAMES);
-  const dipFrame   = afterIntro % PER_DIP_FRAMES;
 
-  if (dipIdx < categories.length) {
-    outro.style.opacity = '0';
-    counter.textContent = (dipIdx + 1) + ' / ' + categories.length;
+  // ── REGULAR DIPLOMAS ───────────────────────────────────────────────────
+  if (afterIntro < categories.length * PER_DIP_FRAMES) {
+    const dipIdx   = Math.floor(afterIntro / PER_DIP_FRAMES);
+    const dipFrame = afterIntro % PER_DIP_FRAMES;
+    counter.textContent = (dipIdx + 1) + ' / ' + (categories.length + specialCategories.length);
 
-    categories.forEach((_, i) => {
-      const d = document.getElementById(`dip-${i}`);
-      if (!d) return;
-      if (i !== dipIdx) { d.style.opacity = '0'; return; }
+    const d = document.getElementById(`dip-${dipIdx}`);
+    if (!d) return;
+    const cardOpacity = dipFrame < 20 ? dipFrame / 20 : 1;
+    d.style.opacity = (dipFrame > PER_DIP_FRAMES - 20)
+      ? (PER_DIP_FRAMES - dipFrame) / 20
+      : cardOpacity;
 
-      // Fade in card
-      const cardOpacity = dipFrame < 20 ? dipFrame / 20 : 1;
-      d.style.opacity = cardOpacity;
-
-      // Winner name appears at frame 25 with glow pulse
-      const dw = document.getElementById(`dw-${i}`);
-      if (dw) {
-        dw.style.opacity = dipFrame > 24 ? Math.min((dipFrame - 24) / 15, 1) : 0;
-        const pulse = Math.sin(dipFrame * 0.15) * 15;
-        dw.style.textShadow = `0 0 ${30 + pulse}px rgba(255,255,255,0.9), 0 0 ${60 + pulse}px rgba(255,255,255,0.4)`;
-      }
-      // Category badge slides in at frame 50
-      const dc = document.getElementById(`dc-${i}`);
-      if (dc) dc.style.opacity = dipFrame > 49 ? Math.min((dipFrame - 49) / 15, 1) : 0;
-      // Description at frame 70
-      const dd = document.getElementById(`dd-${i}`);
-      if (dd) dd.style.opacity = dipFrame > 69 ? Math.min((dipFrame - 69) / 15, 1) : 0;
-      // Votes at frame 90
-      const dv = document.getElementById(`dv-${i}`);
-      if (dv) {
-        dv.style.opacity = dipFrame > 89 ? Math.min((dipFrame - 89) / 15, 1) : 0;
-        const glow = Math.abs(Math.sin(dipFrame * 0.1)) * 30;
-        dv.style.textShadow = `0 0 ${20 + glow}px rgba(255,46,219,0.9)`;
-      }
-      // Fade out near end
-      if (dipFrame > PER_DIP_FRAMES - 20) {
-        d.style.opacity = (PER_DIP_FRAMES - dipFrame) / 20;
-      }
-    });
+    const dw = document.getElementById(`dw-${dipIdx}`);
+    if (dw) {
+      dw.style.opacity = dipFrame > 24 ? Math.min((dipFrame - 24) / 15, 1) : 0;
+      const pulse = Math.sin(dipFrame * 0.15) * 15;
+      dw.style.textShadow = `0 0 ${30 + pulse}px rgba(255,255,255,0.9), 0 0 ${60 + pulse}px rgba(255,255,255,0.4)`;
+    }
+    const dc = document.getElementById(`dc-${dipIdx}`);
+    if (dc) dc.style.opacity = dipFrame > 49 ? Math.min((dipFrame - 49) / 15, 1) : 0;
+    const dd = document.getElementById(`dd-${dipIdx}`);
+    if (dd) dd.style.opacity = dipFrame > 69 ? Math.min((dipFrame - 69) / 15, 1) : 0;
+    const dv = document.getElementById(`dv-${dipIdx}`);
+    if (dv) {
+      dv.style.opacity = dipFrame > 89 ? Math.min((dipFrame - 89) / 15, 1) : 0;
+      const glow = Math.abs(Math.sin(dipFrame * 0.1)) * 30;
+      dv.style.textShadow = `0 0 ${20 + glow}px rgba(255,46,219,0.9)`;
+    }
     return;
   }
 
-  // ── Outro phase ──────────────────────────────────────────
-  categories.forEach((_, i) => {
-    const d = document.getElementById(`dip-${i}`);
-    if (d) d.style.opacity = '0';
-  });
-  counter.textContent = '';
-  const outroFrame = afterIntro - categories.length * PER_DIP_FRAMES;
-  outro.style.opacity = outroFrame < 30 ? outroFrame / 30 : 1;
+  // ── SPECIAL SECTION ────────────────────────────────────────────────────
+  if (hasSpecials()) {
+    const afterSpecStart = afterIntro - categories.length * PER_DIP_FRAMES;
+    scan.classList.add('gold');
 
-  // Loop back
+    // Transition slide
+    if (afterSpecStart < SPEC_TRANS_FRAMES) {
+      const tf = afterSpecStart;
+      specTrans.style.opacity = tf < 20 ? tf / 20 : (tf > SPEC_TRANS_FRAMES - 15 ? (SPEC_TRANS_FRAMES - tf) / 15 : 1);
+      return;
+    }
+
+    // Special diplomas
+    const afterSpecTrans  = afterSpecStart - SPEC_TRANS_FRAMES;
+    const specDipCount    = specialCategories.length;
+    if (afterSpecTrans < specDipCount * PER_SPEC_FRAMES) {
+      const si   = Math.floor(afterSpecTrans / PER_SPEC_FRAMES);
+      const sf   = afterSpecTrans % PER_SPEC_FRAMES;
+      const total = categories.length + specialCategories.length;
+      counter.textContent = (categories.length + si + 1) + ' / ' + total;
+
+      const sd = document.getElementById(`sdip-${si}`);
+      if (!sd) return;
+
+      const cardOp = sf < 20 ? sf / 20 : 1;
+      sd.style.opacity = sf > PER_SPEC_FRAMES - 20
+        ? (PER_SPEC_FRAMES - sf) / 20
+        : cardOp;
+
+      // Star appears at frame 15
+      const sstar = document.getElementById(`sstar-${si}`);
+      if (sstar) {
+        const starOp = sf > 14 ? Math.min((sf - 14) / 12, 1) : 0;
+        sstar.style.opacity = starOp;
+        const spinDeg = sf * 3;
+        sstar.style.transform = `translateX(-50%) rotate(${spinDeg}deg) scale(${1 + Math.sin(sf * 0.1) * 0.1})`;
+      }
+      // Winner at frame 30
+      const sw = document.getElementById(`sw-${si}`);
+      if (sw) {
+        sw.style.opacity = sf > 29 ? Math.min((sf - 29) / 15, 1) : 0;
+      }
+      // Category badge at frame 55
+      const sc = document.getElementById(`sc-${si}`);
+      if (sc) sc.style.opacity = sf > 54 ? Math.min((sf - 54) / 15, 1) : 0;
+      // Reconocimiento at frame 80
+      const sr = document.getElementById(`sr-${si}`);
+      if (sr) sr.style.opacity = sf > 79 ? Math.min((sf - 79) / 12, 1) : 0;
+
+      return;
+    }
+  }
+
+  // ── OUTRO ─────────────────────────────────────────────────────────────
+  const outroF = f - outroOffset();
+  outro.style.opacity = outroF < 30 ? outroF / 30 : 1;
+
   if (f >= totalFrames() - 1) frame = 0;
 }
 
-// ─── RAF loop ─────────────────────────────────────────────
+// ─── RAF loop ─────────────────────────────────────────────────────────────
 function loop(ts) {
   if (!lastTs) lastTs = ts;
   accum += ts - lastTs;
@@ -385,16 +522,16 @@ function play()    { if (playing) return; playing = true; lastTs = null; accum =
 function pause()   { playing = false; if (rafId) { cancelAnimationFrame(rafId); rafId = null; } }
 function restart() { frame = 0; lastTs = null; accum = 0; if (!playing) renderFrame(0); }
 
-// ─── postMessage API ──────────────────────────────────────
+// ─── postMessage API ──────────────────────────────────────────────────────
 window.addEventListener('message', e => {
   const msg = e.data;
   if (!msg) return;
   if (msg === 'play')    { play(); return; }
   if (msg === 'pause')   { pause(); return; }
   if (msg === 'restart') { restart(); play(); return; }
-  // Real data: { type: 'data', categories: [...] }
   if (msg.type === 'data' && Array.isArray(msg.categories)) {
-    categories = msg.categories;
+    categories        = msg.categories;
+    specialCategories = Array.isArray(msg.specialCategories) ? msg.specialCategories : [];
     dataReady = true;
     buildDiplomas();
     frame = 0;
@@ -403,7 +540,7 @@ window.addEventListener('message', e => {
   }
 });
 
-// ─── Boot ─────────────────────────────────────────────────
+// ─── Boot ─────────────────────────────────────────────────────────────────
 buildDiplomas();
 renderFrame(0);
 play();
