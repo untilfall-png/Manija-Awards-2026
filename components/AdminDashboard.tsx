@@ -1,4 +1,5 @@
 'use client'
+// v2 - auto-load stats + recargar datos button
 
 import { useState, useEffect, lazy, Suspense } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
