@@ -248,6 +248,8 @@ export async function getCategories(): Promise<Category[]> {
         description: nominee.description,
         imageUrl: nominee.imageUrl,
       })),
+      isSpecial: data.isSpecial ?? false,
+      directWinner: data.directWinner ?? '',
     }
   })
 }
@@ -270,6 +272,8 @@ export async function saveCategory(category: Category): Promise<void> {
       description: category.description || '',
       order: category.order,
       nominees: sanitizedNominees,
+      isSpecial: category.isSpecial ?? false,
+      directWinner: category.isSpecial ? (category.directWinner || '') : '',
     })
   }, 'saveCategory')
 }

@@ -53,11 +53,15 @@ export function LiveResults() {
   const [showDiplomaFor, setShowDiplomaFor]     = useState<{ categoryId: string; nomineeId: string } | null>(null)
   const categoriesRef = useRef<Category[]>([])
 
-  const { generateDiplomaPDF } = useDiplomaGenerator()
+  const { generateDiplomaPDF, generateSpecialDiplomaPDF } = useDiplomaGenerator()
 
   const handleDownloadDiploma = useCallback(async (
     categoryName: string, nomineeName: string, votes: number, date: string
   ) => generateDiplomaPDF(nomineeName, categoryName, votes, date), [generateDiplomaPDF])
+
+  const handleDownloadSpecialDiploma = useCallback(async (
+    categoryName: string, winnerName: string, date: string
+  ) => generateSpecialDiplomaPDF(winnerName, categoryName, date), [generateSpecialDiplomaPDF])
 
   /* ── Cargar categorías ── */
   useEffect(() => {
@@ -184,9 +188,9 @@ export function LiveResults() {
         </div>
       </motion.div>
 
-      {/* Resultados por categoría */}
+      {/* Resultados por categoría — solo categorías normales */}
       <div className="grid gap-5 sm:gap-8 grid-cols-1 sm:grid-cols-2">
-        {categoryResults.map((cr, idx) => (
+        {categoryResults.filter(cr => !cr.category.isSpecial).map((cr, idx) => (
           <motion.div
             key={cr.category.id}
             initial={{ opacity: 0, y: 20 }}
@@ -238,6 +242,66 @@ export function LiveResults() {
         ))}
       </div>
 
+      {/* ── Categorías Especiales ── */}
+      {categoryResults.some(cr => cr.category.isSpecial) && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6, duration: 0.6 }}
+          className="mt-10 sm:mt-16"
+        >
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center gap-2 sm:gap-3 mb-4">
+              <div className="p-2 sm:p-3 rounded-2xl bg-yellow-500/20 border border-yellow-500/30">
+                <span className="text-yellow-400 text-xl sm:text-2xl leading-none">★</span>
+              </div>
+              <span className="text-xs sm:text-sm uppercase tracking-[0.2em] sm:tracking-[0.3em] text-yellow-400 font-bold">
+                CATEGORÍAS ESPECIALES
+              </span>
+            </div>
+            <h3 className="text-2xl sm:text-3xl font-display font-bold"
+              style={{ background: 'linear-gradient(90deg,#FFD700,#FFC107,#FF8C00)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              Premiación Directa
+            </h3>
+            <p className="text-white/50 text-xs sm:text-sm mt-1">Reconocimientos especiales otorgados por la organización</p>
+          </div>
+
+          <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            {categoryResults.filter(cr => cr.category.isSpecial).map((cr, idx) => (
+              <motion.div
+                key={cr.category.id}
+                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.7 + idx * 0.1, duration: 0.5 }}
+                className="relative rounded-2xl border border-yellow-500/40 bg-gradient-to-br from-yellow-950/40 via-amber-900/20 to-yellow-950/40 p-5 sm:p-6 overflow-hidden"
+              >
+                <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-yellow-400/80 to-transparent" />
+                <div className="absolute inset-0 pointer-events-none"
+                  style={{ background: 'radial-gradient(ellipse at 50% 0%,rgba(255,215,0,0.07) 0%,transparent 70%)' }} />
+                <div className="relative z-10">
+                  <p className="text-[10px] text-yellow-500/60 uppercase tracking-[0.2em] font-bold mb-2">🏅 Reconocimiento Especial</p>
+                  <h4 className="text-lg sm:text-xl font-display font-bold text-yellow-400 mb-4">{cr.category.name}</h4>
+                  <div className="flex items-center gap-3 p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/20 mb-4">
+                    <span className="text-2xl">🏆</span>
+                    <div>
+                      <p className="font-bold text-white text-base">{cr.category.directWinner || 'Por definir'}</p>
+                      <p className="text-yellow-400/60 text-xs">Ganador/a</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleDownloadSpecialDiploma(cr.category.name, cr.category.directWinner || '', new Date().toLocaleDateString('es-ES'))}
+                    disabled={!cr.category.directWinner}
+                    className="w-full px-3 py-2 rounded-lg bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold text-xs flex items-center justify-center gap-1.5 hover:from-yellow-400 hover:to-amber-500 transition-all shadow-lg shadow-yellow-500/20 disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                    Descargar Diploma Especial
+                  </button>
+                </div>
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-yellow-600/40 to-transparent" />
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+      )}
+
       {/* Diplomas section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
@@ -258,7 +322,7 @@ export function LiveResults() {
         </div>
 
         <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-          {categoryResults.map((cr, idx) => {
+          {categoryResults.filter(cr => !cr.category.isSpecial).map((cr, idx) => {
             const winner = cr.results[0]
             const hasVotes = winner && winner.votes > 0
             return (

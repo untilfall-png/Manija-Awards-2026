@@ -204,5 +204,182 @@ export function useDiplomaGenerator() {
     return successCount
   }, [generateDiplomaPDF])
 
-  return { generateDiplomaPDF, generateAllDiplomas }
+  const generateSpecialDiplomaPDF = useCallback(async (
+    winnerName: string,
+    categoryName: string,
+    date: string
+  ) => {
+    try {
+      const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+        import('jspdf'),
+        import('html2canvas'),
+      ])
+
+      const W = 1100, H = 770
+      const tempDiv = document.createElement('div')
+      tempDiv.style.cssText = `position:fixed;left:-9999px;top:-9999px;width:${W}px;height:${H}px;`
+      document.body.appendChild(tempDiv)
+
+      const dateParts = date.split('/')
+      const day   = dateParts[0] || '21'
+      const month = dateParts[1] || '05'
+      const year  = dateParts[2] || '2026'
+      const months: Record<string,string> = {
+        '01':'ENE','02':'FEB','03':'MAR','04':'ABR','05':'MAY','06':'JUN',
+        '07':'JUL','08':'AGO','09':'SEP','10':'OCT','11':'NOV','12':'DIC',
+      }
+      const monthName = months[month] || 'MAYO'
+
+      tempDiv.innerHTML = `
+<div style="
+  width:${W}px;height:${H}px;
+  background:linear-gradient(135deg,#0a0800 0%,#1a1200 40%,#0d0900 70%,#0a0800 100%);
+  font-family:Arial,Helvetica,sans-serif;
+  color:#fff;
+  position:relative;
+  overflow:hidden;
+  box-sizing:border-box;
+">
+  <!-- Gold radial glows -->
+  <div style="position:absolute;inset:0;
+    background:
+      radial-gradient(ellipse 70% 50% at 50% 0%,rgba(255,200,0,0.15) 0%,transparent 65%),
+      radial-gradient(ellipse 60% 40% at 50% 110%,rgba(255,140,0,0.10) 0%,transparent 65%);
+  "></div>
+
+  <!-- Outer border (gold double) -->
+  <div style="position:absolute;inset:8px;border:1.5px solid rgba(255,215,0,0.35);"></div>
+  <div style="position:absolute;inset:13px;border:1px solid rgba(255,215,0,0.10);"></div>
+
+  <!-- HUD corners gold -->
+  <div style="position:absolute;top:18px;left:18px;width:44px;height:44px;border-top:2.5px solid #FFD700;border-left:2.5px solid #FFD700;"></div>
+  <div style="position:absolute;top:18px;right:18px;width:44px;height:44px;border-top:2.5px solid #FFD700;border-right:2.5px solid #FFD700;"></div>
+  <div style="position:absolute;bottom:18px;left:18px;width:44px;height:44px;border-bottom:2.5px solid #FFC107;border-left:2.5px solid #FFC107;"></div>
+  <div style="position:absolute;bottom:18px;right:18px;width:44px;height:44px;border-bottom:2.5px solid #FFC107;border-right:2.5px solid #FFC107;"></div>
+
+  <!-- TOP LEFT -->
+  <div style="position:absolute;top:30px;left:68px;">
+    <div style="font-size:13px;font-weight:900;color:#FFD700;letter-spacing:4px;line-height:1;">IBIZA</div>
+    <div style="font-size:7.5px;color:rgba(255,215,0,0.4);letter-spacing:2px;margin-top:3px;line-height:1.8;">WHITE ISLAND<br>BALEARIC NIGHTS</div>
+  </div>
+
+  <!-- TOP RIGHT date -->
+  <div style="position:absolute;top:22px;right:68px;text-align:right;">
+    <div style="font-size:30px;font-weight:900;color:#FFD700;line-height:1;">${day}</div>
+    <div style="font-size:9px;color:rgba(255,215,0,0.6);letter-spacing:3px;line-height:2;">${monthName}</div>
+    <div style="font-size:13px;color:rgba(255,215,0,0.7);letter-spacing:2px;">${year}</div>
+  </div>
+
+  <!-- Center star icon -->
+  <div style="text-align:center;padding-top:28px;">
+    <div style="display:inline-block;width:42px;height:42px;border:1.5px solid rgba(255,215,0,0.45);border-radius:50%;line-height:40px;font-size:22px;">★</div>
+  </div>
+
+  <!-- Tagline -->
+  <div style="text-align:center;margin-top:5px;">
+    <span style="font-size:8px;color:rgba(255,215,0,0.35);letter-spacing:6px;">—— RECONOCIMIENTO ESPECIAL ——</span>
+  </div>
+
+  <!-- MANIJA gold -->
+  <div style="text-align:center;margin-top:8px;line-height:1;">
+    <div style="font-size:78px;font-weight:900;color:#FFD700;letter-spacing:10px;text-shadow:0 0 22px rgba(255,215,0,0.85),0 0 55px rgba(255,165,0,0.45);">MANIJA</div>
+  </div>
+  <div style="text-align:center;line-height:1;margin-top:-4px;">
+    <div style="font-size:56px;font-weight:900;color:#FFC107;letter-spacing:10px;text-shadow:0 0 16px rgba(255,193,7,0.95),0 0 38px rgba(255,165,0,0.4);">AWARDS</div>
+  </div>
+  <div style="text-align:center;margin-top:4px;">
+    <div style="font-size:17px;color:rgba(255,215,0,0.4);letter-spacing:16px;">2 0 2 6</div>
+  </div>
+
+  <!-- Gold separator -->
+  <div style="margin:12px 70px 0;height:2px;background:linear-gradient(90deg,transparent,#FFD700 30%,#FFC107 50%,#FF8C00 70%,transparent);"></div>
+
+  <!-- Special badge -->
+  <div style="text-align:center;margin-top:10px;">
+    <div style="display:inline-block;padding:4px 24px;border:1.5px solid rgba(255,215,0,0.55);background:rgba(255,215,0,0.08);">
+      <span style="font-size:9px;color:#FFD700;letter-spacing:5px;text-transform:uppercase;">&#127885; CATEGORÍA ESPECIAL</span>
+    </div>
+  </div>
+
+  <!-- OTORGADO A -->
+  <div style="text-align:center;margin-top:12px;">
+    <div style="font-size:8.5px;color:rgba(255,215,0,0.45);letter-spacing:5px;text-transform:uppercase;">ESTE DIPLOMA SE OTORGA A:</div>
+  </div>
+
+  <!-- WINNER NAME -->
+  <div style="text-align:center;margin-top:10px;">
+    <div style="font-size:40px;font-weight:900;color:#FFD700;letter-spacing:5px;text-transform:uppercase;text-shadow:0 0 20px rgba(255,215,0,0.55);">${winnerName.toUpperCase()}</div>
+  </div>
+
+  <!-- CATEGORIA label -->
+  <div style="text-align:center;margin-top:8px;">
+    <div style="font-size:8px;color:rgba(255,215,0,0.35);letter-spacing:4px;text-transform:uppercase;">POR HABER RECIBIDO EL RECONOCIMIENTO EN:</div>
+  </div>
+
+  <!-- Category pill gold -->
+  <div style="text-align:center;margin-top:10px;">
+    <div style="display:inline-block;padding:8px 36px;border:2px solid #FFD700;background:rgba(255,215,0,0.10);">
+      <div style="font-size:22px;font-weight:900;color:#FFD700;letter-spacing:4px;text-transform:uppercase;text-shadow:0 0 10px rgba(255,215,0,0.7);">${categoryName.toUpperCase()}</div>
+    </div>
+  </div>
+
+  <!-- Description -->
+  <div style="text-align:center;margin:10px 120px 0;font-size:8.5px;color:rgba(255,215,0,0.30);letter-spacing:1.5px;line-height:1.8;">
+    POR SU CONTRIBUCIÓN EXTRAORDINARIA Y SU ESPÍRITU ÚNICO<br>QUE HACE DE CADA NOCHE UNA
+    <span style="color:#FFD700;"> EXPERIENCIA MANIJA</span>.
+  </div>
+
+  <!-- Bottom gold line -->
+  <div style="margin:12px 70px;height:1px;background:linear-gradient(90deg,transparent,rgba(255,215,0,0.4) 30%,rgba(255,193,7,0.3) 70%,transparent);"></div>
+
+  <!-- BOTTOM SECTION -->
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;padding:0 70px 26px;">
+
+    <!-- Star left -->
+    <div style="text-align:center;min-width:80px;">
+      <div style="font-size:48px;color:rgba(255,215,0,0.45);line-height:1;">★</div>
+      <div style="font-size:7px;color:rgba(255,215,0,0.30);letter-spacing:1px;margin-top:4px;line-height:1.6;">RECONOCIMIENTO<br>ESPECIAL</div>
+    </div>
+
+    <!-- Signature -->
+    <div style="text-align:center;">
+      <div style="font-size:12px;color:rgba(255,215,0,0.30);font-style:italic;margin-bottom:5px;">Club de Toby</div>
+      <div style="width:130px;height:1px;background:rgba(255,215,0,0.2);margin:0 auto 6px;"></div>
+      <div style="font-size:8px;color:rgba(255,215,0,0.45);letter-spacing:3px;">CLUB DE TOBY</div>
+      <div style="font-size:8px;color:rgba(255,215,0,0.30);letter-spacing:3px;margin-top:2px;">LOS MANIJAS</div>
+      <div style="font-size:7px;color:rgba(255,215,0,0.25);letter-spacing:2px;margin-top:4px;">${date}</div>
+    </div>
+
+    <!-- Badge -->
+    <div style="width:72px;height:72px;border:1.5px solid rgba(255,215,0,0.5);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:8px;box-sizing:border-box;">
+      <div style="font-size:6.5px;color:rgba(255,215,0,0.6);letter-spacing:1px;line-height:1.7;">CLUB<br>DE TOBY<br><span style="color:#FFD700;font-size:14px;">★</span><br>LOS<br>MANIJAS</div>
+    </div>
+  </div>
+
+  <!-- Bottom decoration -->
+  <div style="position:absolute;bottom:20px;width:100%;text-align:center;">
+    <div style="font-size:8px;color:rgba(255,215,0,0.18);letter-spacing:2px;">★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★</div>
+  </div>
+</div>`
+
+      const canvas = await html2canvas(tempDiv, {
+        scale: 2,
+        backgroundColor: '#0a0800',
+        useCORS: true,
+        logging: false,
+        allowTaint: true,
+      })
+
+      document.body.removeChild(tempDiv)
+      const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [W, H] })
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, W, H)
+      pdf.save(`DiplomaEspecial_${categoryName.replace(/\s+/g,'_')}_${winnerName.replace(/\s+/g,'_')}.pdf`)
+      return true
+    } catch (error) {
+      console.error('Error generando diploma especial PDF:', error)
+      return false
+    }
+  }, [])
+
+  return { generateDiplomaPDF, generateAllDiplomas, generateSpecialDiplomaPDF }
 }

@@ -11,6 +11,8 @@ export interface CategoryResult {
   winnerDescription: string
   votes: number
   totalVotes: number
+  isSpecial?: boolean
+  directWinner?: string
 }
 
 export interface VotingStats {
@@ -40,6 +42,22 @@ export async function getVotingResults(): Promise<VotingStats> {
   })
 
   const results: CategoryResult[] = categories.map(cat => {
+    // Categoría especial: ganador directo, sin conteo de votos
+    if (cat.isSpecial) {
+      return {
+        categoryId: cat.id,
+        categoryName: cat.name,
+        categoryDescription: cat.description,
+        winnerId: 'direct',
+        winnerName: cat.directWinner || 'Por Definir',
+        winnerDescription: '',
+        votes: 0,
+        totalVotes: 0,
+        isSpecial: true,
+        directWinner: cat.directWinner || '',
+      }
+    }
+
     const catVotes = voteCount[cat.id] || {}
     const totalVotes = totalPerCategory[cat.id] || 0
 
@@ -63,6 +81,7 @@ export async function getVotingResults(): Promise<VotingStats> {
       winnerDescription: winner?.description || '',
       votes: winnerVotes,
       totalVotes,
+      isSpecial: false,
     }
   })
 

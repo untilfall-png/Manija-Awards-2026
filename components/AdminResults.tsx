@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Download, Filter, Eye, RefreshCcw, Trophy } from 'lucide-react'
+import { Download, Filter, RefreshCcw, Trophy } from 'lucide-react'
 import { getAllVotesWithVoters, getCategories, deleteAllVotes } from '@/lib/voting'
 import { Category } from '@/lib/types'
 import { useDiplomaGenerator } from '@/hooks/useDiplomaGenerator'
@@ -10,11 +10,12 @@ import { useDiplomaGenerator } from '@/hooks/useDiplomaGenerator'
 export function AdminResults() {
   const [votes, setVotes] = useState<any[]>([])
   const [categories, setCategories] = useState<Category[]>([])
+  const [specialCategories, setSpecialCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
   const [filterCategory, setFilterCategory] = useState<string | null>(null)
   const [filterVoter, setFilterVoter] = useState('')
 
-  const { generateDiplomaPDF, generateAllDiplomas } = useDiplomaGenerator()
+  const { generateDiplomaPDF, generateAllDiplomas, generateSpecialDiplomaPDF } = useDiplomaGenerator()
 
   useEffect(() => {
     loadData()
@@ -28,6 +29,7 @@ export function AdminResults() {
       ])
       setVotes(votesData)
       setCategories(categoriesData)
+      setSpecialCategories(categoriesData.filter(c => c.isSpecial))
     } catch (error) {
       console.error('Error loading data:', error)
     } finally {
@@ -131,6 +133,11 @@ export function AdminResults() {
     })))
   }
 
+  const handleGenerateSpecialDiploma = async (cat: Category) => {
+    if (!cat.directWinner) { alert('Esta categoría no tiene ganador definido'); return }
+    await generateSpecialDiplomaPDF(cat.directWinner, cat.name, new Date().toLocaleDateString('es-ES'))
+  }
+
   const downloadCSV = () => {
     const headers = ['ID de Voto', 'Votante', 'Email', 'Categoría', 'Nominado', 'Fecha']
     const rows = filteredVotes.map(vote => [
@@ -191,6 +198,44 @@ export function AdminResults() {
           </button>
         </div>
       </div>
+
+      {/* ── Categorías Especiales ── */}
+      {specialCategories.length > 0 && (
+        <div className="rounded-2xl border border-yellow-500/40 bg-gradient-to-br from-yellow-950/30 via-amber-900/10 to-yellow-950/30 p-6">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="p-2.5 rounded-xl bg-yellow-500/20 border border-yellow-500/30">
+              <Trophy className="h-6 w-6 text-yellow-400" />
+            </div>
+            <div>
+              <h3 className="text-xl font-display font-bold text-yellow-400">Categorías Especiales</h3>
+              <p className="text-white/40 text-xs">Premiación directa — sin votación pública</p>
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {specialCategories.map(cat => (
+              <div key={cat.id} className="relative rounded-xl border border-yellow-500/30 bg-black/40 p-4 overflow-hidden">
+                {/* Gold shimmer top */}
+                <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-yellow-400/80 to-transparent" />
+                <p className="text-[10px] text-yellow-500/60 uppercase tracking-[0.2em] font-bold mb-1">🏅 Categoría Especial</p>
+                <h4 className="font-display font-bold text-white text-base mb-3">{cat.name}</h4>
+                <div className="flex items-center gap-2 mb-4 p-2.5 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+                  <span className="text-yellow-400 text-lg">🏆</span>
+                  <span className="text-yellow-300 font-bold text-sm">{cat.directWinner || 'Sin definir'}</span>
+                </div>
+                <button
+                  onClick={() => handleGenerateSpecialDiploma(cat)}
+                  disabled={!cat.directWinner}
+                  className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold text-xs hover:from-yellow-400 hover:to-amber-500 transition-all shadow-md shadow-yellow-500/20 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  Descargar Diploma Especial
+                </button>
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-yellow-600/40 to-transparent" />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="neon-card p-6 space-y-4">

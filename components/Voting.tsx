@@ -50,8 +50,9 @@ export function Voting({ session, onVoteSubmitted }: VotingProps) {
     return unsub
   }, [])
 
+  // Las categorías especiales no participan del flujo de votación pública
   const sortedCategories = useMemo(
-    () => [...categories].sort((a, b) => a.order - b.order),
+    () => [...categories].filter(c => !c.isSpecial).sort((a, b) => a.order - b.order),
     [categories]
   )
 

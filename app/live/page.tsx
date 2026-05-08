@@ -184,8 +184,9 @@ export default function LivePage() {
             <p className="text-white/50 text-lg">Cargando resultados en tiempo real...</p>
           </div>
         ) : (
+          <>
           <div className="grid gap-5 sm:gap-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-            {catResults.map((cr, ci) => (
+            {catResults.filter(cr => !cr.category.isSpecial).map((cr, ci) => (
               <motion.div
                 key={cr.category.id}
                 initial={{ opacity: 0, y: 24 }}
@@ -273,6 +274,51 @@ export default function LivePage() {
               </motion.div>
             ))}
           </div>
+
+          {/* ── Categorías Especiales ── */}
+          {catResults.some(cr => cr.category.isSpecial) && (
+            <div className="mt-10 pt-8 border-t border-yellow-500/20">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 rounded-xl bg-yellow-500/20 border border-yellow-500/30">
+                  <span className="text-yellow-400 text-xl leading-none">★</span>
+                </div>
+                <div>
+                  <p className="text-[10px] text-yellow-500/60 font-bold tracking-[0.25em] uppercase">Reconocimientos</p>
+                  <h2 className="text-lg lg:text-xl font-display font-bold text-yellow-400">Categorías Especiales</h2>
+                </div>
+              </div>
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+                {catResults.filter(cr => cr.category.isSpecial).map((cr, ci) => (
+                  <motion.div
+                    key={cr.category.id}
+                    initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: ci * 0.1, duration: 0.5 }}
+                    className="relative rounded-2xl border border-yellow-500/40 overflow-hidden"
+                    style={{ background: 'linear-gradient(135deg,rgba(30,20,0,0.9) 0%,rgba(50,30,0,0.7) 50%,rgba(30,20,0,0.9) 100%)' }}
+                  >
+                    <div className="h-px bg-gradient-to-r from-transparent via-yellow-400/70 to-transparent" />
+                    <div className="p-4 lg:p-5">
+                      <p className="text-[10px] text-yellow-500/60 font-bold tracking-[0.25em] uppercase mb-1">
+                        🏅 Categoría Especial
+                      </p>
+                      <h3 className="text-base lg:text-lg font-display font-bold text-yellow-400 mb-4 leading-tight">
+                        {cr.category.name}
+                      </h3>
+                      <div className="flex items-center gap-3 p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
+                        <span className="text-yellow-400 text-xl">🏆</span>
+                        <div>
+                          <p className="font-bold text-white text-sm">{cr.category.directWinner || 'Por definir'}</p>
+                          <p className="text-yellow-400/50 text-[10px] uppercase tracking-wider">Ganador/a</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="h-px bg-gradient-to-r from-transparent via-yellow-600/40 to-transparent" />
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          )}
+          </>
         )}
       </main>
 

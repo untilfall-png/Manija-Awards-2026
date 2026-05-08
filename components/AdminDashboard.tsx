@@ -277,11 +277,12 @@ export function AdminDashboard() {
 }
 
 function AdminDashboardContent() {
-  const [totalVoters, setTotalVoters]     = useState(0)
-  const [totalVotes, setTotalVotes]       = useState(0)
+  const [totalVoters, setTotalVoters]         = useState(0)
+  const [totalVotes, setTotalVotes]           = useState(0)
   const [totalCategories, setTotalCategories] = useState(0)
+  const [specialCount, setSpecialCount]       = useState(0)
   const [votingEnabled, setVotingEnabledLocal] = useState(true)
-  const [loading, setLoading]             = useState(true)
+  const [loading, setLoading]                 = useState(true)
 
   useEffect(() => {
     // One-time: categories count + config
@@ -290,6 +291,7 @@ function AdminDashboardContent() {
       getSystemConfig(),
     ]).then(([cats, cfg]) => {
       setTotalCategories(cats.length)
+      setSpecialCount(cats.filter(c => c.isSpecial).length)
       setVotingEnabledLocal(cfg?.votingEnabled ?? true)
       setLoading(false)
     }).catch(err => { console.error(err); setLoading(false) })
@@ -311,10 +313,11 @@ function AdminDashboardContent() {
     : 0
 
   const statCards = [
-    { label: 'Votantes Registrados', value: totalVoters,    icon: Users,       color: 'text-neon-cyan',   bg: 'bg-neon-cyan/20',   border: 'border-neon-cyan/30' },
-    { label: 'Total de Votos',       value: totalVotes,     icon: Trophy,      color: 'text-neon-pink',   bg: 'bg-neon-pink/20',   border: 'border-neon-pink/30' },
-    { label: 'Categorías',           value: totalCategories,icon: Settings,    color: 'text-neon-purple', bg: 'bg-neon-purple/20', border: 'border-neon-purple/30' },
-    { label: 'Participación',        value: `${participation}%`, icon: BarChart3, color: 'text-neon-orange', bg: 'bg-neon-orange/20', border: 'border-neon-orange/30' },
+    { label: 'Votantes Registrados', value: totalVoters,         icon: Users,       color: 'text-neon-cyan',    bg: 'bg-neon-cyan/20',    border: 'border-neon-cyan/30' },
+    { label: 'Total de Votos',       value: totalVotes,          icon: Trophy,      color: 'text-neon-pink',    bg: 'bg-neon-pink/20',    border: 'border-neon-pink/30' },
+    { label: 'Categorías',           value: totalCategories,     icon: Settings,    color: 'text-neon-purple',  bg: 'bg-neon-purple/20',  border: 'border-neon-purple/30' },
+    { label: 'Cat. Especiales',      value: specialCount,        icon: Sparkles,    color: 'text-yellow-400',   bg: 'bg-yellow-500/20',   border: 'border-yellow-500/30' },
+    { label: 'Participación',        value: `${participation}%`, icon: BarChart3,   color: 'text-neon-orange',  bg: 'bg-neon-orange/20',  border: 'border-neon-orange/30' },
     { label: votingEnabled ? 'Votación ABIERTA' : 'Votación CERRADA',
       value: votingEnabled ? '🟢 ABIERTA' : '🔴 CERRADA',
       icon: CheckCircle,
@@ -335,7 +338,7 @@ function AdminDashboardContent() {
           <div className="w-8 h-8 border-2 border-neon-pink/30 border-t-neon-pink rounded-full animate-spin" />
         </div>
       ) : (
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         {statCards.map(({ label, value, icon: Icon, color, bg, border }, index) => (
           <motion.div
             key={index}

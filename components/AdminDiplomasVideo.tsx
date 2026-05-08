@@ -21,11 +21,16 @@ export function AdminDiplomasVideo({ stats }: AdminDiplomasVideoProps) {
     const tryPost = () => {
       send({
         type: 'data',
-        categories: stats.results.map(r => ({
+        categories: stats.results.filter(r => !r.isSpecial).map(r => ({
           categoryName:        r.categoryName,
           winnerName:          r.winnerName,
           winnerDescription:   r.winnerDescription,
           votes:               r.votes,
+        })),
+        specialCategories: stats.results.filter(r => r.isSpecial).map(r => ({
+          categoryName: r.categoryName,
+          winnerName:   r.winnerName,
+          isSpecial:    true,
         })),
       })
       setSent(true)

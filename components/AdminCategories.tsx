@@ -39,6 +39,8 @@ export function AdminCategories() {
       description: '',
       order: categories.length + 1,
       nominees: [],
+      isSpecial: false,
+      directWinner: '',
     })
     setEditingId(null)
     setShowForm(true)
@@ -59,12 +61,21 @@ export function AdminCategories() {
     setSaving(true)
 
     try {
+      // Validar: si es especial, debe tener ganador
+      if (formData.isSpecial && !formData.directWinner?.trim()) {
+        alert('Las categorías especiales requieren un ganador directo')
+        setSaving(false)
+        return
+      }
+
       const categoryToSave: Category = {
         id: formData.id,
         name: formData.name.trim(),
         description: formData.description?.trim() || '',
         order: formData.order || 1,
         nominees: formData.nominees || [],
+        isSpecial: formData.isSpecial ?? false,
+        directWinner: formData.isSpecial ? (formData.directWinner?.trim() || '') : '',
       }
 
       if (!categoryToSave.name) {
@@ -220,7 +231,37 @@ export function AdminCategories() {
                   />
                 </div>
 
-                {/* Nominees */}
+                {/* Categoría Especial toggle */}
+                <div className="flex items-center gap-4 p-4 rounded-xl border border-yellow-500/30 bg-yellow-500/5">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, isSpecial: !formData.isSpecial, directWinner: '' })}
+                    className={`relative inline-flex h-6 w-12 flex-shrink-0 items-center rounded-full transition-colors focus:outline-none ${formData.isSpecial ? 'bg-yellow-500' : 'bg-white/20'}`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${formData.isSpecial ? 'translate-x-7' : 'translate-x-1'}`} />
+                  </button>
+                  <div>
+                    <p className="text-sm font-bold text-yellow-400">🏅 Categoría Especial</p>
+                    <p className="text-xs text-white/40">Premiación directa — sin votación pública</p>
+                  </div>
+                </div>
+
+                {/* Ganador directo (solo si isSpecial) */}
+                {formData.isSpecial && (
+                  <div>
+                    <label className="block text-sm font-bold text-yellow-400 mb-2">🏆 Ganador Directo *</label>
+                    <input
+                      type="text"
+                      value={formData.directWinner || ''}
+                      onChange={(e) => setFormData({ ...formData, directWinner: e.target.value })}
+                      className="neon-input w-full px-4 py-3 rounded-lg border-yellow-500/40 focus:border-yellow-400"
+                      placeholder="Nombre del ganador/a"
+                    />
+                  </div>
+                )}
+
+                {/* Nominees — oculto si es categoría especial */}
+                {!formData.isSpecial && (
                 <div>
                   <div className="flex justify-between items-center mb-3">
                     <label className="block text-sm font-semibold text-neon-cyan">Nominados</label>
@@ -261,6 +302,7 @@ export function AdminCategories() {
                     ))}
                   </div>
                 </div>
+                )}
               </div>
 
               <div className="flex gap-3 justify-end">
@@ -299,14 +341,24 @@ export function AdminCategories() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
-            className="neon-card p-6 flex items-center justify-between group hover:border-neon-pink/50 transition-all"
+            className={`neon-card p-6 flex items-center justify-between group transition-all ${category.isSpecial ? 'border-yellow-500/40 hover:border-yellow-400/60 bg-yellow-950/10' : 'hover:border-neon-pink/50'}`}
           >
             <div className="flex-1">
-              <h4 className="text-lg font-display font-bold text-white">
-                {category.order}. {category.name}
-              </h4>
+              <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                <h4 className="text-lg font-display font-bold text-white">
+                  {category.order}. {category.name}
+                </h4>
+                {category.isSpecial && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-yellow-500/20 border border-yellow-500/40 text-yellow-400 text-xs font-bold">
+                    🏅 Especial
+                  </span>
+                )}
+              </div>
               <p className="text-white/70 text-sm">{category.description}</p>
-              <p className="text-white/50 text-xs mt-2">{category.nominees?.length || 0} nominados</p>
+              {category.isSpecial
+                ? <p className="text-yellow-400/70 text-xs mt-1.5 font-semibold">🏆 {category.directWinner || 'Sin ganador asignado'}</p>
+                : <p className="text-white/50 text-xs mt-1.5">{category.nominees?.length || 0} nominados</p>
+              }
             </div>
 
             <div className="flex gap-2 ml-4">

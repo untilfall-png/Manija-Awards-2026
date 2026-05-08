@@ -14,6 +14,8 @@ export interface Category {
   description: string;
   nominees: Nominee[];
   order: number;
+  isSpecial?: boolean;     // Categoría Especial — premiación directa sin votación pública
+  directWinner?: string;  // Nombre del ganador asignado por el admin
 }
 
 export interface Nominee {
