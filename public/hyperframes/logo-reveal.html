@@ -38,7 +38,7 @@ function scaleStage(){
 window.addEventListener('resize',scaleStage); scaleStage();
 
 // ─── Playback ────────────────────────────────────────────────────────────────
-const FPS=30, TOTAL=1440; // 48s
+const FPS=30, TOTAL=2100; // 70s
 let frame=0,playing=false,rafId=null,lastTs=null,accum=0;
 
 // ─── SVG Logo builder ────────────────────────────────────────────────────────
@@ -138,15 +138,15 @@ function laser(f){
 }
 
 // ─── PHASES ──────────────────────────────────────────────────────────────────
-// Phase 0: INTRO          0-90
-// Phase 1: LOGO BUILD     90-270
-// Phase 2: EL CÍRCULO     270-450
-// Phase 3: LAS LÍNEAS     450-630
-// Phase 4: LÍNEA HORIZ    630-810
-// Phase 5: ESTÉT TECHNO   810-990
-// Phase 6: CLIMAX         990-1170
-// Phase 7: 4 ÍCONOS       1170-1350
-// Phase 8: OUTRO          1350-1440
+// Phase 0: INTRO          0-90      (3s)
+// Phase 1: LOGO BUILD     90-360    (9s)
+// Phase 2: EL CÍRCULO     360-630   (9s)
+// Phase 3: LAS LÍNEAS     630-900   (9s)
+// Phase 4: LÍNEA HORIZ    900-1170  (9s)
+// Phase 5: ESTÉT TECHNO   1170-1440 (9s)
+// Phase 6: CLIMAX         1440-1710 (9s)
+// Phase 7: 4 ÍCONOS       1710-1980 (9s)
+// Phase 8: OUTRO          1980-2100 (4s)
 
 function renderFrame(f){
   const stage=document.getElementById('stage');
@@ -170,7 +170,7 @@ function renderFrame(f){
   }
 
   // ── PHASE 1: LOGO BUILD ──────────────────────────────────────────────────
-  if(f<270){
+  if(f<360){
     const circP = ease(f,90,175);
     const b1P   = ease(f,155,210);
     const b2P   = ease(f,170,225);
@@ -200,8 +200,8 @@ function renderFrame(f){
   const LOGO_FULL={circleProgress:1,bar1P:1,bar2P:1,bar3P:1,hbarP:1,scale:1,glowPulse:pulse,size:340};
 
   // ── PHASE 2: EL CÍRCULO INCOMPLETO ───────────────────────────────────────
-  if(f<450){
-    const pf=f-270; // 0-180
+  if(f<630){
+    const pf=f-360; // 0-270
     const logoGlow={...LOGO_FULL, hlCircle:true, glowPulse:pulse};
     const pulseScale = 1 + Math.sin(pf*.15)*.03;
 
@@ -212,7 +212,7 @@ function renderFrame(f){
       <!-- LEFT: Logo with circle highlighted -->
       <div style="width:780px;display:flex;flex-direction:column;align-items:center;justify-content:center;height:1080px;gap:30px;flex-shrink:0">
         <div style="transform:scale(${pulseScale})">${buildLogo({...logoGlow})}</div>
-        <div style="display:flex;align-items:center;justify-content:center;gap:14px;opacity:${fadeIn(f,290,20)}">
+        <div style="display:flex;align-items:center;justify-content:center;gap:14px;opacity:${fadeIn(f,380,20)}">
           <!-- Circle icon small -->
           <svg width="50" height="50" viewBox="0 0 50 50">
             <circle cx="25" cy="25" r="20" fill="none" stroke="#ff2edb" stroke-width="3"
@@ -228,22 +228,22 @@ function renderFrame(f){
 
       <!-- RIGHT: Content -->
       <div style="flex:1;padding:60px 80px 60px 60px;display:flex;flex-direction:column;justify-content:center">
-        <div style="opacity:${fadeIn(f,270,20)};transform:${slideUp(f,270,30)}">
+        <div style="opacity:${fadeIn(f,360,20)};transform:${slideUp(f,360,30)}">
           <div style="font-size:15px;letter-spacing:8px;color:#ff2edb;margin-bottom:10px">01 / ELEMENTO</div>
           <h2 style="font-size:60px;font-weight:900;color:#fff;letter-spacing:4px;line-height:1.1;margin-bottom:40px;text-shadow:0 0 30px rgba(192,0,255,.5)">EL CÍRCULO<br>INCOMPLETO</h2>
         </div>
-        ${bullet('Representa <strong>la noche.</strong>',f,295,'#e0e0ff')}
-        ${bullet('El <strong>loop del techno.</strong>',f,318,'#e0e0ff')}
-        ${bullet('El club: <strong>nuestro espacio</strong>, cerrado para los que pertenecen.',f,341,'#e0e0ff')}
-        ${arrow('Está abierto porque esto nunca termina.<br>Siempre hay otro carrete, otro after, otra historia.',f,380)}
+        ${bullet('Representa <strong>la noche.</strong>',f,385,'#e0e0ff')}
+        ${bullet('El <strong>loop del techno.</strong>',f,408,'#e0e0ff')}
+        ${bullet('El club: <strong>nuestro espacio</strong>, cerrado para los que pertenecen.',f,431,'#e0e0ff')}
+        ${arrow('Está abierto porque esto nunca termina.<br>Siempre hay otro carrete, otro after, otra historia.',f,470)}
       </div>
     </div>`;
     return;
   }
 
   // ── PHASE 3: LAS LÍNEAS VERTICALES ────────────────────────────────────────
-  if(f<630){
-    const pf=f-450;
+  if(f<900){
+    const pf=f-630;
     const barPulseX = 1+Math.sin(pf*.2)*.025;
 
     stage.innerHTML=`
@@ -252,7 +252,7 @@ function renderFrame(f){
       <!-- LEFT -->
       <div style="width:780px;display:flex;flex-direction:column;align-items:center;justify-content:center;height:1080px;gap:30px;flex-shrink:0">
         <div style="transform:scaleX(${barPulseX})">${buildLogo({...LOGO_FULL,hlBars:true})}</div>
-        <div style="display:flex;align-items:center;gap:14px;opacity:${fadeIn(f,460,20)}">
+        <div style="display:flex;align-items:center;gap:14px;opacity:${fadeIn(f,640,20)}">
           <!-- Three bars icon -->
           <svg width="50" height="50" viewBox="0 0 50 50">
             <rect x="8"  y="10" width="8" height="30" rx="2" fill="#ff2edb" style="filter:drop-shadow(0 0 6px #ff2edb)"/>
@@ -265,22 +265,22 @@ function renderFrame(f){
       <div style="width:2px;height:700px;background:linear-gradient(to bottom,transparent,#ff660060,transparent);flex-shrink:0"></div>
       <!-- RIGHT -->
       <div style="flex:1;padding:60px 80px 60px 60px;display:flex;flex-direction:column;justify-content:center">
-        <div style="opacity:${fadeIn(f,450,20)};transform:${slideUp(f,450,30)}">
+        <div style="opacity:${fadeIn(f,630,20)};transform:${slideUp(f,630,30)}">
           <div style="font-size:15px;letter-spacing:8px;color:#ff6600;margin-bottom:10px">02 / ELEMENTO</div>
           <h2 style="font-size:60px;font-weight:900;color:#fff;letter-spacing:4px;line-height:1.1;margin-bottom:40px;text-shadow:0 0 30px rgba(255,102,0,.5)">LAS LÍNEAS<br>VERTICALES</h2>
         </div>
-        ${bullet('<strong>Somos el grupo.</strong>',f,470,'#ffe0cc')}
-        ${bullet('Tres líneas, <strong>tres individuos.</strong>',f,493,'#ffe0cc')}
-        ${bullet('Distintos, pero <strong>alineados bajo la misma dirección.</strong>',f,516,'#ffe0cc')}
-        ${arrow('No somos clones.<br>Somos personas con una misma vibra.',f,555)}
+        ${bullet('<strong>Somos el grupo.</strong>',f,650,'#ffe0cc')}
+        ${bullet('Tres líneas, <strong>tres individuos.</strong>',f,673,'#ffe0cc')}
+        ${bullet('Distintos, pero <strong>alineados bajo la misma dirección.</strong>',f,696,'#ffe0cc')}
+        ${arrow('No somos clones.<br>Somos personas con una misma vibra.',f,735)}
       </div>
     </div>`;
     return;
   }
 
   // ── PHASE 4: LA LÍNEA HORIZONTAL ──────────────────────────────────────────
-  if(f<810){
-    const pf=f-630;
+  if(f<1170){
+    const pf=f-900;
     const hPulseY=1+Math.sin(pf*.2)*.02;
 
     stage.innerHTML=`
@@ -289,7 +289,7 @@ function renderFrame(f){
       <!-- LEFT -->
       <div style="width:780px;display:flex;flex-direction:column;align-items:center;justify-content:center;height:1080px;gap:30px;flex-shrink:0">
         <div style="transform:scaleY(${hPulseY})">${buildLogo({...LOGO_FULL,hlHbar:true})}</div>
-        <div style="display:flex;align-items:center;gap:14px;opacity:${fadeIn(f,640,20)}">
+        <div style="display:flex;align-items:center;gap:14px;opacity:${fadeIn(f,910,20)}">
           <!-- Horizontal line icon -->
           <svg width="60" height="30" viewBox="0 0 60 30">
             <rect x="4" y="13" width="52" height="4" rx="2" fill="#00ffff" style="filter:drop-shadow(0 0 8px #00ffff)"/>
@@ -300,22 +300,22 @@ function renderFrame(f){
       <div style="width:2px;height:700px;background:linear-gradient(to bottom,transparent,#00ffff60,transparent);flex-shrink:0"></div>
       <!-- RIGHT -->
       <div style="flex:1;padding:60px 80px 60px 60px;display:flex;flex-direction:column;justify-content:center">
-        <div style="opacity:${fadeIn(f,630,20)};transform:${slideUp(f,630,30)}">
+        <div style="opacity:${fadeIn(f,900,20)};transform:${slideUp(f,900,30)}">
           <div style="font-size:15px;letter-spacing:8px;color:#00ffff;margin-bottom:10px">03 / ELEMENTO</div>
           <h2 style="font-size:60px;font-weight:900;color:#fff;letter-spacing:4px;line-height:1.1;margin-bottom:40px;text-shadow:0 0 30px rgba(0,255,255,.5)">LA LÍNEA<br>HORIZONTAL</h2>
         </div>
-        ${bullet('Es la <strong>lealtad.</strong>',f,650,'#ccffff')}
-        ${bullet('El <strong>código no hablado.</strong>',f,673,'#ccffff')}
-        ${bullet('Lo que nos <strong>conecta dentro y fuera de la fiesta.</strong>',f,696,'#ccffff')}
-        ${arrow('Sin esta línea, somos nada.<br>Con ella, somos <strong>hermandad.</strong>',f,735)}
+        ${bullet('Es la <strong>lealtad.</strong>',f,920,'#ccffff')}
+        ${bullet('El <strong>código no hablado.</strong>',f,943,'#ccffff')}
+        ${bullet('Lo que nos <strong>conecta dentro y fuera de la fiesta.</strong>',f,966,'#ccffff')}
+        ${arrow('Sin esta línea, somos nada.<br>Con ella, somos <strong>hermandad.</strong>',f,1005)}
       </div>
     </div>`;
     return;
   }
 
   // ── PHASE 5: ESTÉTICA TECHNO ───────────────────────────────────────────────
-  if(f<990){
-    const pf=f-810;
+  if(f<1440){
+    const pf=f-1170;
     // Animated waveform
     const wavePoints = Array.from({length:30},(_,i)=>{
       const h=20+Math.abs(Math.sin((i*0.6)+(pf*0.12)))*55;
@@ -329,7 +329,7 @@ function renderFrame(f){
       <!-- LEFT -->
       <div style="width:780px;display:flex;flex-direction:column;align-items:center;justify-content:center;height:1080px;gap:30px;flex-shrink:0">
         ${buildLogo({...LOGO_FULL,hlAll:true,glowPulse:pulse})}
-        <div style="opacity:${fadeIn(f,820,20)}">
+        <div style="opacity:${fadeIn(f,1180,20)}">
           <svg width="660" height="100" viewBox="0 0 660 100" style="overflow:visible">
             <defs>
               <linearGradient id="wg" x1="0" y1="0" x2="0" y2="1">
@@ -344,29 +344,29 @@ function renderFrame(f){
       <div style="width:2px;height:700px;background:linear-gradient(to bottom,transparent,#ff2edb60,transparent);flex-shrink:0"></div>
       <!-- RIGHT -->
       <div style="flex:1;padding:60px 80px 60px 60px;display:flex;flex-direction:column;justify-content:center">
-        <div style="opacity:${fadeIn(f,810,20)};transform:${slideUp(f,810,30)}">
+        <div style="opacity:${fadeIn(f,1170,20)};transform:${slideUp(f,1170,30)}">
           <div style="font-size:15px;letter-spacing:8px;color:#ff2edb;margin-bottom:10px">04 / ELEMENTO</div>
           <h2 style="font-size:60px;font-weight:900;color:#fff;letter-spacing:4px;line-height:1.1;margin-bottom:40px;text-shadow:0 0 30px rgba(255,46,219,.5)">ESTÉTICA<br>TECHNO</h2>
         </div>
-        ${bullet('Inspirado en el mundo del <strong>sonido</strong>, las frecuencias y la energía.',f,830,'#ffd6f5')}
-        ${bullet('<strong>Minimalista</strong>, limpio, frío, preciso.',f,853,'#ffd6f5')}
-        ${bullet('No grita, <strong>hipnotiza.</strong>',f,876,'#ffd6f5')}
-        ${arrow('Un lenguaje visual <strong>hecho para la pista.</strong>',f,915)}
+        ${bullet('Inspirado en el mundo del <strong>sonido</strong>, las frecuencias y la energía.',f,1190,'#ffd6f5')}
+        ${bullet('<strong>Minimalista</strong>, limpio, frío, preciso.',f,1213,'#ffd6f5')}
+        ${bullet('No grita, <strong>hipnotiza.</strong>',f,1236,'#ffd6f5')}
+        ${arrow('Un lenguaje visual <strong>hecho para la pista.</strong>',f,1275)}
       </div>
     </div>`;
     return;
   }
 
   // ── PHASE 6: CLIMAX ──────────────────────────────────────────────────────
-  if(f<1170){
-    const pf=f-990;
+  if(f<1710){
+    const pf=f-1440;
     const logoScale=1+Math.sin(pf*.08)*.05;
-    const boxOp=fadeIn(f,990,25);
-    const line1Op=fadeIn(f,1005,20);
-    const line2Op=fadeIn(f,1030,25);
-    const line2Tr=slideUp(f,1030,40);
-    const line3Op=fadeIn(f,1080,20);
-    const subOp=fadeIn(f,1110,20);
+    const boxOp=fadeIn(f,1440,25);
+    const line1Op=fadeIn(f,1455,20);
+    const line2Op=fadeIn(f,1480,25);
+    const line2Tr=slideUp(f,1480,40);
+    const line3Op=fadeIn(f,1530,20);
+    const subOp=fadeIn(f,1560,20);
 
     const glowIntensity=20+pulse*40;
 
@@ -397,10 +397,10 @@ function renderFrame(f){
   }
 
   // ── PHASE 7: 4 ICONOS ────────────────────────────────────────────────────
-  if(f<1350){
+  if(f<1980){
     const icons=[
       {
-        f:1170, label:'CICLO\nINFINITO', color:'#ff2edb',
+        f:1710, label:'CICLO\nINFINITO', color:'#ff2edb',
         svg:`<svg width="80" height="80" viewBox="0 0 80 80">
           <path d="M40 12 A28 28 0 1 1 14 44" fill="none" stroke="#ff2edb" stroke-width="5" stroke-linecap="round"
             style="filter:drop-shadow(0 0 8px #ff2edb)"/>
@@ -408,7 +408,7 @@ function renderFrame(f){
         </svg>`
       },
       {
-        f:1220, label:'INDIVIDUOS\nALINEADOS', color:'#c000ff',
+        f:1760, label:'INDIVIDUOS\nALINEADOS', color:'#c000ff',
         svg:`<svg width="80" height="80" viewBox="0 0 80 80">
           <circle cx="20" cy="26" r="10" fill="#c000ff" style="filter:drop-shadow(0 0 6px #c000ff)"/>
           <circle cx="40" cy="26" r="10" fill="#c000ff" style="filter:drop-shadow(0 0 6px #c000ff)"/>
@@ -417,7 +417,7 @@ function renderFrame(f){
         </svg>`
       },
       {
-        f:1270, label:'LEALTAD QUE\nNOS UNE', color:'#00ffff',
+        f:1810, label:'LEALTAD QUE\nNOS UNE', color:'#00ffff',
         svg:`<svg width="80" height="80" viewBox="0 0 80 80">
           <path d="M10 40 Q20 25 30 35 Q40 45 50 35 Q60 25 70 40" fill="none" stroke="#00ffff" stroke-width="5" stroke-linecap="round"
             style="filter:drop-shadow(0 0 8px #00ffff)"/>
@@ -426,7 +426,7 @@ function renderFrame(f){
         </svg>`
       },
       {
-        f:1320, label:'ENERGÍA QUE\nNOS MUEVE', color:'#ff6600',
+        f:1860, label:'ENERGÍA QUE\nNOS MUEVE', color:'#ff6600',
         svg:`<svg width="80" height="80" viewBox="0 0 80 80">
           ${[0,1,2,3,4].map(i=>`<rect x="${8+i*14}" y="${65-[20,40,55,35,48][i]}" width="10" height="${[20,40,55,35,48][i]}" rx="3"
             fill="#ff6600" style="filter:drop-shadow(0 0 6px #ff6600)"/>`).join('')}
@@ -447,8 +447,8 @@ function renderFrame(f){
       </div>`;
     }).join('');
 
-    const titleOp=fadeIn(f,1170,20);
-    const logoOp=fadeIn(f,1175,20);
+    const titleOp=fadeIn(f,1710,20);
+    const logoOp=fadeIn(f,1715,20);
 
     stage.innerHTML=`
     <div style="width:1920px;height:1080px;background:${bg(f)};position:relative;overflow:hidden;
@@ -469,10 +469,10 @@ function renderFrame(f){
 
   // ── PHASE 8: OUTRO ──────────────────────────────────────────────────────
   {
-    const pf=f-1350;
-    const allOp=fadeIn(f,1350,30);
+    const pf=f-1980;
+    const allOp=fadeIn(f,1980,30);
     const logoScale=1+Math.sin(pf*.1)*.04;
-    const footerOp=fadeIn(f,1390,25);
+    const footerOp=fadeIn(f,2020,25);
 
     stage.innerHTML=`
     <div style="width:1920px;height:1080px;background:${bg(f)};position:relative;overflow:hidden;
@@ -494,7 +494,7 @@ function renderFrame(f){
         <div style="width:300px;height:1px;background:linear-gradient(90deg,#ff2edb,transparent)"></div>
       </div>
       <!-- Loop indicator -->
-      ${pf>60?`<div style="position:absolute;bottom:30px;opacity:${ease(f,1410,1440,.0,1)};font-size:14px;color:#ffffff30;letter-spacing:4px">⟳ REPRODUCIENDO</div>`:''}
+      ${pf>60?`<div style="position:absolute;bottom:30px;opacity:${ease(f,2040,2100,.0,1)};font-size:14px;color:#ffffff30;letter-spacing:4px">⟳ REPRODUCIENDO</div>`:''}
     </div>`;
 
     // Loop

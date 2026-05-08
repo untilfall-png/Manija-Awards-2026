@@ -178,17 +178,6 @@ export function DiplomaDigital({ winnerName, categoryName, votes, date, onDownlo
       ctx.fillStyle = 'rgba(255,46,219,0.4)'; ctx.font = '7px Arial'
       ctx.fillText(`${votes} votos · ${date}`, canvas.width / 2, 484)
 
-      // ── Badge círculo derecha ──
-      ctx.strokeStyle = 'rgba(170,0,255,0.55)'; ctx.lineWidth = 1.5
-      ctx.beginPath(); ctx.arc(canvas.width - 75, 462, 36, 0, Math.PI * 2); ctx.stroke()
-      ctx.fillStyle = 'rgba(170,0,255,0.10)'; ctx.fill()
-      ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = '6px Arial'
-      ctx.fillText('CLUB LOS', canvas.width - 75, 453)
-      ctx.fillStyle = '#a855f7'; ctx.font = '14px Arial'
-      ctx.fillText('⊞', canvas.width - 75, 467)
-      ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = '6px Arial'
-      ctx.fillText('MANIJAS 2026', canvas.width - 75, 479)
-
       // ── Waveform bottom ──
       ctx.fillStyle = 'rgba(255,46,219,0.2)'; ctx.font = '7px Arial'
       ctx.fillText('▌▍▎▏▎▍▌▍▎▏▎▍▌ ▌▍▎▏▎▍▌▍▎▏▎▍▌', canvas.width / 2, 526)

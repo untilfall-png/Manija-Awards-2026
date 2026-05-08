@@ -164,10 +164,6 @@ export function useDiplomaGenerator() {
       <div style="font-size:7px;color:rgba(255,46,219,0.4);letter-spacing:2px;margin-top:6px;">${votes} votos · ${date}</div>
     </div>
 
-    <!-- Badge (absolute right) -->
-    <div style="position:absolute;right:70px;bottom:28px;width:70px;height:70px;border:1.5px solid rgba(170,0,255,0.6);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:8px;box-sizing:border-box;">
-      <div style="font-size:6.5px;color:rgba(255,255,255,0.55);letter-spacing:1px;line-height:1.7;text-align:center;">CLUB<br>LOS<br><span style="color:#a855f7;font-size:14px;">⊞</span><br>MANIJAS<br>2026</div>
-    </div>
   </div>
 
   <!-- Bottom waveform decoration -->
@@ -358,10 +354,6 @@ export function useDiplomaGenerator() {
       <div style="font-size:7px;color:rgba(255,215,0,0.25);letter-spacing:2px;margin-top:4px;">${date}</div>
     </div>
 
-    <!-- Badge (absolute right) -->
-    <div style="position:absolute;right:70px;bottom:26px;width:72px;height:72px;border:1.5px solid rgba(255,215,0,0.5);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:8px;box-sizing:border-box;">
-      <div style="font-size:6.5px;color:rgba(255,215,0,0.6);letter-spacing:1px;line-height:1.7;">CLUB<br>LOS<br><span style="color:#FFD700;font-size:14px;">★</span><br>MANIJAS<br>2026</div>
-    </div>
   </div>
 
   <!-- Bottom decoration -->
