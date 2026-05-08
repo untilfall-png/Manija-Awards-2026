@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import { motion } from 'framer-motion'
 import { collection, onSnapshot, QuerySnapshot, DocumentData } from 'firebase/firestore'
@@ -10,7 +10,7 @@ import { Vote, Category } from '@/lib/types'
 import { Trophy, TrendingUp, Users, Award, Download } from 'lucide-react'
 import { useDiplomaGenerator } from '@/hooks/useDiplomaGenerator'
 
-// Carga diferida: el canvas del diploma solo se renderiza al hacer hover
+// Carga diferida — solo se renderiza al hacer hover
 const DiplomaDigital = dynamic(
   () => import('@/components/DiplomaDigital').then(m => ({ default: m.DiplomaDigital })),
   { ssr: false, loading: () => null }
@@ -18,114 +18,127 @@ const DiplomaDigital = dynamic(
 
 interface CategoryResults {
   category: Category
-  results: Array<{
-    nomineeId: string
-    nomineeName: string
-    votes: number
-    percentage: number
-  }>
+  results: Array<{ nomineeId: string; nomineeName: string; votes: number; percentage: number }>
   totalVotes: number
 }
 
+/* ── Contador animado ── */
+function AnimNum({ value, className = '' }: { value: number; className?: string }) {
+  const prev  = useRef(value)
+  const [disp, setDisp] = useState(value)
+
+  useEffect(() => {
+    if (value === prev.current) return
+    const diff  = value - prev.current
+    const steps = Math.min(Math.abs(diff), 24)
+    let i = 0
+    const id = setInterval(() => {
+      i++
+      setDisp(Math.round(prev.current + (diff * i) / steps))
+      if (i >= steps) { clearInterval(id); prev.current = value }
+    }, 35)
+    return () => clearInterval(id)
+  }, [value])
+
+  return <span className={className}>{disp}</span>
+}
+
 export function LiveResults() {
-  const [categoryResults, setCategoryResults] = useState<CategoryResults[]>([])
-  const [categories, setCategories] = useState<Category[]>([])
+  const [categoryResults, setCategoryResults]   = useState<CategoryResults[]>([])
+  const [categories, setCategories]             = useState<Category[]>([])
   const [loadingCategories, setLoadingCategories] = useState(true)
-  const [categoryLoadError, setCategoryLoadError] = useState<string | null>(null)
-  const [totalVoters, setTotalVoters] = useState(0)
-  const [totalVotes, setTotalVotes] = useState(0)
-  const [isLoading, setIsLoading] = useState(true)
-  const [showDiplomaFor, setShowDiplomaFor] = useState<{categoryId: string, nomineeId: string} | null>(null)
+  const [totalVoters, setTotalVoters]           = useState(0)
+  const [totalVotes, setTotalVotes]             = useState(0)
+  const [isLoading, setIsLoading]               = useState(true)
+  const [showDiplomaFor, setShowDiplomaFor]     = useState<{ categoryId: string; nomineeId: string } | null>(null)
+  const categoriesRef = useRef<Category[]>([])
 
   const { generateDiplomaPDF } = useDiplomaGenerator()
 
-  const handleDownloadDiploma = useCallback(async (categoryName: string, nomineeName: string, votes: number, date: string) => {
-    await generateDiplomaPDF(nomineeName, categoryName, votes, date)
-  }, [generateDiplomaPDF])
+  const handleDownloadDiploma = useCallback(async (
+    categoryName: string, nomineeName: string, votes: number, date: string
+  ) => generateDiplomaPDF(nomineeName, categoryName, votes, date), [generateDiplomaPDF])
 
+  /* ── Cargar categorías ── */
   useEffect(() => {
-    let isMounted = true
-
+    let mounted = true
     getCategories()
-      .then((fetched) => {
-        if (!isMounted) return
-        setCategories(fetched)
+      .then(f => {
+        if (!mounted) return
+        setCategories(f)
+        categoriesRef.current = f
+        setLoadingCategories(false)
       })
-      .catch((err) => {
-        console.error('Error loading categories:', err)
-        setCategoryLoadError('No se pudieron cargar las categorías')
+      .catch(err => {
+        console.error(err)
+        if (mounted) setLoadingCategories(false)
       })
-      .finally(() => {
-        if (isMounted) setLoadingCategories(false)
-      })
-
-    return () => {
-      isMounted = false
-    }
+    return () => { mounted = false }
   }, [])
 
+  /* ── Listener votos — FIX race condition ──
+     El listener se suscribe una vez y lee categories desde la ref,
+     que se mantiene actualizada en tiempo real sin recrear el listener. */
   useEffect(() => {
-    const unsubscribe = onSnapshot(
+    const buildResults = (votes: Vote[], cats: Category[]): CategoryResults[] =>
+      cats.map(cat => {
+        const catVotes = votes.filter(v => v.categoryId === cat.id)
+        const counts: Record<string, number> = {}
+        catVotes.forEach(v => { counts[v.nomineeId] = (counts[v.nomineeId] || 0) + 1 })
+        const total = catVotes.length
+        return {
+          category: cat,
+          totalVotes: total,
+          results: cat.nominees
+            .map(n => ({
+              nomineeId: n.id,
+              nomineeName: n.name,
+              votes: counts[n.id] || 0,
+              percentage: total > 0 ? ((counts[n.id] || 0) / total) * 100 : 0,
+            }))
+            .sort((a, b) => b.votes - a.votes),
+        }
+      })
+
+    let lastVotes: Vote[] = []
+
+    const unsub = onSnapshot(
       collection(db, 'votes'),
-      (snapshot: QuerySnapshot<DocumentData>) => {
-        const votes: Vote[] = snapshot.docs.map(doc => {
-          const data = doc.data()
-          return {
-            id: doc.id,
-            voterId: data.voterId,
-            categoryId: data.categoryId,
-            nomineeId: data.nomineeId,
-            createdAt: data.createdAt?.toDate() || new Date(),
-          }
-        })
+      (snap: QuerySnapshot<DocumentData>) => {
+        lastVotes = snap.docs.map(d => ({
+          id: d.id,
+          voterId: d.data().voterId,
+          categoryId: d.data().categoryId,
+          nomineeId: d.data().nomineeId,
+          createdAt: d.data().createdAt?.toDate() || new Date(),
+        }))
 
-        // Get unique voters
-        const uniqueVoters = new Set(votes.map(vote => vote.voterId))
-        setTotalVoters(uniqueVoters.size)
-        setTotalVotes(votes.length)
+        setTotalVoters(new Set(lastVotes.map(v => v.voterId)).size)
+        setTotalVotes(lastVotes.length)
 
-        // Calculate results for each category
-        const results: CategoryResults[] = categories.map(category => {
-          const categoryVotes = votes.filter(vote => vote.categoryId === category.id)
-          const voteCount: { [key: string]: number } = {}
-
-          categoryVotes.forEach(vote => {
-            voteCount[vote.nomineeId] = (voteCount[vote.nomineeId] || 0) + 1
-          })
-
-          const totalCategoryVotes = categoryVotes.length
-          const resultsArray = category.nominees.map(nominee => ({
-            nomineeId: nominee.id,
-            nomineeName: nominee.name,
-            votes: voteCount[nominee.id] || 0,
-            percentage: totalCategoryVotes > 0 ? ((voteCount[nominee.id] || 0) / totalCategoryVotes) * 100 : 0,
-          })).sort((a, b) => b.votes - a.votes)
-
-          return {
-            category,
-            results: resultsArray,
-            totalVotes: totalCategoryVotes,
-          }
-        })
-
-        setCategoryResults(results)
+        if (categoriesRef.current.length > 0) {
+          setCategoryResults(buildResults(lastVotes, categoriesRef.current))
+        }
         setIsLoading(false)
       },
-      (error) => {
-        console.error('Error listening to votes:', error)
-        setIsLoading(false)
-      }
+      err => { console.error(err); setIsLoading(false) }
     )
 
-    return () => unsubscribe()
+    return unsub
   }, [])
 
+  /* Cuando categorías cargan, recalcular con los últimos votos — sin crear listener nuevo */
+  useEffect(() => {
+    categoriesRef.current = categories
+  }, [categories])
+
+  /* ── Loading ── */
   if (isLoading || loadingCategories) {
     return (
-      <section className="section-padding mx-auto max-w-6xl">
+      <section className="px-4 sm:px-6 py-10 sm:py-16 mx-auto max-w-6xl">
         <div className="text-center">
-          <div className="inline-flex items-center gap-3 mb-4">
-            <div className="w-8 h-8 border-2 border-neon-pink/30 border-t-neon-pink rounded-full animate-spin"></div>
+          <div className="inline-flex items-center gap-3">
+            <div className="w-8 h-8 border-2 border-neon-pink/30 border-t-neon-pink rounded-full animate-spin" />
             <span className="text-neon-pink font-semibold">Cargando resultados...</span>
           </div>
         </div>
@@ -136,11 +149,7 @@ export function LiveResults() {
   return (
     <section className="px-4 sm:px-6 py-10 sm:py-16 mx-auto max-w-6xl">
       {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-8 sm:mb-12"
-      >
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8 sm:mb-12">
         <div className="inline-flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
           <div className="p-2 sm:p-3 rounded-2xl bg-neon-purple/20 border border-neon-purple/30">
             <TrendingUp className="h-6 w-6 sm:h-8 sm:w-8 text-neon-purple" />
@@ -150,116 +159,89 @@ export function LiveResults() {
           </span>
         </div>
 
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-display font-bold text-white mb-4 sm:mb-6">
-          Votación Live
-        </h2>
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-display font-bold text-white mb-4 sm:mb-6">Votación Live</h2>
 
-        {/* Stats */}
+        {/* Stats con AnimNum */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-xs sm:max-w-2xl mx-auto">
-          <div className="glass-card p-4 text-center">
-            <Users className="h-6 w-6 text-neon-cyan mx-auto mb-2" />
-            <div className="text-2xl font-display font-bold text-neon-cyan">{totalVoters}</div>
-            <div className="text-xs text-white/70 uppercase tracking-wider">Votantes</div>
-          </div>
-          <div className="glass-card p-4 text-center">
-            <Award className="h-6 w-6 text-neon-pink mx-auto mb-2" />
-            <div className="text-2xl font-display font-bold text-neon-pink">{totalVotes}</div>
-            <div className="text-xs text-white/70 uppercase tracking-wider">Total Votos</div>
-          </div>
-          <div className="glass-card p-4 text-center">
-            <Trophy className="h-6 w-6 text-neon-orange mx-auto mb-2" />
-            <div className="text-2xl font-display font-bold text-neon-orange">{categories.length}</div>
-            <div className="text-xs text-white/70 uppercase tracking-wider">Categorías</div>
-          </div>
-          <div className="glass-card p-4 text-center">
-            <TrendingUp className="h-6 w-6 text-neon-green mx-auto mb-2" />
-            <div className="text-2xl font-display font-bold text-neon-green">
-              {totalVotes > 0 ? Math.round((totalVotes / (totalVoters * categories.length)) * 100) : 0}%
+          {[
+            { icon: Users, val: totalVoters, label: 'Votantes',    color: 'text-neon-cyan' },
+            { icon: Award, val: totalVotes,  label: 'Total Votos', color: 'text-neon-pink' },
+            { icon: Trophy, val: categories.length, label: 'Categorías', color: 'text-neon-orange' },
+            {
+              icon: TrendingUp,
+              val: totalVotes > 0 ? Math.round((totalVotes / (totalVoters * Math.max(categories.length, 1))) * 100) : 0,
+              label: 'Participación', color: 'text-neon-green', suffix: '%',
+            },
+          ].map(({ icon: Icon, val, label, color, suffix = '' }) => (
+            <div key={label} className="glass-card p-3 sm:p-4 text-center">
+              <Icon className={`h-5 w-5 sm:h-6 sm:w-6 ${color} mx-auto mb-1 sm:mb-2`} />
+              <div className={`text-xl sm:text-2xl font-display font-bold ${color}`}>
+                <AnimNum value={val} />{suffix}
+              </div>
+              <div className="text-[10px] sm:text-xs text-white/70 uppercase tracking-wider">{label}</div>
             </div>
-            <div className="text-xs text-white/70 uppercase tracking-wider">Participación</div>
-          </div>
+          ))}
         </div>
       </motion.div>
 
-      {/* Category Results */}
+      {/* Resultados por categoría */}
       <div className="grid gap-5 sm:gap-8 grid-cols-1 sm:grid-cols-2">
-        {categoryResults.map((categoryResult, index) => (
+        {categoryResults.map((cr, idx) => (
           <motion.div
-            key={categoryResult.category.id}
+            key={cr.category.id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: index * 0.1 }}
-            className="neon-card p-6"
+            transition={{ delay: idx * 0.08, duration: 0.5 }}
+            className="neon-card p-5 sm:p-6"
           >
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-5 sm:mb-6">
               <div>
-                <h3 className="text-xl font-display font-bold text-white mb-1">
-                  {categoryResult.category.name}
-                </h3>
-                <p className="text-white/70 text-sm">
-                  {categoryResult.totalVotes} votos • Categoría {categoryResult.category.order}
+                <h3 className="text-lg sm:text-xl font-display font-bold text-white mb-0.5">{cr.category.name}</h3>
+                <p className="text-white/70 text-xs sm:text-sm">
+                  <AnimNum value={cr.totalVotes} /> votos · Categoría {cr.category.order}
                 </p>
               </div>
-              <div className="text-right">
-                <div className="text-2xl font-display font-bold text-neon-pink">
-                  #{categoryResult.category.order}
-                </div>
-              </div>
+              <span className="text-xl sm:text-2xl font-display font-bold text-neon-pink">#{cr.category.order}</span>
             </div>
 
-            <div className="space-y-4">
-              {categoryResult.results.map((result, resultIndex) => (
-                <motion.div
-                  key={result.nomineeId}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.4, delay: resultIndex * 0.1 }}
-                  className="relative"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-3">
-                      {resultIndex === 0 && result.votes > 0 && (
-                        <Trophy className="h-5 w-5 text-neon-orange" />
-                      )}
-                      <span className="font-semibold text-white">
-                        {result.nomineeName}
-                      </span>
+            <div className="space-y-3 sm:space-y-4">
+              {cr.results.map((r, ri) => (
+                <div key={r.nomineeId}>
+                  <div className="flex items-center justify-between mb-1.5 gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      {ri === 0 && r.votes > 0 && <Trophy className="h-4 w-4 text-neon-orange flex-shrink-0" />}
+                      <span className="font-semibold text-white text-sm sm:text-base truncate">{r.nomineeName}</span>
                     </div>
-                    <div className="text-right">
-                      <span className="font-bold text-neon-cyan">{result.votes}</span>
-                      <span className="text-white/60 text-sm ml-1">
-                        ({result.percentage.toFixed(1)}%)
-                      </span>
+                    <div className="text-right flex-shrink-0">
+                      <AnimNum value={r.votes} className="font-bold text-neon-cyan text-sm sm:text-base" />
+                      <span className="text-white/60 text-xs ml-1">({r.percentage.toFixed(1)}%)</span>
                     </div>
                   </div>
-
                   <div className="w-full bg-black/30 rounded-full h-2 overflow-hidden">
                     <motion.div
                       className="h-full bg-gradient-to-r from-neon-pink to-neon-purple rounded-full"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${result.percentage}%` }}
-                      transition={{ duration: 1, delay: 0.5 + resultIndex * 0.1 }}
+                      animate={{ width: `${r.percentage}%` }}
+                      transition={{ duration: 0.8, ease: 'easeOut' }}
                     />
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
 
-            {categoryResult.totalVotes === 0 && (
-              <div className="text-center py-8 text-white/50">
-                <Award className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                <p>Aún no hay votos en esta categoría</p>
+            {cr.totalVotes === 0 && (
+              <div className="text-center py-6 sm:py-8 text-white/50">
+                <Award className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-2 sm:mb-3 opacity-50" />
+                <p className="text-sm sm:text-base">Aún no hay votos</p>
               </div>
-             )}
+            )}
           </motion.div>
         ))}
       </div>
 
-      {/* Winner Diplomas Section */}
+      {/* Diplomas section */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 1.2 }}
+        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1.0, duration: 0.6 }}
         className="mt-10 sm:mt-16"
       >
         <div className="text-center mb-8 sm:mb-12">
@@ -271,78 +253,62 @@ export function LiveResults() {
               GANADORES & DIPLOMAS
             </span>
           </div>
-          <h3 className="text-2xl sm:text-3xl font-display font-bold text-white">
-            Ganadores por Categoría
-          </h3>
-          <p className="text-white/70 text-xs sm:text-sm mt-1 sm:mt-2">
-            Descarga el diploma oficial de cada categoría
-          </p>
+          <h3 className="text-2xl sm:text-3xl font-display font-bold text-white">Ganadores por Categoría</h3>
+          <p className="text-white/70 text-xs sm:text-sm mt-1 sm:mt-2">Descarga el diploma oficial</p>
         </div>
 
         <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-          {categoryResults.map((categoryResult, index) => {
-            const winner = categoryResult.results[0]
-            if (!winner || winner.votes === 0) {
-              return (
-                <motion.div
-                  key={categoryResult.category.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 1.3 + index * 0.05 }}
-                  className="neon-card p-6 text-center opacity-50"
-                >
-                  <Trophy className="h-12 w-12 mx-auto mb-4 text-white/30" />
-                  <h4 className="text-lg font-semibold text-white/60 mb-2">
-                    {categoryResult.category.name}
-                  </h4>
-                  <p className="text-white/40 text-sm">Sin votos aún</p>
-                </motion.div>
-              )
-            }
+          {categoryResults.map((cr, idx) => {
+            const winner = cr.results[0]
+            const hasVotes = winner && winner.votes > 0
             return (
               <motion.div
-                key={categoryResult.category.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 1.3 + index * 0.05 }}
-                className="neon-card p-6 text-center group hover:scale-[1.02] transition-all duration-300"
-                onMouseEnter={() => setShowDiplomaFor({categoryId: categoryResult.category.id, nomineeId: winner.nomineeId})}
+                key={cr.category.id}
+                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.1 + idx * 0.05, duration: 0.4 }}
+                className={`neon-card p-5 sm:p-6 text-center group transition-all duration-300 ${hasVotes ? 'hover:scale-[1.02] cursor-default' : 'opacity-50'}`}
+                onMouseEnter={() => hasVotes && setShowDiplomaFor({ categoryId: cr.category.id, nomineeId: winner.nomineeId })}
                 onMouseLeave={() => setShowDiplomaFor(null)}
               >
-                <div className="relative min-h-[180px] mb-4">
-                  {showDiplomaFor?.categoryId === categoryResult.category.id && showDiplomaFor?.nomineeId === winner.nomineeId ? (
-                    <div className="absolute inset-0 -top-8 -left-4 -right-4 transform scale-75 origin-top">
-                      <DiplomaDigital
-                        winnerName={winner.nomineeName}
-                        categoryName={categoryResult.category.name}
-                        votes={winner.votes}
-                        date={new Date().toLocaleDateString('es-ES')}
-                      />
+                {!hasVotes ? (
+                  <>
+                    <Trophy className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 sm:mb-4 text-white/30" />
+                    <h4 className="text-base sm:text-lg font-semibold text-white/60 mb-1 sm:mb-2">{cr.category.name}</h4>
+                    <p className="text-white/40 text-xs sm:text-sm">Sin votos aún</p>
+                  </>
+                ) : (
+                  <>
+                    <div className="relative min-h-[160px] sm:min-h-[180px] mb-3 sm:mb-4">
+                      {showDiplomaFor?.categoryId === cr.category.id ? (
+                        <div className="absolute inset-0 -top-8 -left-4 -right-4 transform scale-75 origin-top">
+                          <DiplomaDigital
+                            winnerName={winner.nomineeName}
+                            categoryName={cr.category.name}
+                            votes={winner.votes}
+                            date={new Date().toLocaleDateString('es-ES')}
+                          />
+                        </div>
+                      ) : (
+                        <>
+                          <div className="text-4xl sm:text-5xl mb-2 sm:mb-3">🏆</div>
+                          <p className="font-semibold text-white text-sm sm:text-base truncate">{winner.nomineeName}</p>
+                          <p className="text-white/60 text-xs sm:text-sm mb-1 sm:mb-2">{cr.category.name}</p>
+                          <div className="flex items-center justify-center gap-1.5 text-neon-cyan">
+                            <AnimNum value={winner.votes} className="text-xl sm:text-2xl font-bold" />
+                            <span className="text-xs sm:text-sm">votos</span>
+                          </div>
+                        </>
+                      )}
                     </div>
-                  ) : (
-                    <>
-                      <div className="text-5xl mb-3">🏆</div>
-                      <p className="font-semibold text-white truncate">{winner.nomineeName}</p>
-                      <p className="text-white/60 text-sm mb-2">{categoryResult.category.name}</p>
-                      <div className="flex items-center justify-center gap-2 text-neon-cyan">
-                        <span className="text-2xl font-bold">{winner.votes}</span>
-                        <span className="text-sm">votos</span>
-                      </div>
-                    </>
-                  )}
-                </div>
-                <button
-                  onClick={() => handleDownloadDiploma(
-                    categoryResult.category.name,
-                    winner.nomineeName,
-                    winner.votes,
-                    new Date().toLocaleDateString('es-ES')
-                  )}
-                  className="w-full px-4 py-2 rounded-lg bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-semibold hover:from-yellow-400 hover:to-yellow-500 transition-all flex items-center justify-center gap-2 shadow-lg shadow-yellow-500/30"
-                >
-                  <Download className="h-4 w-4" />
-                  Descargar Diploma
-                </button>
+                    <button
+                      onClick={() => handleDownloadDiploma(cr.category.name, winner.nomineeName, winner.votes, new Date().toLocaleDateString('es-ES'))}
+                      className="w-full px-3 sm:px-4 py-2 rounded-lg bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-semibold hover:from-yellow-400 hover:to-yellow-500 transition-all flex items-center justify-center gap-1.5 sm:gap-2 shadow-lg shadow-yellow-500/30 text-xs sm:text-sm"
+                    >
+                      <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      Descargar Diploma
+                    </button>
+                  </>
+                )}
               </motion.div>
             )
           })}

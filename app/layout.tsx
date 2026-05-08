@@ -19,10 +19,16 @@ const montserrat = Montserrat({
 })
 
 export const metadata: Metadata = {
-  title: 'Manija Awards 2026 - Neon Max Pro',
-  description: 'Los premios más prestigiosos de la industria del entretenimiento - Diseño Neon Max Pro',
-  keywords: 'Manija Awards, premios, entretenimiento, neon, max pro, votación',
+  title: 'Manija Awards 2026',
+  description: 'Los premios más prestigiosos de la industria del entretenimiento — votación en tiempo real',
+  keywords: 'Manija Awards, premios, entretenimiento, neon, votación, en vivo',
   authors: [{ name: 'Manija Awards Team' }],
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'ManijAwards',
+  },
 }
 
 // viewport como export separado (Next.js 14)
@@ -37,6 +43,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="es" className={`${bebasNeue.variable} ${montserrat.variable}`}>
       <head>
         <link rel="icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" href="/logo.jpeg" />
+        <link rel="manifest" href="/manifest.json" />
       </head>
       <body className="font-body antialiased animated-bg min-h-screen">
         <div className="relative overflow-hidden">

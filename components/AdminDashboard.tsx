@@ -2,7 +2,7 @@
 
 import { useState, useEffect, lazy, Suspense } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { LogOut, Lock, BarChart3, Settings, Users, Trophy, CheckCircle, Play, X, Sparkles, Loader2 } from 'lucide-react'
+import { LogOut, Lock, BarChart3, Settings, Users, Trophy, QrCode, Monitor, Sparkles, Loader2, CheckCircle, ExternalLink, Maximize2 } from 'lucide-react'
 import { AdminLogin } from './AdminLogin.tsx'
 import { getSystemConfig, setVotingEnabled } from '@/lib/voting'
 import { getVotingResults, type VotingStats } from '@/lib/results'
@@ -17,7 +17,7 @@ const AdminMaintenance = lazy(() => import('./AdminMaintenance').then(mod => ({ 
 const AdminConclusionVideo = lazy(() => import('./AdminConclusionVideo').then(mod => ({ default: mod.AdminConclusionVideo })))
 const AdminDiplomasVideo   = lazy(() => import('./AdminDiplomasVideo').then(mod => ({ default: mod.AdminDiplomasVideo })))
 
-type AdminTab = 'dashboard' | 'categories' | 'results' | 'voters' | 'charts' | 'maintenance' | 'team' | 'conclusion'
+type AdminTab = 'dashboard' | 'categories' | 'results' | 'voters' | 'charts' | 'maintenance' | 'team' | 'conclusion' | 'qr'
 
 export function AdminDashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -60,10 +60,14 @@ export function AdminDashboard() {
     }
   }
 
+  const [togglingVoting, setTogglingVoting] = useState(false)
+
   const handleToggleVoting = async () => {
+    if (togglingVoting) return
+    setTogglingVoting(true)
     const newState = !votingEnabled
     const success = await setVotingEnabled(newState, 'admin')
-    if (!success) return
+    if (!success) { setTogglingVoting(false); return }
     setVotingEnabledState(newState)
 
     // When closing voting, fetch real results and generate videos
@@ -79,6 +83,7 @@ export function AdminDashboard() {
         setGeneratingVideos(false)
       }
     }
+    setTogglingVoting(false)
   }
 
   const handleLogout = () => {
@@ -170,6 +175,7 @@ export function AdminDashboard() {
               { id: 'maintenance' as AdminTab, label: 'Mantenimiento', shortLabel: 'Mant', icon: Settings },
               { id: 'conclusion' as AdminTab, label: 'Concl', shortLabel: 'Concl', icon: Trophy },
               { id: 'team' as AdminTab, label: 'Team', shortLabel: 'Team', icon: Users },
+              { id: 'qr' as AdminTab, label: 'QR / Live', shortLabel: 'QR', icon: QrCode },
             ].map(({ id, label, shortLabel, icon: Icon }) => (
               <button
                 key={id}
@@ -275,6 +281,7 @@ export function AdminDashboard() {
                 <AdminTeam />
               </Suspense>
             )}
+            {activeTab === 'qr' && <AdminQRTab />}
           </motion.div>
         </div>
       </div>
@@ -382,6 +389,117 @@ function AdminDashboardContent() {
             Generar Diplomas
           </a>
         </div>
+      </div>
+    </div>
+  )
+}
+
+/* ── QR / Live Tab ── */
+function AdminQRTab() {
+  const votingUrl = typeof window !== 'undefined'
+    ? window.location.origin
+    : 'https://manija-awards-2026.vercel.app'
+  const liveUrl = `${votingUrl}/live`
+
+  const openLive = () => window.open(liveUrl, '_blank', 'noopener')
+  const openLiveFullscreen = () => {
+    const w = window.open(liveUrl, '_blank', 'noopener')
+    w?.addEventListener('load', () => { w.document.documentElement.requestFullscreen?.() })
+  }
+
+  return (
+    <div className="space-y-8 max-w-3xl mx-auto">
+      <div className="text-center">
+        <div className="inline-flex items-center gap-3 mb-4">
+          <div className="p-3 rounded-2xl bg-neon-pink/20 border border-neon-pink/30">
+            <QrCode className="h-8 w-8 text-neon-pink" />
+          </div>
+          <h2 className="text-3xl font-display font-bold text-white">QR & Pantalla en Vivo</h2>
+        </div>
+        <p className="text-white/60 text-sm">Muestra el QR para que los asistentes voten, y proyecta los resultados en tiempo real.</p>
+      </div>
+
+      {/* QR Code */}
+      <div className="neon-card p-8 text-center">
+        <h3 className="text-xl font-display font-bold text-white mb-2">Código QR — Votación</h3>
+        <p className="text-white/50 text-sm mb-6">Escanear para votar: <span className="text-neon-cyan font-mono">{votingUrl}</span></p>
+
+        {/* QR grande generado via API pública */}
+        <div className="inline-block p-4 bg-white rounded-2xl shadow-2xl shadow-neon-pink/20 mb-6">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={`https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=${encodeURIComponent(votingUrl)}&bgcolor=ffffff&color=000000&margin=4`}
+            alt="QR Votación Manija Awards 2026"
+            width={280}
+            height={280}
+            className="rounded-xl"
+          />
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <a
+            href={`https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(votingUrl)}&bgcolor=ffffff&color=000000&margin=10`}
+            download="qr-manija-awards-2026.png"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-neon-pink text-black font-bold hover:bg-neon-pink/80 transition-all text-sm"
+          >
+            <QrCode className="h-4 w-4" />
+            Descargar QR (600×600)
+          </a>
+          <a
+            href={votingUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-neon-cyan/50 text-neon-cyan hover:bg-neon-cyan/10 transition-all text-sm"
+          >
+            <ExternalLink className="h-4 w-4" />
+            Abrir portal de votación
+          </a>
+        </div>
+      </div>
+
+      {/* Live screen */}
+      <div className="neon-card p-8 text-center border-neon-purple/40">
+        <div className="inline-flex items-center gap-2 mb-2">
+          <Monitor className="h-6 w-6 text-neon-purple" />
+          <h3 className="text-xl font-display font-bold text-white">Pantalla en Vivo — /live</h3>
+        </div>
+        <p className="text-white/50 text-sm mb-6">
+          Proyecta esta pantalla en el evento para mostrar los resultados en tiempo real.
+        </p>
+
+        {/* Preview miniatura */}
+        <div className="relative rounded-xl overflow-hidden border border-neon-purple/30 bg-black mb-6 aspect-video max-w-lg mx-auto">
+          <div className="absolute inset-0 flex items-center justify-center flex-col gap-3 bg-gradient-to-br from-black via-[#090417] to-black">
+            <Sparkles className="h-10 w-10 text-neon-pink animate-pulse" />
+            <p className="text-white font-display font-bold text-lg">MANIJA AWARDS <span className="text-neon-pink">2026</span></p>
+            <p className="text-white/40 text-xs uppercase tracking-widest">Resultados en tiempo real</p>
+          </div>
+          <div className="absolute bottom-2 right-2 px-2 py-1 rounded-md bg-green-500/20 border border-green-500/30 text-green-400 text-[10px] font-bold tracking-wider uppercase">
+            EN VIVO
+          </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <button
+            onClick={openLive}
+            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-neon-purple text-white font-bold hover:bg-neon-purple/80 transition-all text-sm"
+          >
+            <ExternalLink className="h-4 w-4" />
+            Abrir /live
+          </button>
+          <button
+            onClick={openLiveFullscreen}
+            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-neon-purple/50 text-neon-purple hover:bg-neon-purple/10 transition-all text-sm"
+          >
+            <Maximize2 className="h-4 w-4" />
+            Abrir en pantalla completa
+          </button>
+        </div>
+        <p className="text-white/30 text-xs mt-3">
+          URL: <span className="font-mono">{liveUrl}</span>
+        </p>
       </div>
     </div>
   )

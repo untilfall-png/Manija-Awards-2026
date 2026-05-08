@@ -2,7 +2,11 @@
 
 import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
+import { doc, onSnapshot } from 'firebase/firestore'
+import { db } from '@/lib/firebase'
 import { Hero } from '@/components/Hero'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { Footer } from '@/components/Footer'
 import { VoterSession } from '@/lib/types'
 
 // Carga diferida de todo lo que está bajo el fold
@@ -29,6 +33,11 @@ const LiveResults = dynamic(() => import('@/components/LiveResults').then(m => (
   ssr: false,
 })
 
+const WaitingRoom = dynamic(() => import('@/components/WaitingRoom').then(m => ({ default: m.WaitingRoom })), {
+  loading: () => null,
+  ssr: false,
+})
+
 // Partículas con posiciones fijas (evita Math.random en render y problemas de hidratación)
 const PARTICLES = [
   { left: '8%',  top: '12%', delay: '0s',    dur: '2.4s' },
@@ -48,6 +57,17 @@ const PARTICLES = [
 export default function Home() {
   const [session, setSession] = useState<VoterSession | null>(null)
   const [mounted, setMounted] = useState(false)
+  const [votingOpen, setVotingOpen] = useState(true)
+
+  /* ── Real-time voting status (page level) ── */
+  useEffect(() => {
+    const unsub = onSnapshot(
+      doc(db, 'system_config', 'system_config'),
+      snap => { if (snap.exists()) setVotingOpen(snap.data().votingEnabled ?? true) },
+      err => console.error('page votingStatus:', err)
+    )
+    return unsub
+  }, [])
 
   useEffect(() => {
     setMounted(true)
@@ -113,13 +133,23 @@ export default function Home() {
               </div>
             </div>
 
-            <Voting session={session} onVoteSubmitted={handleVoteSubmitted} />
-            <LiveResults />
+            <ErrorBoundary>
+              <Voting session={session} onVoteSubmitted={handleVoteSubmitted} />
+            </ErrorBoundary>
+            <ErrorBoundary>
+              <LiveResults />
+            </ErrorBoundary>
           </>
-        ) : (
+        ) : votingOpen ? (
           <Login onAuthenticated={handleAuthenticated} />
+        ) : (
+          /* Voting closed & no session — show waiting room */
+          <WaitingRoom closed />
         )}
       </div>
+
+      {/* Footer */}
+      {mounted && <Footer />}
 
       {/* Botón admin */}
       <div className="absolute top-4 sm:top-6 right-4 sm:right-6 z-20">
