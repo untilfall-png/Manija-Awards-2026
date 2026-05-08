@@ -3,10 +3,11 @@
 import { useState, useEffect, lazy, Suspense } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { LogOut, Lock, BarChart3, Settings, Users, Trophy, QrCode, Monitor, Sparkles, Loader2, CheckCircle, ExternalLink, Maximize2 } from 'lucide-react'
+import { collection, doc, onSnapshot } from 'firebase/firestore'
+import { db } from '@/lib/firebase'
 import { AdminLogin } from './AdminLogin.tsx'
-import { getSystemConfig, setVotingEnabled } from '@/lib/voting'
+import { getSystemConfig, setVotingEnabled, getCategories } from '@/lib/voting'
 import { getVotingResults, type VotingStats } from '@/lib/results'
-import { AdminTeam } from './AdminTeam'
 
 // Lazy load heavy components
 const AdminResults     = lazy(() => import('./AdminResults').then(mod => ({ default: mod.AdminResults })))
@@ -14,10 +15,9 @@ const AdminCategories  = lazy(() => import('./AdminCategories').then(mod => ({ d
 const AdminCharts      = lazy(() => import('./AdminCharts').then(mod => ({ default: mod.AdminCharts })))
 const AdminVoters      = lazy(() => import('./AdminVoters').then(mod => ({ default: mod.AdminVoters })))
 const AdminMaintenance = lazy(() => import('./AdminMaintenance').then(mod => ({ default: mod.AdminMaintenance })))
-const AdminConclusionVideo = lazy(() => import('./AdminConclusionVideo').then(mod => ({ default: mod.AdminConclusionVideo })))
-const AdminDiplomasVideo   = lazy(() => import('./AdminDiplomasVideo').then(mod => ({ default: mod.AdminDiplomasVideo })))
+const AdminDiplomasVideo = lazy(() => import('./AdminDiplomasVideo').then(mod => ({ default: mod.AdminDiplomasVideo })))
 
-type AdminTab = 'dashboard' | 'categories' | 'results' | 'voters' | 'charts' | 'maintenance' | 'team' | 'conclusion' | 'qr'
+type AdminTab = 'dashboard' | 'categories' | 'results' | 'voters' | 'charts' | 'maintenance' | 'conclusion' | 'qr'
 
 export function AdminDashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -173,8 +173,7 @@ export function AdminDashboard() {
               { id: 'voters' as AdminTab, label: 'Votantes', shortLabel: 'Vot', icon: Users },
               { id: 'charts' as AdminTab, label: 'Gráficos', shortLabel: 'Grá', icon: BarChart3 },
               { id: 'maintenance' as AdminTab, label: 'Mantenimiento', shortLabel: 'Mant', icon: Settings },
-              { id: 'conclusion' as AdminTab, label: 'Concl', shortLabel: 'Concl', icon: Trophy },
-              { id: 'team' as AdminTab, label: 'Team', shortLabel: 'Team', icon: Users },
+              { id: 'conclusion' as AdminTab, label: 'Conclusiones', shortLabel: 'Concl', icon: Trophy },
               { id: 'qr' as AdminTab, label: 'QR / Live', shortLabel: 'QR', icon: QrCode },
             ].map(({ id, label, shortLabel, icon: Icon }) => (
               <button
@@ -261,25 +260,13 @@ export function AdminDashboard() {
                   </motion.div>
                 )}
 
-                {/* Diplomas video */}
+                {/* Diplomas */}
                 <div className="neon-card p-6 rounded-2xl border border-neon-purple/30">
                   <Suspense fallback={<LoadingFallback />}>
                     <AdminDiplomasVideo stats={votingStats} />
                   </Suspense>
                 </div>
-
-                {/* Conclusion stats video */}
-                <div className="neon-card p-6 rounded-2xl border border-neon-pink/30">
-                  <Suspense fallback={<LoadingFallback />}>
-                    <AdminConclusionVideo stats={votingStats} />
-                  </Suspense>
-                </div>
               </div>
-            )}
-            {activeTab === 'team' && (
-              <Suspense fallback={<LoadingFallback />}>
-                <AdminTeam />
-              </Suspense>
             )}
             {activeTab === 'qr' && <AdminQRTab />}
           </motion.div>
@@ -290,65 +277,82 @@ export function AdminDashboard() {
 }
 
 function AdminDashboardContent() {
-  const [stats, setStats] = useState({
-    totalVoters: 0,
-    totalVotes: 0,
-    totalCategories: 0,
-    participationRate: 0,
-  })
-  const [loading, setLoading] = useState(true)
-  const [votingEnabled, setVotingEnabledState] = useState(true)
+  const [totalVoters, setTotalVoters]     = useState(0)
+  const [totalVotes, setTotalVotes]       = useState(0)
+  const [totalCategories, setTotalCategories] = useState(0)
+  const [votingEnabled, setVotingEnabledLocal] = useState(true)
+  const [loading, setLoading]             = useState(true)
 
   useEffect(() => {
-    const loadStats = async () => {
-      try {
-        const config = await getSystemConfig()
-        setVotingEnabledState(config?.votingEnabled ?? true)
-        setStats({
-          totalVoters: 0,
-          totalVotes: 0,
-          totalCategories: 0,
-          participationRate: 0,
-        })
-      } catch (error) {
-        console.error('Error loading stats:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-    loadStats()
+    // One-time: categories count + config
+    Promise.all([
+      getCategories(),
+      getSystemConfig(),
+    ]).then(([cats, cfg]) => {
+      setTotalCategories(cats.length)
+      setVotingEnabledLocal(cfg?.votingEnabled ?? true)
+      setLoading(false)
+    }).catch(err => { console.error(err); setLoading(false) })
+
+    // Real-time: voters
+    const unsubVoters = onSnapshot(collection(db, 'voters'), snap => setTotalVoters(snap.size))
+    // Real-time: votes
+    const unsubVotes = onSnapshot(collection(db, 'votes'), snap => setTotalVotes(snap.size))
+    // Real-time: system config (votingEnabled)
+    const unsubConfig = onSnapshot(doc(db, 'system_config', 'system_config'), snap => {
+      if (snap.exists()) setVotingEnabledLocal(snap.data().votingEnabled ?? true)
+    })
+
+    return () => { unsubVoters(); unsubVotes(); unsubConfig() }
   }, [])
+
+  const participation = totalCategories > 0 && totalVoters > 0
+    ? Math.round((totalVotes / (totalVoters * totalCategories)) * 100)
+    : 0
+
+  const statCards = [
+    { label: 'Votantes Registrados', value: totalVoters,    icon: Users,       color: 'text-neon-cyan',   bg: 'bg-neon-cyan/20',   border: 'border-neon-cyan/30' },
+    { label: 'Total de Votos',       value: totalVotes,     icon: Trophy,      color: 'text-neon-pink',   bg: 'bg-neon-pink/20',   border: 'border-neon-pink/30' },
+    { label: 'Categorías',           value: totalCategories,icon: Settings,    color: 'text-neon-purple', bg: 'bg-neon-purple/20', border: 'border-neon-purple/30' },
+    { label: 'Participación',        value: `${participation}%`, icon: BarChart3, color: 'text-neon-orange', bg: 'bg-neon-orange/20', border: 'border-neon-orange/30' },
+    { label: votingEnabled ? 'Votación ABIERTA' : 'Votación CERRADA',
+      value: votingEnabled ? '🟢 ABIERTA' : '🔴 CERRADA',
+      icon: CheckCircle,
+      color: votingEnabled ? 'text-green-400' : 'text-red-400',
+      bg:    votingEnabled ? 'bg-green-500/20' : 'bg-red-500/20',
+      border:votingEnabled ? 'border-green-500/30' : 'border-red-500/30' },
+  ]
 
   return (
     <div className="space-y-8">
       <div className="text-center mb-8">
         <h2 className="text-3xl font-display font-bold text-white mb-2">Panel de Control</h2>
-        <p className="text-white/70">Bienvenido al panel de administración de Manija Awards 2026</p>
+        <p className="text-white/70">Resultados en tiempo real — Manija Awards 2026</p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {[ 
-          { label: 'Votantes Registrados', value: stats.totalVoters, icon: Users, color: 'neon-cyan' },
-          { label: 'Total de Votos', value: stats.totalVotes, icon: Trophy, color: 'neon-pink' },
-          { label: 'Categorías', value: stats.totalCategories, icon: Settings, color: 'neon-purple' },
-          { label: 'Participación', value: `${stats.participationRate}%`, icon: BarChart3, color: 'neon-orange' },
-          { label: votingEnabled ? 'Votación Activa' : 'Votación Cerrada', value: votingEnabled ? 'ABIERTA' : 'CERRADA', icon: votingEnabled ? CheckCircle : BarChart3, color: votingEnabled ? 'green-400' : 'red-400' },
-        ].map(({ label, value, icon: Icon, color }, index) => (
+      {loading ? (
+        <div className="flex justify-center py-8">
+          <div className="w-8 h-8 border-2 border-neon-pink/30 border-t-neon-pink rounded-full animate-spin" />
+        </div>
+      ) : (
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        {statCards.map(({ label, value, icon: Icon, color, bg, border }, index) => (
           <motion.div
             key={index}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className="neon-card p-6 text-center"
+            transition={{ delay: index * 0.08 }}
+            className="neon-card p-5 text-center"
           >
-            <div className={`inline-block p-3 rounded-2xl bg-${color}/20 border border-${color}/30 mb-4`}>
-              <Icon className={`h-8 w-8 text-${color}`} />
+            <div className={`inline-block p-3 rounded-2xl ${bg} border ${border} mb-3`}>
+              <Icon className={`h-7 w-7 ${color}`} />
             </div>
-            <div className="text-2xl font-display font-bold text-white">{value}</div>
-            <div className="text-white/70 text-sm mt-1">{label}</div>
+            <div className={`text-2xl font-display font-bold ${color}`}>{value}</div>
+            <div className="text-white/60 text-xs mt-1 uppercase tracking-wider">{label}</div>
           </motion.div>
         ))}
       </div>
+      )}
 
       <div className="grid gap-6 md:grid-cols-2">
         <div className="neon-card p-6">

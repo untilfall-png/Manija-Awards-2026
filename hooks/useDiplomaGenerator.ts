@@ -17,58 +17,171 @@ export function useDiplomaGenerator() {
         import('html2canvas'),
       ])
 
+      // ── Render diploma HTML ──────────────────────────────────────────────
+      const W = 1100, H = 770
       const tempDiv = document.createElement('div')
-      tempDiv.style.cssText = 'position:fixed;left:-9999px;top:-9999px;'
+      tempDiv.style.cssText = `position:fixed;left:-9999px;top:-9999px;width:${W}px;height:${H}px;`
       document.body.appendChild(tempDiv)
 
+      // Parse date for large display (day / month / year)
+      const dateParts = date.split('/') // dd/mm/yyyy
+      const day   = dateParts[0] || ''
+      const month = dateParts[1] || ''
+      const year  = dateParts[2] || '2026'
+      const months: Record<string,string> = {
+        '01':'ENE','02':'FEB','03':'MAR','04':'ABR','05':'MAY','06':'JUN',
+        '07':'JUL','08':'AGO','09':'SEP','10':'OCT','11':'NOV','12':'DIC',
+      }
+      const monthName = months[month] || 'MAYO'
+
       tempDiv.innerHTML = `
-        <div style="
-          width:800px;height:600px;
-          background:linear-gradient(135deg,#0a0a0f 0%,#1a0a2e 50%,#0f0c29 100%);
-          border:4px solid #ff00ff;border-radius:20px;
-          color:white;font-family:Arial,sans-serif;text-align:center;
-          padding:40px;box-sizing:border-box;position:relative;overflow:hidden;">
-          <div style="position:absolute;inset:0;
-            background:radial-gradient(circle at 20% 30%,rgba(255,0,255,.3) 0%,transparent 50%),
-                       radial-gradient(circle at 80% 70%,rgba(0,255,255,.3) 0%,transparent 50%);"></div>
-          <div style="position:relative;z-index:1;">
-            <h1 style="font-size:36px;font-weight:bold;margin:0 0 20px;
-              background:linear-gradient(90deg,#ff00ff,#00ffff,#ffff00);
-              -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
-              MANIJA AWARDS 2026
-            </h1>
-            <div style="width:200px;height:4px;background:linear-gradient(90deg,transparent,#ff00ff,#00ffff,transparent);margin:20px auto;border-radius:2px;"></div>
-            <h2 style="font-size:28px;color:#ffd700;margin:30px 0 10px;text-transform:uppercase;letter-spacing:3px;">
-              ${categoryName}
-            </h2>
-            <div style="margin:30px 0;padding:20px;background:rgba(255,255,255,.1);border-radius:15px;border:1px solid rgba(255,255,255,.2);">
-              <p style="font-size:24px;font-weight:bold;margin:0;color:#fff;">${winnerName}</p>
-              <p style="font-size:16px;color:#00ffff;margin:10px 0 0;">🏆 GANADOR ABSOLUTO 🏆</p>
-            </div>
-            <div style="display:flex;justify-content:center;gap:40px;margin:30px 0;">
-              <div>
-                <p style="font-size:14px;color:#aaa;margin:0;">Votos Obtenidos</p>
-                <p style="font-size:32px;font-weight:bold;color:#00ff88;margin:5px 0 0;">${votes}</p>
-              </div>
-              <div>
-                <p style="font-size:14px;color:#aaa;margin:0;">Fecha</p>
-                <p style="font-size:18px;color:#fff;margin:5px 0 0;">${date}</p>
-              </div>
-            </div>
-          </div>
-        </div>`
+<div style="
+  width:${W}px;height:${H}px;
+  background:#0a0a0f;
+  font-family:Arial,Helvetica,sans-serif;
+  color:#fff;
+  position:relative;
+  overflow:hidden;
+  box-sizing:border-box;
+">
+  <!-- Background radial glows -->
+  <div style="position:absolute;inset:0;
+    background:
+      radial-gradient(ellipse 60% 40% at 50% 0%,rgba(170,0,255,0.18) 0%,transparent 70%),
+      radial-gradient(ellipse 70% 50% at 50% 110%,rgba(255,0,180,0.12) 0%,transparent 70%);
+  "></div>
+
+  <!-- Outer border frame -->
+  <div style="position:absolute;inset:10px;border:1px solid rgba(255,46,219,0.18);"></div>
+
+  <!-- HUD corners top-left -->
+  <div style="position:absolute;top:18px;left:18px;width:44px;height:44px;border-top:2px solid #ff2edb;border-left:2px solid #ff2edb;"></div>
+  <!-- HUD corners top-right -->
+  <div style="position:absolute;top:18px;right:18px;width:44px;height:44px;border-top:2px solid #ff2edb;border-right:2px solid #ff2edb;"></div>
+  <!-- HUD corners bottom-left -->
+  <div style="position:absolute;bottom:18px;left:18px;width:44px;height:44px;border-bottom:2px solid #22d3ee;border-left:2px solid #22d3ee;"></div>
+  <!-- HUD corners bottom-right -->
+  <div style="position:absolute;bottom:18px;right:18px;width:44px;height:44px;border-bottom:2px solid #22d3ee;border-right:2px solid #22d3ee;"></div>
+
+  <!-- TOP LEFT: location -->
+  <div style="position:absolute;top:30px;left:68px;">
+    <div style="font-size:13px;font-weight:900;color:#cc00ff;letter-spacing:4px;line-height:1;">IBIZA</div>
+    <div style="font-size:7.5px;color:rgba(255,255,255,0.35);letter-spacing:2px;margin-top:3px;line-height:1.8;">WHITE ISLAND<br>BALEARIC NIGHTS</div>
+  </div>
+
+  <!-- TOP RIGHT: date -->
+  <div style="position:absolute;top:22px;right:68px;text-align:right;">
+    <div style="font-size:30px;font-weight:900;color:#ff2edb;line-height:1;">${day || '21'}</div>
+    <div style="font-size:9px;color:rgba(255,255,255,0.55);letter-spacing:3px;line-height:2;">${monthName}</div>
+    <div style="font-size:13px;color:rgba(255,255,255,0.65);letter-spacing:2px;">${year}</div>
+  </div>
+
+  <!-- Center icon -->
+  <div style="text-align:center;padding-top:30px;">
+    <div style="display:inline-block;width:38px;height:38px;border:1.5px solid rgba(255,255,255,0.25);border-radius:50%;line-height:38px;font-size:16px;color:rgba(255,255,255,0.5);">⊞</div>
+  </div>
+
+  <!-- Tagline with waveform style -->
+  <div style="text-align:center;margin-top:6px;">
+    <span style="font-size:8px;color:rgba(255,255,255,0.3);letter-spacing:6px;">—— LA NOCHE ES NUESTRA ——</span>
+  </div>
+
+  <!-- MANIJA (white glow) -->
+  <div style="text-align:center;margin-top:10px;line-height:1;">
+    <div style="font-size:82px;font-weight:900;color:#ffffff;letter-spacing:10px;text-shadow:0 0 25px rgba(200,100,255,0.9),0 0 60px rgba(170,0,255,0.5);">MANIJA</div>
+  </div>
+  <!-- AWARDS (neon pink) -->
+  <div style="text-align:center;line-height:1;margin-top:-6px;">
+    <div style="font-size:60px;font-weight:900;color:#ff2edb;letter-spacing:10px;text-shadow:0 0 18px rgba(255,46,219,0.9),0 0 40px rgba(255,46,219,0.4);">AWARDS</div>
+  </div>
+  <!-- 2026 -->
+  <div style="text-align:center;margin-top:4px;">
+    <div style="font-size:18px;color:rgba(255,255,255,0.4);letter-spacing:16px;">2 0 2 6</div>
+  </div>
+
+  <!-- Neon separator line -->
+  <div style="margin:14px 70px 0;height:2px;background:linear-gradient(90deg,transparent,#ff2edb 30%,#a855f7 50%,#22d3ee 70%,transparent);"></div>
+
+  <!-- OTORGADO A -->
+  <div style="text-align:center;margin-top:12px;">
+    <div style="font-size:8.5px;color:rgba(255,255,255,0.45);letter-spacing:5px;text-transform:uppercase;">ESTE DIPLOMA SE OTORGA A:</div>
+  </div>
+
+  <!-- WINNER NAME -->
+  <div style="text-align:center;margin-top:10px;">
+    <div style="font-size:38px;font-weight:900;color:#ffffff;letter-spacing:5px;text-transform:uppercase;text-shadow:0 0 18px rgba(255,255,255,0.4);">${winnerName.toUpperCase()}</div>
+  </div>
+
+  <!-- CATEGORIA label -->
+  <div style="text-align:center;margin-top:10px;">
+    <div style="font-size:8px;color:rgba(255,255,255,0.35);letter-spacing:4px;text-transform:uppercase;">POR HABER SIDO RECONOCIDO EN LA CATEGORÍA:</div>
+  </div>
+
+  <!-- Category pill -->
+  <div style="text-align:center;margin-top:10px;">
+    <div style="display:inline-block;padding:8px 36px;border:2px solid #ff2edb;background:rgba(255,46,219,0.12);">
+      <div style="font-size:22px;font-weight:900;color:#ff2edb;letter-spacing:4px;text-transform:uppercase;text-shadow:0 0 10px rgba(255,46,219,0.7);">${categoryName.toUpperCase()}</div>
+    </div>
+  </div>
+
+  <!-- Description -->
+  <div style="text-align:center;margin:10px 120px 0;font-size:8.5px;color:rgba(255,255,255,0.35);letter-spacing:1.5px;line-height:1.8;">
+    POR SU ENERGÍA INAGOTABLE, SU ACTITUD LEGENDARIA<br>
+    Y POR REPRESENTAR EL VERDADERO
+    <span style="color:#ff2edb;"> ESPÍRITU MANIJA</span>.
+  </div>
+
+  <!-- Bottom neon line -->
+  <div style="margin:14px 70px;height:1px;background:linear-gradient(90deg,transparent,rgba(255,46,219,0.4) 30%,rgba(34,211,238,0.3) 70%,transparent);"></div>
+
+  <!-- BOTTOM SECTION: QR | Signature | Badge -->
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;padding:0 70px 28px;">
+
+    <!-- QR area -->
+    <div style="text-align:center;min-width:80px;">
+      <!-- QR placeholder grid -->
+      <div style="width:70px;height:70px;background:#fff;padding:6px;display:inline-block;">
+        <div style="width:100%;height:100%;display:grid;grid-template-columns:repeat(5,1fr);gap:1px;">
+          ${Array.from({length:25}).map((_,i)=>`<div style="background:${[0,1,2,5,6,7,10,12,17,18,19,22,23,24].includes(i)?'#000':'#fff'}"></div>`).join('')}
+        </div>
+      </div>
+      <div style="font-size:7px;color:rgba(255,255,255,0.3);letter-spacing:1px;margin-top:5px;line-height:1.6;">ESCANEA PARA<br>REVIVIR LA NOCHE</div>
+    </div>
+
+    <!-- Signature -->
+    <div style="text-align:center;">
+      <div style="font-size:13px;color:rgba(255,255,255,0.35);font-style:italic;margin-bottom:5px;letter-spacing:1px;">&#x1d4d2;&#x1d4f5;&#x1d4eb; &#x1d4ed;&#x1d4ee; &#x1d4e3;&#x1d4f8;&#x1d4eb;&#x1d4f8;</div>
+      <div style="width:130px;height:1px;background:rgba(255,255,255,0.2);margin:0 auto 6px;"></div>
+      <div style="font-size:8px;color:rgba(255,255,255,0.4);letter-spacing:3px;">CLUB DE TOBY</div>
+      <div style="font-size:8px;color:rgba(255,255,255,0.3);letter-spacing:3px;margin-top:2px;">LOS MANIJAS</div>
+      <div style="font-size:7px;color:rgba(255,46,219,0.4);letter-spacing:2px;margin-top:4px;">${votes} votos · ${date}</div>
+    </div>
+
+    <!-- Badge -->
+    <div style="width:70px;height:70px;border:1.5px solid rgba(170,0,255,0.6);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:8px;box-sizing:border-box;">
+      <div style="font-size:6.5px;color:rgba(255,255,255,0.55);letter-spacing:1px;line-height:1.7;text-align:center;">CLUB<br>DE TOBY<br><span style="color:#a855f7;font-size:14px;">⊞</span><br>LOS<br>MANIJAS</div>
+    </div>
+  </div>
+
+  <!-- Bottom waveform decoration -->
+  <div style="position:absolute;bottom:20px;width:100%;text-align:center;">
+    <div style="font-size:8px;color:rgba(255,46,219,0.25);letter-spacing:2px;">▌▍▎▏▎▍▌▍▎▏▎▍▌ ▌▍▎▏▎▍▌▍▎▏▎▍▌</div>
+  </div>
+</div>`
 
       const canvas = await html2canvas(tempDiv, {
         scale: 2,
-        backgroundColor: null,
+        backgroundColor: '#0a0a0f',
         useCORS: true,
         logging: false,
+        allowTaint: true,
       })
 
       document.body.removeChild(tempDiv)
 
-      const pdf = new jsPDF('landscape', 'px', [canvas.width, canvas.height])
-      pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, canvas.width, canvas.height)
+      // Landscape PDF at 300dpi equivalent
+      const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [W, H] })
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, W, H)
       pdf.save(`Diploma_${categoryName.replace(/\s+/g, '_')}_${winnerName.replace(/\s+/g, '_')}.pdf`)
 
       return true

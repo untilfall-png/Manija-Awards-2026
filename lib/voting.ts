@@ -255,11 +255,21 @@ export async function getCategories(): Promise<Category[]> {
 export async function saveCategory(category: Category): Promise<void> {
   return firestoreOperation(async () => {
     const categoryRef = doc(db, 'categories', category.id)
+    // Sanitize nominees: Firestore rejects undefined values
+    const sanitizedNominees = (category.nominees || []).map(n => {
+      const clean: Record<string, string> = {
+        id: n.id || '',
+        name: n.name || '',
+        description: n.description || '',
+      }
+      if (n.imageUrl) clean.imageUrl = n.imageUrl
+      return clean
+    })
     await setDoc(categoryRef, {
       name: category.name,
-      description: category.description,
+      description: category.description || '',
       order: category.order,
-      nominees: category.nominees || [],
+      nominees: sanitizedNominees,
     })
   }, 'saveCategory')
 }
