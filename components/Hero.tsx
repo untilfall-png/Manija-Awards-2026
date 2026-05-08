@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Trophy, Sparkles, Zap, Star, X, ZoomIn, Play, Pause, RotateCcw, Maximize2, User, Vote } from 'lucide-react'
+import { Sparkles, Star, X, ZoomIn, Play, Pause, RotateCcw, Maximize2, User, Vote } from 'lucide-react'
 
 /* ─────────────────────────────────────────────────────────────────────────────
    MODAL – Logo descripción (imagen + video hyperframes)
@@ -102,11 +103,15 @@ function LogoDescripcionModal({ onClose, defaultView = 'image' }: ModalProps) {
                   <div className="absolute top-2 right-2 w-4 h-4 sm:w-5 sm:h-5 border-t-2 border-r-2 border-neon-pink/70 z-10" />
                   <div className="absolute bottom-2 left-2 w-4 h-4 sm:w-5 sm:h-5 border-b-2 border-l-2 border-neon-cyan/70 z-10" />
                   <div className="absolute bottom-2 right-2 w-4 h-4 sm:w-5 sm:h-5 border-b-2 border-r-2 border-neon-cyan/70 z-10" />
-                  <img
+                  <Image
                     src="/logo-descripcion.jpeg"
                     alt="Nuevo logo Equipo Manija"
+                    width={1400}
+                    height={933}
+                    sizes="(max-width:768px) 95vw, 80vw"
                     className="w-full h-auto max-h-[70dvh] object-contain"
                     draggable={false}
+                    priority
                   />
                 </div>
               </div>
@@ -215,11 +220,13 @@ export function Hero() {
                   onClick={() => openModal('image')}
                   title="Ver descripción del nuevo logo"
                 >
-                  <img
+                  <Image
                     src="/logo.jpeg"
                     alt="Manija Awards 2026"
-                    className="w-full h-full object-contain rounded-full"
-                    onError={e => { e.currentTarget.style.display = 'none' }}
+                    fill
+                    sizes="(max-width:640px) 112px, (max-width:768px) 160px, 208px"
+                    className="object-contain rounded-full"
+                    priority
                   />
                   <div className="absolute inset-0 bg-neon-pink/0 group-hover:bg-neon-pink/15 transition-colors rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100">
                     <ZoomIn className="h-8 w-8 sm:h-10 sm:w-10 text-white drop-shadow-lg" />
@@ -284,11 +291,15 @@ export function Hero() {
                   <div className="absolute bottom-2 left-2 w-4 h-4 sm:w-6 sm:h-6 border-b-2 border-l-2 border-neon-cyan/80 z-10 pointer-events-none" />
                   <div className="absolute bottom-2 right-2 w-4 h-4 sm:w-6 sm:h-6 border-b-2 border-r-2 border-neon-cyan/80 z-10 pointer-events-none" />
 
-                  <img
+                  <Image
                     src="/logo-descripcion.jpeg"
                     alt="Nuevo logo Equipo Manija – descripción completa"
+                    width={900}
+                    height={600}
+                    sizes="(max-width:480px) 320px, (max-width:768px) 512px, (max-width:1024px) 768px, 900px"
                     className="w-full h-auto object-contain max-h-64 sm:max-h-80 md:max-h-[420px]"
                     draggable={false}
+                    loading="lazy"
                   />
 
                   {/* Hover overlay */}

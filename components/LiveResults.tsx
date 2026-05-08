@@ -1,14 +1,20 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import dynamic from 'next/dynamic'
 import { motion } from 'framer-motion'
 import { collection, onSnapshot, QuerySnapshot, DocumentData } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { getCategories } from '@/lib/voting'
 import { Vote, Category } from '@/lib/types'
 import { Trophy, TrendingUp, Users, Award, Download } from 'lucide-react'
-import { DiplomaDigital } from '@/components/DiplomaDigital'
 import { useDiplomaGenerator } from '@/hooks/useDiplomaGenerator'
+
+// Carga diferida: el canvas del diploma solo se renderiza al hacer hover
+const DiplomaDigital = dynamic(
+  () => import('@/components/DiplomaDigital').then(m => ({ default: m.DiplomaDigital })),
+  { ssr: false, loading: () => null }
+)
 
 interface CategoryResults {
   category: Category
