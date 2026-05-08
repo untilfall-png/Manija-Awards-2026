@@ -64,22 +64,22 @@ export default function Home() {
         {session ? (
           <>
             {/* User Info Bar */}
-            <div className="bg-black/50 backdrop-blur-xl border-b border-neon-pink/20 px-6 py-4">
-              <div className="mx-auto max-w-6xl flex justify-between items-center">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-neon-pink/20 border border-neon-pink/30 flex items-center justify-center">
-                    <span className="text-neon-pink font-bold text-lg">
+            <div className="bg-black/50 backdrop-blur-xl border-b border-neon-pink/20 px-4 sm:px-6 py-3 sm:py-4">
+              <div className="mx-auto max-w-6xl flex flex-wrap gap-3 justify-between items-center">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-neon-pink/20 border border-neon-pink/30 flex items-center justify-center flex-shrink-0">
+                    <span className="text-neon-pink font-bold text-base sm:text-lg">
                       {session.voter.name.charAt(0).toUpperCase()}
                     </span>
                   </div>
-                  <div>
-                    <p className="text-white font-semibold">{session.voter.name}</p>
-                    <p className="text-white/60 text-sm">{session.voter.email}</p>
+                  <div className="min-w-0">
+                    <p className="text-white font-semibold text-sm sm:text-base truncate max-w-[140px] sm:max-w-none">{session.voter.name}</p>
+                    <p className="text-white/60 text-xs sm:text-sm truncate max-w-[140px] sm:max-w-none">{session.voter.email}</p>
                   </div>
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="px-4 py-2 rounded-lg border border-white/20 text-white/70 hover:border-red-500/50 hover:text-red-400 transition-all duration-300 text-sm"
+                  className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg border border-white/20 text-white/70 hover:border-red-500/50 hover:text-red-400 transition-all duration-300 text-xs sm:text-sm flex-shrink-0"
                 >
                   Cerrar Sesión
                 </button>
@@ -97,10 +97,10 @@ export default function Home() {
         )}
       </div>
 
-      <div className="absolute top-6 right-6 z-20">
+      <div className="absolute top-4 sm:top-6 right-4 sm:right-6 z-20">
         <a
           href="/admin"
-          className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/70 px-4 py-2 text-sm text-white/80 transition hover:border-neon-pink hover:text-white"
+          className="inline-flex items-center gap-1.5 sm:gap-2 rounded-full border border-white/20 bg-black/70 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-white/80 transition hover:border-neon-pink hover:text-white backdrop-blur-sm"
         >
           Módulo Admin
         </a>

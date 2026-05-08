@@ -128,28 +128,28 @@ export function LiveResults() {
   }
 
   return (
-    <section className="section-padding mx-auto max-w-6xl">
+    <section className="px-4 sm:px-6 py-10 sm:py-16 mx-auto max-w-6xl">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-12"
+        className="text-center mb-8 sm:mb-12"
       >
-        <div className="inline-flex items-center gap-3 mb-6">
-          <div className="p-3 rounded-2xl bg-neon-purple/20 border border-neon-purple/30">
-            <TrendingUp className="h-8 w-8 text-neon-purple" />
+        <div className="inline-flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+          <div className="p-2 sm:p-3 rounded-2xl bg-neon-purple/20 border border-neon-purple/30">
+            <TrendingUp className="h-6 w-6 sm:h-8 sm:w-8 text-neon-purple" />
           </div>
-          <span className="text-sm uppercase tracking-[0.3em] text-neon-purple font-bold">
+          <span className="text-xs sm:text-sm uppercase tracking-[0.2em] sm:tracking-[0.3em] text-neon-purple font-bold">
             RESULTADOS EN TIEMPO REAL
           </span>
         </div>
 
-        <h2 className="text-4xl md:text-5xl font-display font-bold text-white mb-6">
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-display font-bold text-white mb-4 sm:mb-6">
           Votación Live
         </h2>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-xs sm:max-w-2xl mx-auto">
           <div className="glass-card p-4 text-center">
             <Users className="h-6 w-6 text-neon-cyan mx-auto mb-2" />
             <div className="text-2xl font-display font-bold text-neon-cyan">{totalVoters}</div>
@@ -176,7 +176,7 @@ export function LiveResults() {
       </motion.div>
 
       {/* Category Results */}
-      <div className="grid gap-8 md:grid-cols-2">
+      <div className="grid gap-5 sm:gap-8 grid-cols-1 sm:grid-cols-2">
         {categoryResults.map((categoryResult, index) => (
           <motion.div
             key={categoryResult.category.id}
@@ -254,26 +254,26 @@ export function LiveResults() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 1.2 }}
-        className="mt-16"
+        className="mt-10 sm:mt-16"
       >
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-3 mb-6">
-            <div className="p-3 rounded-2xl bg-neon-orange/20 border border-neon-orange/30">
-              <Trophy className="h-8 w-8 text-neon-orange" />
+        <div className="text-center mb-8 sm:mb-12">
+          <div className="inline-flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+            <div className="p-2 sm:p-3 rounded-2xl bg-neon-orange/20 border border-neon-orange/30">
+              <Trophy className="h-6 w-6 sm:h-8 sm:w-8 text-neon-orange" />
             </div>
-            <span className="text-sm uppercase tracking-[0.3em] text-neon-orange font-bold">
+            <span className="text-xs sm:text-sm uppercase tracking-[0.2em] sm:tracking-[0.3em] text-neon-orange font-bold">
               GANADORES & DIPLOMAS
             </span>
           </div>
-          <h3 className="text-3xl font-display font-bold text-white">
+          <h3 className="text-2xl sm:text-3xl font-display font-bold text-white">
             Ganadores por Categoría
           </h3>
-          <p className="text-white/70 text-sm mt-2">
+          <p className="text-white/70 text-xs sm:text-sm mt-1 sm:mt-2">
             Descarga el diploma oficial de cada categoría
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           {categoryResults.map((categoryResult, index) => {
             const winner = categoryResult.results[0]
             if (!winner || winner.votes === 0) {

@@ -204,24 +204,24 @@ export function Voting({ session, onVoteSubmitted }: VotingProps) {
   }
 
   return (
-    <section className="section-padding mx-auto max-w-6xl">
+    <section className="px-4 sm:px-6 py-10 sm:py-16 mx-auto max-w-6xl">
       {/* Progress Bar */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-8"
+        className="mb-6 sm:mb-8"
       >
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-display font-bold text-white">
+        <div className="flex justify-between items-center mb-3 sm:mb-4 flex-wrap gap-2">
+          <h2 className="text-lg sm:text-2xl font-display font-bold text-white">
             Progreso de Votación
           </h2>
-          <span className="text-neon-cyan font-semibold">
+          <span className="text-neon-cyan font-semibold text-sm sm:text-base">
             {completedCategories.size} / {sortedCategories.length} categorías
           </span>
         </div>
-        <div className="w-full bg-black/50 rounded-full h-3 border border-neon-pink/30">
+        <div className="w-full bg-black/50 rounded-full h-2.5 sm:h-3 border border-neon-pink/30">
           <motion.div
-            className="bg-gradient-neon h-3 rounded-full"
+            className="bg-gradient-neon h-full rounded-full"
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
             transition={{ duration: 0.5 }}
@@ -233,7 +233,7 @@ export function Voting({ session, onVoteSubmitted }: VotingProps) {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-wrap gap-2 mb-8 overflow-x-auto pb-2"
+        className="flex flex-wrap gap-1.5 sm:gap-2 mb-6 sm:mb-8 overflow-x-auto pb-2"
       >
         {sortedCategories.map((category, index) => {
           const isCompleted = completedCategories.has(category.id)
@@ -264,27 +264,27 @@ export function Voting({ session, onVoteSubmitted }: VotingProps) {
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: -20 }}
-        className="neon-card p-8 md:p-12"
+        className="neon-card p-5 sm:p-8 md:p-12"
       >
         {/* Category Header */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-6 sm:mb-8">
           <motion.div
             initial={{ scale: 0.8 }}
             animate={{ scale: 1 }}
-            className="inline-flex items-center gap-3 mb-4"
+            className="inline-flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4"
           >
-            <div className="p-3 rounded-2xl bg-neon-pink/20 border border-neon-pink/30">
-              <Vote className="h-8 w-8 text-neon-pink" />
+            <div className="p-2 sm:p-3 rounded-2xl bg-neon-pink/20 border border-neon-pink/30">
+              <Vote className="h-6 w-6 sm:h-8 sm:w-8 text-neon-pink" />
             </div>
-            <span className="text-sm uppercase tracking-[0.3em] text-neon-pink font-bold">
+            <span className="text-xs sm:text-sm uppercase tracking-[0.2em] sm:tracking-[0.3em] text-neon-pink font-bold">
               CATEGORÍA {activeCategory.order}
             </span>
           </motion.div>
 
-          <h3 className="text-3xl md:text-4xl font-display font-bold text-white mb-4">
+          <h3 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold text-white mb-3 sm:mb-4">
             {activeCategory.name}
           </h3>
-          <p className="text-xl text-white/80 max-w-2xl mx-auto">
+          <p className="text-base sm:text-xl text-white/80 max-w-2xl mx-auto">
             {activeCategory.description}
           </p>
         </div>
@@ -307,24 +307,24 @@ export function Voting({ session, onVoteSubmitted }: VotingProps) {
         ) : (
           <>
             {/* Nominees */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-8">
+            <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 mb-6 sm:mb-8">
               {activeCategory.nominees.map((nominee) => (
                 <motion.button
                   key={nominee.id}
                   onClick={() => setSelectedNominee(nominee.id)}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className={`p-6 rounded-2xl border-2 transition-all duration-300 text-left ${
+                  className={`p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 text-left ${
                     selectedNominee === nominee.id
                       ? 'border-neon-pink bg-neon-pink/10 shadow-neon-pink'
                       : 'border-white/20 bg-black/30 hover:border-neon-pink/50'
                   }`}
                 >
-                  <h4 className="text-xl font-display font-bold text-white mb-2">
+                  <h4 className="text-base sm:text-xl font-display font-bold text-white mb-1 sm:mb-2">
                     {nominee.name}
                   </h4>
                   {nominee.description && (
-                    <p className="text-white/70 text-sm">
+                    <p className="text-white/70 text-xs sm:text-sm">
                       {nominee.description}
                     </p>
                   )}
@@ -385,18 +385,18 @@ export function Voting({ session, onVoteSubmitted }: VotingProps) {
         )}
 
         {/* Navigation */}
-        <div className="flex justify-between items-center mt-8 pt-8 border-t border-white/10">
+        <div className="flex justify-between items-center mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-white/10 gap-2">
           <button
             onClick={() => handleCategoryChange(Math.max(0, activeCategoryIndex - 1))}
             disabled={activeCategoryIndex === 0}
-            className="px-6 py-3 rounded-xl border border-white/20 text-white/70 hover:border-neon-cyan hover:text-neon-cyan transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-3 sm:px-6 py-2 sm:py-3 rounded-xl border border-white/20 text-white/70 hover:border-neon-cyan hover:text-neon-cyan transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
           >
             ← Anterior
           </button>
 
-          <div className="flex items-center gap-2 text-white/60">
-            <Clock className="h-4 w-4" />
-            <span className="text-sm">
+          <div className="flex items-center gap-1.5 sm:gap-2 text-white/60">
+            <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            <span className="text-xs sm:text-sm">
               {activeCategoryIndex + 1} de {sortedCategories.length}
             </span>
           </div>
@@ -404,7 +404,7 @@ export function Voting({ session, onVoteSubmitted }: VotingProps) {
           <button
             onClick={() => handleCategoryChange(Math.min(sortedCategories.length - 1, activeCategoryIndex + 1))}
             disabled={activeCategoryIndex === sortedCategories.length - 1}
-            className="px-6 py-3 rounded-xl border border-white/20 text-white/70 hover:border-neon-cyan hover:text-neon-cyan transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-3 sm:px-6 py-2 sm:py-3 rounded-xl border border-white/20 text-white/70 hover:border-neon-cyan hover:text-neon-cyan transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
           >
             Siguiente →
           </button>

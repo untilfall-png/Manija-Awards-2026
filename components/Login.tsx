@@ -68,30 +68,30 @@ export function Login({ onAuthenticated }: LoginProps) {
   }
 
   return (
-    <section id="registro" className="section-padding mx-auto max-w-2xl">
+    <section id="registro" className="px-4 sm:px-6 py-10 sm:py-16 mx-auto max-w-lg sm:max-w-xl md:max-w-2xl">
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
-        className="neon-card p-8 md:p-12"
+        className="neon-card p-6 sm:p-8 md:p-12"
       >
-        <div className="text-center mb-8">
+        <div className="text-center mb-6 sm:mb-8">
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="inline-flex items-center gap-3 rounded-full border border-neon-pink/50 bg-black/50 backdrop-blur-xl px-6 py-3 text-sm uppercase tracking-[0.3em] text-neon-pink font-bold shadow-neon-pink mb-6"
+            className="inline-flex items-center gap-2 sm:gap-3 rounded-full border border-neon-pink/50 bg-black/50 backdrop-blur-xl px-4 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm uppercase tracking-[0.2em] sm:tracking-[0.3em] text-neon-pink font-bold shadow-neon-pink mb-4 sm:mb-6"
           >
-            <User className="h-5 w-5 animate-pulse" />
+            <User className="h-4 w-4 sm:h-5 sm:w-5 animate-pulse" />
             REGISTRO DE VOTANTE
-            <ShieldCheck className="h-5 w-5 animate-pulse" />
+            <ShieldCheck className="h-4 w-4 sm:h-5 sm:w-5 animate-pulse" />
           </motion.div>
 
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="text-4xl md:text-5xl font-display font-bold text-white mb-4 neon-text"
+            className="text-3xl sm:text-4xl md:text-5xl font-display font-bold text-white mb-3 sm:mb-4 neon-text"
           >
             ACCEDE A LA VOTACIÓN
           </motion.h2>
@@ -100,17 +100,17 @@ export function Login({ onAuthenticated }: LoginProps) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.6 }}
-            className="text-xl text-white/80 leading-relaxed"
+            className="text-base sm:text-xl text-white/80 leading-relaxed"
           >
             Regístrate con tus datos básicos para participar en la votación.
             Cada votante puede votar una vez por categoría.
           </motion.p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           {/* Name Field */}
           <div>
-            <label className="block text-sm font-semibold text-neon-cyan mb-3 uppercase tracking-wider">
+            <label className="block text-xs sm:text-sm font-semibold text-neon-cyan mb-2 sm:mb-3 uppercase tracking-wider">
               Nombre Completo *
             </label>
             <div className="relative">
@@ -119,16 +119,16 @@ export function Login({ onAuthenticated }: LoginProps) {
                 value={formData.name}
                 onChange={(e) => handleInputChange('name', e.target.value)}
                 placeholder="Ingresa tu nombre completo"
-                className="neon-input w-full text-lg py-4 px-6 rounded-2xl border-2 focus:border-neon-pink focus:shadow-neon-pink transition-all duration-300 pl-12"
+                className="neon-input w-full text-base sm:text-lg py-3 sm:py-4 px-5 sm:px-6 rounded-2xl border-2 focus:border-neon-pink focus:shadow-neon-pink transition-all duration-300 pl-10 sm:pl-12"
                 required
               />
-              <User className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-neon-pink" />
+              <User className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-neon-pink" />
             </div>
           </div>
 
           {/* Email Field */}
           <div>
-            <label className="block text-sm font-semibold text-neon-cyan mb-3 uppercase tracking-wider">
+            <label className="block text-xs sm:text-sm font-semibold text-neon-cyan mb-2 sm:mb-3 uppercase tracking-wider">
               Correo Electrónico *
             </label>
             <div className="relative">
@@ -137,16 +137,16 @@ export function Login({ onAuthenticated }: LoginProps) {
                 value={formData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
                 placeholder="tu@email.com"
-                className="neon-input w-full text-lg py-4 px-6 rounded-2xl border-2 focus:border-neon-pink focus:shadow-neon-pink transition-all duration-300 pl-12"
+                className="neon-input w-full text-base sm:text-lg py-3 sm:py-4 px-5 sm:px-6 rounded-2xl border-2 focus:border-neon-pink focus:shadow-neon-pink transition-all duration-300 pl-10 sm:pl-12"
                 required
               />
-              <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-neon-pink" />
+              <Mail className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-neon-pink" />
             </div>
           </div>
 
           {/* Phone Field */}
           <div>
-            <label className="block text-sm font-semibold text-neon-cyan mb-3 uppercase tracking-wider">
+            <label className="block text-xs sm:text-sm font-semibold text-neon-cyan mb-2 sm:mb-3 uppercase tracking-wider">
               Teléfono (Opcional)
             </label>
             <div className="relative">
@@ -155,9 +155,9 @@ export function Login({ onAuthenticated }: LoginProps) {
                 value={formData.phone}
                 onChange={(e) => handleInputChange('phone', e.target.value)}
                 placeholder="+56 9 1234 5678"
-                className="neon-input w-full text-lg py-4 px-6 rounded-2xl border-2 focus:border-neon-pink focus:shadow-neon-pink transition-all duration-300 pl-12"
+                className="neon-input w-full text-base sm:text-lg py-3 sm:py-4 px-5 sm:px-6 rounded-2xl border-2 focus:border-neon-pink focus:shadow-neon-pink transition-all duration-300 pl-10 sm:pl-12"
               />
-              <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-neon-pink" />
+              <Phone className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-neon-pink" />
             </div>
           </div>
 
@@ -166,10 +166,10 @@ export function Login({ onAuthenticated }: LoginProps) {
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-3 p-4 rounded-2xl bg-red-500/20 border border-red-500/30"
+              className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-2xl bg-red-500/20 border border-red-500/30"
             >
-              <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
-              <p className="text-red-400 font-semibold">{error}</p>
+              <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-400 flex-shrink-0" />
+              <p className="text-red-400 font-semibold text-sm sm:text-base">{error}</p>
             </motion.div>
           )}
 
@@ -177,26 +177,26 @@ export function Login({ onAuthenticated }: LoginProps) {
           <button
             type="submit"
             disabled={loading}
-            className="btn-neon w-full text-xl py-5 group disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-neon w-full text-base sm:text-xl py-4 sm:py-5 group disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
-              <span className="flex items-center justify-center gap-3">
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+              <span className="flex items-center justify-center gap-2 sm:gap-3">
+                <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                 REGISTRANDO...
               </span>
             ) : (
-              <span className="flex items-center justify-center gap-3">
-                <ShieldCheck className="h-6 w-6 group-hover:animate-bounce" />
+              <span className="flex items-center justify-center gap-2 sm:gap-3">
+                <ShieldCheck className="h-5 w-5 sm:h-6 sm:w-6 group-hover:animate-bounce" />
                 ACCEDER A LA VOTACIÓN
-                <Sparkles className="h-6 w-6 group-hover:animate-pulse" />
+                <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 group-hover:animate-pulse" />
               </span>
             )}
           </button>
         </form>
 
-        <div className="mt-8 text-center text-white/60 text-sm">
+        <div className="mt-6 sm:mt-8 text-center text-white/60 text-xs sm:text-sm">
           <p>Tu información se mantendrá privada y segura.</p>
-          <p className="mt-2">Cada votante puede votar una vez por categoría.</p>
+          <p className="mt-1 sm:mt-2">Cada votante puede votar una vez por categoría.</p>
         </div>
       </motion.div>
     </section>
