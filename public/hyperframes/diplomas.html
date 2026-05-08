@@ -37,7 +37,7 @@
     .diploma-bg {
       position: absolute;
       inset: 0;
-      background-image: url('/Font.jpeg?v=2');
+      background-image: url('/Font.jpeg?v=3');
       background-size: cover;
       background-position: center;
     }
@@ -46,28 +46,30 @@
       inset: 0;
       background: linear-gradient(
         to bottom,
-        rgba(0,0,0,0.25) 0%,
-        rgba(0,0,0,0.10) 40%,
-        rgba(0,0,0,0.30) 70%,
-        rgba(0,0,0,0.20) 100%
+        rgba(255,255,255,0.05) 0%,
+        rgba(255,255,255,0.0) 40%,
+        rgba(0,0,0,0.08) 80%,
+        rgba(0,0,0,0.05) 100%
       );
     }
     .dip-otorga {
       position: absolute; top: 47%; left: 50%; transform: translateX(-50%);
-      font-size: 22px; letter-spacing: 6px; color: #aaa;
+      font-size: 22px; letter-spacing: 6px; color: rgba(60,20,80,0.65);
       text-transform: uppercase; white-space: nowrap;
     }
     .dip-winner {
       position: absolute; top: 52%; left: 50%; transform: translateX(-50%);
       font-size: 58px; font-weight: 900; letter-spacing: 14px;
-      color: #ffffff; text-transform: uppercase; white-space: nowrap;
+      background: linear-gradient(90deg, #6b00c8, #cc00ff, #9b00ff, #cc00ff, #6b00c8);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+      text-transform: uppercase; white-space: nowrap;
       text-align: center;
-      text-shadow: 0 0 30px rgba(255,255,255,0.9), 0 0 60px rgba(255,255,255,0.4);
+      filter: drop-shadow(0 2px 8px rgba(150,0,255,0.35));
       opacity: 0;
     }
     .dip-reconocido {
       position: absolute; top: 62%; left: 50%; transform: translateX(-50%);
-      font-size: 18px; letter-spacing: 4px; color: #999;
+      font-size: 18px; letter-spacing: 4px; color: rgba(60,20,80,0.55);
       text-transform: uppercase; white-space: nowrap;
     }
     .dip-category {
@@ -81,13 +83,13 @@
     }
     .dip-description {
       position: absolute; top: 77%; left: 50%; transform: translateX(-50%);
-      font-size: 20px; color: #ccc; text-align: center; letter-spacing: 2px;
+      font-size: 20px; color: rgba(60,20,80,0.6); text-align: center; letter-spacing: 2px;
       max-width: 800px; line-height: 1.5; opacity: 0;
     }
     .dip-votes {
       position: absolute; top: 86%; left: 50%; transform: translateX(-50%);
-      font-size: 26px; font-weight: 700; color: #ff2edb; letter-spacing: 4px;
-      text-shadow: 0 0 20px rgba(255,46,219,0.8); opacity: 0;
+      font-size: 26px; font-weight: 700; color: #cc00ff; letter-spacing: 4px;
+      text-shadow: 0 0 12px rgba(200,0,255,0.5); opacity: 0;
     }
 
     /* ── Special diploma card (gold) ── */
