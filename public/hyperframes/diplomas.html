@@ -345,77 +345,64 @@ function fadeOut(f,s,d) { return clamp(1-(f-s)/d,0,1); }
 function ease(t)        { return t<0.5 ? 2*t*t : -1+(4-2*t)*t; }
 function easeIn(f,s,d)  { return ease(fadeIn(f,s,d)); }
 
-// ── Particle system ──
+// ── Mobile detection → less particles ──
+const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) || window.innerWidth < 768;
+const PARTICLE_COUNT = isMobile ? 30 : 70;
+
+// ── Particle system (reducido vs v1) ──
 const particles = [];
-for (let i=0; i<120; i++) {
+for (let i=0; i<PARTICLE_COUNT; i++) {
   particles.push({
     x: Math.random()*W, y: Math.random()*H,
-    vx:(Math.random()-0.5)*0.6, vy:(Math.random()-0.5)*0.6,
-    r: Math.random()*2+0.5,
-    hue: Math.random()*60 + 280,  // purple→pink
-    a: Math.random()*0.6+0.2,
-    life: Math.random()*200+100,
-    age:0,
+    vx:(Math.random()-0.5)*0.5, vy:(Math.random()-0.5)*0.5,
+    r: Math.random()*1.8+0.4,
+    hue: Math.random()*60 + 280,
+    a: Math.random()*0.5+0.15,
+    life: Math.random()*180+80,
+    age: Math.floor(Math.random()*80),
   });
 }
-const lasers = [];
-for (let i=0; i<8; i++) {
-  lasers.push({
-    x1:Math.random()*W, y1:Math.random()*H,
-    x2:Math.random()*W, y2:Math.random()*H,
-    hue: Math.random()*60+280,
-    speed: (Math.random()+0.5)*0.5,
-    phase: Math.random()*Math.PI*2,
-    a: 0,
-  });
-}
+
+// ── Pre-baked background (dibujamos el gradiente estático 1 vez) ──
+const offBg = document.createElement('canvas');
+offBg.width = W; offBg.height = H;
+const octx = offBg.getContext('2d');
+const bg0 = octx.createRadialGradient(W/2,H/2,0,W/2,H/2,900);
+bg0.addColorStop(0,'#0d0020'); bg0.addColorStop(0.5,'#080015'); bg0.addColorStop(1,'#000');
+octx.fillStyle = bg0; octx.fillRect(0,0,W,H);
+
+// ── Blobs: solo 2 (vs 5 antes) ──
+const blobs = [
+  { px:0.3, py:0.35, hue:300 },
+  { px:0.7, py:0.65, hue:260 },
+];
 
 function drawBg(f) {
-  ctx.clearRect(0,0,W,H);
+  // Copiar fondo pre-baked (1 drawImage vs fillRect+radialGradient)
+  ctx.drawImage(offBg, 0, 0);
 
-  // Deep neon background gradient
-  const bg = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, 900);
-  bg.addColorStop(0,'#0d0020');
-  bg.addColorStop(0.5,'#080015');
-  bg.addColorStop(1,'#000');
-  ctx.fillStyle = bg;
-  ctx.fillRect(0,0,W,H);
-
-  // Animated neon blobs
-  for (let i=0; i<5; i++) {
-    const bx = Math.sin(f*0.018 + i*1.3)*350 + W/2;
-    const by = Math.cos(f*0.012 + i*1.0)*200 + H/2;
-    const br = Math.sin(f*0.04+i)*60+180;
-    const hue = (f*0.5 + i*60) % 360;
-    const g = ctx.createRadialGradient(bx,by,0,bx,by,br);
-    g.addColorStop(0,`hsla(${hue},100%,60%,0.12)`);
-    g.addColorStop(0.5,`hsla(${hue},100%,50%,0.04)`);
-    g.addColorStop(1,'transparent');
-    ctx.fillStyle = g;
-    ctx.beginPath(); ctx.arc(bx,by,br,0,Math.PI*2); ctx.fill();
+  // Blobs animados (2 blobs en vez de 5)
+  if (!isMobile) {
+    blobs.forEach((b,i) => {
+      const bx = Math.sin(f*0.016 + i*1.6)*280 + W*b.px;
+      const by = Math.cos(f*0.011 + i*1.2)*160 + H*b.py;
+      const br = 200;
+      const g  = ctx.createRadialGradient(bx,by,0,bx,by,br);
+      g.addColorStop(0,`hsla(${b.hue},100%,55%,0.10)`);
+      g.addColorStop(1,'transparent');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(bx,by,br,0,Math.PI*2); ctx.fill();
+    });
   }
 
-  // Laser beams
-  lasers.forEach(l => {
-    l.a = (Math.sin(f*l.speed*0.05 + l.phase)+1)*0.5 * 0.25;
-    if (l.a < 0.02) return;
-    const lx2 = l.x1 + Math.sin(f*0.02+l.phase)*400;
-    const ly2 = l.y1 + Math.cos(f*0.015+l.phase)*300;
-    const gr = ctx.createLinearGradient(l.x1,l.y1,lx2,ly2);
-    gr.addColorStop(0,'transparent');
-    gr.addColorStop(0.5,`hsla(${l.hue},100%,70%,${l.a})`);
-    gr.addColorStop(1,'transparent');
-    ctx.strokeStyle = gr;
-    ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(l.x1,l.y1); ctx.lineTo(lx2,ly2); ctx.stroke();
-  });
-
-  // Particles
+  // Partículas
   particles.forEach(p => {
     p.age++; p.x += p.vx; p.y += p.vy;
-    if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
-    if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+    if (p.x<0) p.x=W; if (p.x>W) p.x=0;
+    if (p.y<0) p.y=H; if (p.y>H) p.y=0;
+    if (p.age > p.life) { p.age=0; p.x=Math.random()*W; p.y=Math.random()*H; }
     const alpha = p.a * Math.sin(p.age/p.life * Math.PI);
+    if (alpha < 0.02) return;
     ctx.fillStyle = `hsla(${p.hue},100%,75%,${alpha})`;
     ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill();
   });
@@ -742,7 +729,8 @@ function render(f) {
 
 // ── Animation loop ──
 let lastTime = 0;
-const FRAME_MS = 1000 / FPS;
+// Mobile capped a 20fps para ahorrar batería y CPU
+const FRAME_MS = 1000 / (isMobile ? 20 : FPS);
 
 function loop(ts) {
   rafId = requestAnimationFrame(loop);

@@ -161,13 +161,13 @@ export default function Home() {
         </a>
       </div>
 
-      {/* Partículas decorativas — posiciones fijas, sin Math.random */}
+      {/* Partículas decorativas — solo 6, CSS transform+opacity */}
       <div className="fixed inset-0 pointer-events-none z-0" aria-hidden="true">
-        {PARTICLES.map((p, i) => (
+        {PARTICLES.slice(0, 6).map((p, i) => (
           <div
             key={i}
-            className="absolute w-1 h-1 bg-neon-pink rounded-full animate-pulse-neon"
-            style={{ left: p.left, top: p.top, animationDelay: p.delay, animationDuration: p.dur }}
+            className="absolute w-1 h-1 bg-neon-pink rounded-full"
+            style={{ left: p.left, top: p.top, animation: `heroFloat ${p.dur} ease-in-out infinite ${p.delay}` }}
           />
         ))}
       </div>

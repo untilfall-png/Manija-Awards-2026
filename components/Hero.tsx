@@ -134,6 +134,7 @@ function LogoDescripcionModal({ onClose, defaultView = 'image' }: ModalProps) {
                     className="w-full h-full border-0"
                     title="Logo Reveal – Manija Awards 2026"
                     allow="fullscreen"
+                    loading="lazy"
                   />
                 </div>
               </div>
@@ -188,12 +189,14 @@ export function Hero() {
       )}
 
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden px-4 sm:px-6 md:px-10 py-16 sm:py-20 md:py-24">
-        {/* Animated background */}
-        <div className="absolute inset-0">
-          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-black via-[#090417] to-black" />
-          <div className="absolute top-1/4 left-1/4 w-64 sm:w-96 h-64 sm:h-96 bg-neon-cyan/10 rounded-full blur-3xl animate-pulse-neon" />
-          <div className="absolute bottom-1/4 right-1/4 w-64 sm:w-96 h-64 sm:h-96 bg-neon-purple/20 rounded-full blur-3xl animate-float" />
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] sm:w-[1200px] h-[600px] sm:h-[1200px] bg-gradient-neon/10 rounded-full blur-3xl animate-pulse-neon" />
+        {/* Animated background — will-change para GPU layer */}
+        <div className="absolute inset-0" aria-hidden="true">
+          <div className="absolute inset-0 bg-gradient-to-br from-black via-[#090417] to-black" />
+          {/* Solo 2 blobs, blur-2xl en mobile → blur-3xl en sm+ */}
+          <div className="absolute top-1/4 left-1/4 w-64 sm:w-80 h-64 sm:h-80 bg-neon-purple/15 rounded-full blur-2xl sm:blur-3xl animate-pulse-neon"
+            style={{ willChange:'opacity,transform' }} />
+          <div className="absolute bottom-1/4 right-1/4 w-56 sm:w-72 h-56 sm:h-72 bg-neon-cyan/10 rounded-full blur-2xl sm:blur-3xl animate-float"
+            style={{ willChange:'transform' }} />
         </div>
 
         <div className="relative z-10 mx-auto max-w-7xl w-full text-center">
@@ -242,208 +245,99 @@ export function Hero() {
               transition={{ duration: 0.8, delay: 0.4 }}
               className="relative space-y-0"
             >
-              {/* Rayos laterales animados */}
-              <div className="absolute inset-0 pointer-events-none overflow-visible">
-                {/* Rayo izquierdo */}
-                <motion.svg
-                  viewBox="0 0 80 200" className="absolute left-0 sm:left-4 md:left-8 top-1/2 -translate-y-1/2 w-8 sm:w-12 md:w-16 opacity-80"
-                  animate={{ opacity: [0.5, 1, 0.6, 1, 0.5], filter: ['drop-shadow(0 0 4px #ff2edb)', 'drop-shadow(0 0 16px #ff2edb)', 'drop-shadow(0 0 6px #cc00ff)', 'drop-shadow(0 0 20px #ff2edb)', 'drop-shadow(0 0 4px #ff2edb)'] }}
-                  transition={{ duration: 2.1, repeat: Infinity, ease: 'easeInOut' }}
-                >
-                  <polygon points="50,0 20,90 45,90 10,200 70,80 42,80 70,0" fill="url(#boltL)" />
-                  <defs>
-                    <linearGradient id="boltL" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#ff2edb"/>
-                      <stop offset="50%" stopColor="#cc00ff"/>
-                      <stop offset="100%" stopColor="#00d4ff"/>
-                    </linearGradient>
-                  </defs>
-                </motion.svg>
-                {/* Rayo derecho */}
-                <motion.svg
-                  viewBox="0 0 80 200" className="absolute right-0 sm:right-4 md:right-8 top-1/2 -translate-y-1/2 w-8 sm:w-12 md:w-16 opacity-80 scale-x-[-1]"
-                  animate={{ opacity: [0.5, 0.7, 1, 0.6, 0.5], filter: ['drop-shadow(0 0 4px #00d4ff)', 'drop-shadow(0 0 14px #cc00ff)', 'drop-shadow(0 0 20px #ff2edb)', 'drop-shadow(0 0 8px #cc00ff)', 'drop-shadow(0 0 4px #00d4ff)'] }}
-                  transition={{ duration: 2.1, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
-                >
-                  <polygon points="50,0 20,90 45,90 10,200 70,80 42,80 70,0" fill="url(#boltR)" />
-                  <defs>
-                    <linearGradient id="boltR" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#00d4ff"/>
-                      <stop offset="50%" stopColor="#cc00ff"/>
-                      <stop offset="100%" stopColor="#ff2edb"/>
-                    </linearGradient>
-                  </defs>
-                </motion.svg>
-
-                {/* Destello diagonal izq */}
-                <motion.div
-                  className="absolute left-0 top-0 w-full h-px"
-                  style={{ background: 'linear-gradient(90deg, transparent, rgba(255,46,219,0.6), transparent)', top: '22%' }}
-                  animate={{ scaleX: [0, 1, 0], opacity: [0, 1, 0] }}
-                  transition={{ duration: 1.8, repeat: Infinity, delay: 0.3, ease: 'easeInOut' }}
-                />
-                <motion.div
-                  className="absolute left-0 w-full h-px"
-                  style={{ background: 'linear-gradient(90deg, transparent, rgba(0,212,255,0.5), transparent)', top: '78%' }}
-                  animate={{ scaleX: [0, 1, 0], opacity: [0, 1, 0] }}
-                  transition={{ duration: 2.2, repeat: Infinity, delay: 1.1, ease: 'easeInOut' }}
-                />
+              {/* Rayos laterales: CSS opacity-only (GPU) */}
+              <div className="absolute inset-0 pointer-events-none overflow-visible" aria-hidden="true">
+                <svg viewBox="0 0 80 200" className="bolt-svg absolute left-0 sm:left-4 md:left-8 top-1/2 -translate-y-1/2 w-8 sm:w-12 md:w-16"
+                  style={{ filter:'drop-shadow(0 0 8px #ff2edb)', animation:'boltFlicker 2.1s ease-in-out infinite' }}>
+                  <defs><linearGradient id="bL" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#ff2edb"/><stop offset="50%" stopColor="#cc00ff"/><stop offset="100%" stopColor="#00d4ff"/>
+                  </linearGradient></defs>
+                  <polygon points="50,0 20,90 45,90 10,200 70,80 42,80 70,0" fill="url(#bL)"/>
+                </svg>
+                <svg viewBox="0 0 80 200" className="bolt-svg absolute right-0 sm:right-4 md:right-8 top-1/2 -translate-y-1/2 w-8 sm:w-12 md:w-16 scale-x-[-1]"
+                  style={{ filter:'drop-shadow(0 0 8px #00d4ff)', animation:'boltFlicker 2.1s ease-in-out infinite 0.55s' }}>
+                  <defs><linearGradient id="bR" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#00d4ff"/><stop offset="50%" stopColor="#cc00ff"/><stop offset="100%" stopColor="#ff2edb"/>
+                  </linearGradient></defs>
+                  <polygon points="50,0 20,90 45,90 10,200 70,80 42,80 70,0" fill="url(#bR)"/>
+                </svg>
+                {/* Destellos horizontales: scaleX + opacity (GPU) */}
+                <div className="ray-line absolute left-0 w-full h-px"
+                  style={{ background:'linear-gradient(90deg,transparent,rgba(255,46,219,0.6),transparent)', top:'22%', transformOrigin:'center', animation:'rayFlash 1.8s ease-in-out infinite 0.3s' }}/>
+                <div className="ray-line absolute left-0 w-full h-px"
+                  style={{ background:'linear-gradient(90deg,transparent,rgba(0,212,255,0.5),transparent)', top:'78%', transformOrigin:'center', animation:'rayFlash 2.2s ease-in-out infinite 1.1s' }}/>
               </div>
 
-              {/* "BIENVENIDOS A LA PREMIACIÓN" */}
-              <motion.div
-                initial={{ opacity: 0, letterSpacing: '0.6em' }}
-                animate={{ opacity: 1, letterSpacing: '0.4em' }}
-                transition={{ duration: 1.2, delay: 0.5 }}
-                className="text-center"
-              >
-                <span
-                  className="font-display text-base sm:text-xl md:text-2xl lg:text-3xl font-bold tracking-[0.35em] uppercase"
-                  style={{
-                    background: 'linear-gradient(90deg, #ff2edb, #cc00ff, #00d4ff, #cc00ff, #ff2edb)',
-                    WebkitBackgroundClip: 'text', backgroundClip: 'text', WebkitTextFillColor: 'transparent',
-                    filter: 'drop-shadow(0 0 8px rgba(255,46,219,0.7))',
-                  }}
-                >
+              {/* "BIENVENIDOS A LA PREMIACIÓN" — fade-in entrance, luego estático */}
+              <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ duration:1.2, delay:0.5 }} className="text-center">
+                <span className="font-display text-base sm:text-xl md:text-2xl lg:text-3xl font-bold tracking-[0.35em] uppercase"
+                  style={{ background:'linear-gradient(90deg,#ff2edb,#cc00ff,#00d4ff,#cc00ff,#ff2edb)', WebkitBackgroundClip:'text', backgroundClip:'text', WebkitTextFillColor:'transparent' }}>
                   BIENVENIDOS A LA PREMIACIÓN
                 </span>
               </motion.div>
 
-              {/* Línea separadora superior con destello */}
+              {/* Separador superior — CSS linePulse */}
               <div className="relative flex items-center justify-center py-1 sm:py-2">
-                <motion.div
-                  className="h-px w-full max-w-lg sm:max-w-2xl"
-                  style={{ background: 'linear-gradient(90deg, transparent, #ff2edb 30%, #cc00ff 50%, #00d4ff 70%, transparent)' }}
-                  animate={{ opacity: [0.5, 1, 0.5] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                />
-                <motion.div
-                  className="absolute w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-neon-pink"
-                  animate={{ scale: [1, 1.6, 1], opacity: [0.7, 1, 0.7] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
-                  style={{ boxShadow: '0 0 12px #ff2edb, 0 0 24px rgba(255,46,219,0.5)' }}
-                />
+                <div className="sep-line h-px w-full max-w-lg sm:max-w-2xl"
+                  style={{ background:'linear-gradient(90deg,transparent,#ff2edb 30%,#cc00ff 50%,#00d4ff 70%,transparent)', animation:'linePulse 2s ease-in-out infinite' }}/>
+                <div className="absolute w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-neon-pink animate-pulse-neon"
+                  style={{ boxShadow:'0 0 12px #ff2edb, 0 0 24px rgba(255,46,219,0.5)' }}/>
               </div>
 
-              {/* "MANIJA" — el bloque central gigante */}
+              {/* "MANIJA" — glow via opacity overlay (GPU), texto estático */}
               <div className="relative text-center leading-none">
-                <motion.h1
-                  className="font-display font-bold text-[72px] sm:text-[110px] md:text-[150px] lg:text-[190px] leading-none tracking-[0.05em] select-none"
-                  style={{
-                    background: 'linear-gradient(180deg, #ffffff 0%, #f0e0ff 40%, #cc00ff 70%, #ff2edb 100%)',
-                    WebkitBackgroundClip: 'text', backgroundClip: 'text', WebkitTextFillColor: 'transparent',
-                    filter: 'drop-shadow(0 0 20px rgba(255,46,219,0.6)) drop-shadow(0 0 60px rgba(200,0,255,0.3))',
-                  }}
-                  animate={{
-                    filter: [
-                      'drop-shadow(0 0 20px rgba(255,46,219,0.6)) drop-shadow(0 0 60px rgba(200,0,255,0.3))',
-                      'drop-shadow(0 0 35px rgba(255,46,219,0.9)) drop-shadow(0 0 80px rgba(200,0,255,0.5))',
-                      'drop-shadow(0 0 20px rgba(255,46,219,0.6)) drop-shadow(0 0 60px rgba(200,0,255,0.3))',
-                    ]
-                  }}
-                  transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
-                >
+                {/* Glow blob detrás — anima opacity, no filter */}
+                <div className="manija-glow absolute inset-0 -z-10 blur-2xl rounded-full"
+                  style={{ background:'radial-gradient(ellipse at center,rgba(255,46,219,0.35) 0%,rgba(200,0,255,0.15) 60%,transparent 100%)', animation:'manijaBreathe 2.5s ease-in-out infinite' }}/>
+                <h1 className="font-display font-bold text-[72px] sm:text-[110px] md:text-[150px] lg:text-[190px] leading-none tracking-[0.05em] select-none"
+                  style={{ background:'linear-gradient(180deg,#ffffff 0%,#f0e0ff 40%,#cc00ff 70%,#ff2edb 100%)', WebkitBackgroundClip:'text', backgroundClip:'text', WebkitTextFillColor:'transparent' }}>
                   MANIJA
-                </motion.h1>
-                {/* Líneas de luz que cruzan "MANIJA" */}
-                <motion.div
-                  className="absolute inset-0 pointer-events-none overflow-hidden rounded-xl"
-                  style={{ maskImage: 'linear-gradient(to right, transparent 0%, black 30%, black 70%, transparent 100%)' }}
-                >
-                  <motion.div
-                    className="absolute top-[35%] left-0 w-full h-[2px]"
-                    style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.15), rgba(255,46,219,0.4), rgba(255,255,255,0.15), transparent)' }}
-                    animate={{ x: ['-100%', '200%'] }}
-                    transition={{ duration: 3, repeat: Infinity, ease: 'linear', delay: 0.5 }}
-                  />
-                  <motion.div
-                    className="absolute top-[65%] left-0 w-full h-[1px]"
-                    style={{ background: 'linear-gradient(90deg, transparent, rgba(0,212,255,0.3), rgba(255,255,255,0.15), transparent)' }}
-                    animate={{ x: ['200%', '-100%'] }}
-                    transition={{ duration: 4, repeat: Infinity, ease: 'linear', delay: 1.2 }}
-                  />
-                </motion.div>
+                </h1>
+                {/* Scan lines — translateX (GPU) */}
+                <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true"
+                  style={{ maskImage:'linear-gradient(to right,transparent 0%,black 25%,black 75%,transparent 100%)', WebkitMaskImage:'linear-gradient(to right,transparent 0%,black 25%,black 75%,transparent 100%)' }}>
+                  <div className="scan-line absolute top-[35%] left-0 w-full h-[2px]"
+                    style={{ background:'linear-gradient(90deg,transparent,rgba(255,46,219,0.45),transparent)', animation:'scanRight 3s linear infinite 0.5s' }}/>
+                  <div className="scan-line absolute top-[65%] left-0 w-full h-[1px]"
+                    style={{ background:'linear-gradient(90deg,transparent,rgba(0,212,255,0.35),transparent)', animation:'scanLeft 4s linear infinite 1.2s' }}/>
+                </div>
               </div>
 
-              {/* "AWARDS" */}
-              <motion.div
-                className="text-center leading-none mt-[-8px] sm:mt-[-14px] md:mt-[-20px]"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.7 }}
-              >
-                <span
-                  className="font-display font-bold text-[56px] sm:text-[84px] md:text-[114px] lg:text-[144px] leading-none tracking-[0.18em]"
+              {/* "AWARDS" — background-position shift (GPU) */}
+              <motion.div className="text-center leading-none mt-[-8px] sm:mt-[-14px] md:mt-[-20px]"
+                initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.8, delay:0.7 }}>
+                <span className="awards-text font-display font-bold text-[56px] sm:text-[84px] md:text-[114px] lg:text-[144px] leading-none tracking-[0.18em]"
                   style={{
-                    background: 'linear-gradient(90deg, #ff2edb 0%, #ff6ec7 25%, #ff2edb 50%, #cc00ff 75%, #ff2edb 100%)',
-                    backgroundSize: '200% 100%',
-                    WebkitBackgroundClip: 'text', backgroundClip: 'text', WebkitTextFillColor: 'transparent',
-                    filter: 'drop-shadow(0 0 18px rgba(255,46,219,0.8))',
-                    animation: 'gradientShift 4s linear infinite',
-                  }}
-                >
+                    background:'linear-gradient(90deg,#ff2edb 0%,#ff6ec7 20%,#ff2edb 40%,#cc00ff 60%,#ff2edb 80%,#ff6ec7 100%)',
+                    backgroundSize:'200% 100%',
+                    WebkitBackgroundClip:'text', backgroundClip:'text', WebkitTextFillColor:'transparent',
+                    animation:'awardsShimmer 3s linear infinite',
+                  }}>
                   AWARDS
                 </span>
               </motion.div>
 
-              {/* Línea separadora + "2026" */}
+              {/* Separador + 2026 */}
               <div className="relative flex items-center justify-center gap-3 sm:gap-5 pt-1 sm:pt-2">
-                <motion.div
-                  className="flex-1 h-px max-w-[80px] sm:max-w-[140px] md:max-w-[200px]"
-                  style={{ background: 'linear-gradient(90deg, transparent, #ff2edb)' }}
-                  animate={{ opacity: [0.4, 1, 0.4] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                />
-                {/* ★ */}
-                <motion.span
-                  className="text-neon-pink text-lg sm:text-2xl"
-                  animate={{ rotate: [0, 20, -20, 0], scale: [1, 1.3, 1] }}
-                  transition={{ duration: 3, repeat: Infinity }}
-                  style={{ filter: 'drop-shadow(0 0 8px #ff2edb)' }}
-                >★</motion.span>
-
-                <motion.span
-                  className="font-display font-bold text-4xl sm:text-6xl md:text-7xl lg:text-8xl tracking-[0.15em]"
-                  style={{
-                    background: 'linear-gradient(135deg, #ffffff, #e0c0ff, #cc00ff)',
-                    WebkitBackgroundClip: 'text', backgroundClip: 'text', WebkitTextFillColor: 'transparent',
-                    filter: 'drop-shadow(0 0 14px rgba(200,0,255,0.7))',
-                  }}
-                  animate={{
-                    filter: [
-                      'drop-shadow(0 0 14px rgba(200,0,255,0.7))',
-                      'drop-shadow(0 0 24px rgba(200,0,255,1))',
-                      'drop-shadow(0 0 14px rgba(200,0,255,0.7))',
-                    ]
-                  }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                >
+                <div className="sep-line flex-1 h-px max-w-[80px] sm:max-w-[140px] md:max-w-[200px]"
+                  style={{ background:'linear-gradient(90deg,transparent,#ff2edb)', animation:'linePulse 2s ease-in-out infinite' }}/>
+                <span className="hero-star text-neon-pink text-lg sm:text-2xl"
+                  style={{ filter:'drop-shadow(0 0 6px #ff2edb)', animation:'starSpin 3s ease-in-out infinite' }}>★</span>
+                <span className="font-display font-bold text-4xl sm:text-6xl md:text-7xl lg:text-8xl tracking-[0.15em]"
+                  style={{ background:'linear-gradient(135deg,#ffffff,#e0c0ff,#cc00ff)', WebkitBackgroundClip:'text', backgroundClip:'text', WebkitTextFillColor:'transparent' }}>
                   2026
-                </motion.span>
-
-                <motion.span
-                  className="text-neon-cyan text-lg sm:text-2xl"
-                  animate={{ rotate: [0, -20, 20, 0], scale: [1, 1.3, 1] }}
-                  transition={{ duration: 3, repeat: Infinity, delay: 1.5 }}
-                  style={{ filter: 'drop-shadow(0 0 8px #00d4ff)' }}
-                >★</motion.span>
-                <motion.div
-                  className="flex-1 h-px max-w-[80px] sm:max-w-[140px] md:max-w-[200px]"
-                  style={{ background: 'linear-gradient(90deg, #00d4ff, transparent)' }}
-                  animate={{ opacity: [0.4, 1, 0.4] }}
-                  transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
-                />
+                </span>
+                <span className="hero-star text-neon-cyan text-lg sm:text-2xl"
+                  style={{ filter:'drop-shadow(0 0 6px #00d4ff)', animation:'starSpinR 3s ease-in-out infinite 1.5s' }}>★</span>
+                <div className="sep-line flex-1 h-px max-w-[80px] sm:max-w-[140px] md:max-w-[200px]"
+                  style={{ background:'linear-gradient(90deg,#00d4ff,transparent)', animation:'linePulse 2s ease-in-out infinite 0.5s' }}/>
               </div>
 
-              {/* Tagline */}
-              <motion.p
-                className="text-center font-body text-xs sm:text-sm md:text-base tracking-[0.3em] uppercase pt-1"
-                style={{ color: 'rgba(255,46,219,0.55)', textShadow: '0 0 10px rgba(255,46,219,0.3)' }}
-                animate={{ opacity: [0.5, 0.9, 0.5] }}
-                transition={{ duration: 3, repeat: Infinity }}
-              >
+              {/* Tagline — CSS opacity pulse */}
+              <p className="tagline-pulse text-center font-body text-xs sm:text-sm md:text-base tracking-[0.3em] uppercase pt-1"
+                style={{ color:'rgba(255,46,219,0.6)', animation:'taglinePulse 3s ease-in-out infinite' }}>
                 LA NOCHE ES NUESTRA · SANTIAGO DE CHILE · 21 MAYO 2026
-              </motion.p>
+              </p>
             </motion.div>
 
             {/* ── Imagen logo-descripcion DESTACADA ── */}
@@ -587,15 +481,21 @@ export function Hero() {
           </motion.div>
         </div>
 
-        {/* Floating particles */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          {[...Array(12)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-1.5 h-1.5 sm:w-2 sm:h-2 bg-neon-cyan rounded-full"
-              style={{ left: `${(i * 8.5) % 100}%`, top: `${(i * 13.7) % 100}%` }}
-              animate={{ y: [0, -20, 0], opacity: [0.2, 0.8, 0.2] }}
-              transition={{ duration: 3 + (i % 3), repeat: Infinity, delay: i * 0.2 }}
+        {/* Floating particles — CSS-only, GPU transform+opacity */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
+          {([
+            { l:'8%',  t:'12%', d:'0s',   dur:'2.8s', c:'bg-neon-cyan'   },
+            { l:'23%', t:'78%', d:'0.5s', dur:'3.4s', c:'bg-neon-pink'   },
+            { l:'41%', t:'30%', d:'0.9s', dur:'3.1s', c:'bg-neon-purple' },
+            { l:'67%', t:'55%', d:'1.4s', dur:'2.6s', c:'bg-neon-cyan'   },
+            { l:'82%', t:'18%', d:'0.2s', dur:'3.7s', c:'bg-neon-pink'   },
+            { l:'55%', t:'88%', d:'1.8s', dur:'2.9s', c:'bg-neon-purple' },
+            { l:'14%', t:'46%', d:'0.7s', dur:'3.3s', c:'bg-neon-cyan'   },
+            { l:'74%', t:'70%', d:'0.4s', dur:'4.0s', c:'bg-neon-pink'   },
+          ] as const).map((p, i) => (
+            <div key={i}
+              className={`hero-particle absolute w-1.5 h-1.5 rounded-full ${p.c}`}
+              style={{ left:p.l, top:p.t, animation:`heroFloat ${p.dur} ease-in-out infinite ${p.d}` }}
             />
           ))}
         </div>

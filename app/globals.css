@@ -131,6 +131,61 @@
     100% { background-position: 0% 50%; }
   }
 
+  /* ── Hero neon animations: GPU-only (transform + opacity) ── */
+  @keyframes boltFlicker {
+    0%, 100% { opacity: 0.45; }
+    25%       { opacity: 0.95; }
+    50%       { opacity: 0.55; }
+    75%       { opacity: 1;    }
+  }
+  @keyframes rayFlash {
+    0%,15%    { transform: scaleX(0); opacity: 0; }
+    40%,60%   { transform: scaleX(1); opacity: 1; }
+    85%,100%  { transform: scaleX(0); opacity: 0; }
+  }
+  @keyframes scanRight {
+    from { transform: translateX(-110%); }
+    to   { transform: translateX(210%);  }
+  }
+  @keyframes scanLeft {
+    from { transform: translateX(210%);  }
+    to   { transform: translateX(-110%);}
+  }
+  @keyframes linePulse {
+    0%, 100% { opacity: 0.35; }
+    50%      { opacity: 1;    }
+  }
+  @keyframes starSpin {
+    0%, 100% { transform: rotate(0deg)  scale(1);   opacity: 0.7; }
+    50%      { transform: rotate(20deg) scale(1.3); opacity: 1;   }
+  }
+  @keyframes starSpinR {
+    0%, 100% { transform: rotate(0deg)   scale(1);   opacity: 0.6; }
+    50%      { transform: rotate(-20deg) scale(1.3); opacity: 1;   }
+  }
+  @keyframes manijaBreathe {
+    0%, 100% { opacity: 0.45; }
+    50%      { opacity: 0.85; }
+  }
+  @keyframes awardsShimmer {
+    0%   { background-position: 0%   50%; }
+    100% { background-position: 200% 50%; }
+  }
+  @keyframes taglinePulse {
+    0%, 100% { opacity: 0.45; }
+    50%      { opacity: 0.85; }
+  }
+  @keyframes heroFloat {
+    0%, 100% { transform: translateY(0px);   opacity: 0.2; }
+    50%      { transform: translateY(-16px); opacity: 0.65; }
+  }
+  /* Reduced-motion: freeze all hero decoration */
+  @media (prefers-reduced-motion: reduce) {
+    .bolt-svg, .ray-line, .scan-line, .hero-star,
+    .manija-glow, .awards-text, .sep-line, .tagline-pulse,
+    .hero-particle { animation: none !important; opacity: 0.6 !important; }
+  }
+
   /* Typography */
   .heading-neon {
     @apply font-display font-bold text-6xl md:text-8xl lg:text-9xl leading-none;
