@@ -59,7 +59,12 @@ export function Voting({ session, onVoteSubmitted }: VotingProps) {
     const votedIds = new Set(session.votes.map(v => v.categoryId))
     setCompletedCategories(votedIds)
     const first = sortedCategories.findIndex(c => !votedIds.has(c.id))
-    if (first !== -1) setActiveCategoryIndex(first)
+    if (first !== -1) {
+      setActiveCategoryIndex(first)
+    } else if (sortedCategories.length > 0) {
+      // Todas las categorías votadas → índice fuera de rango → !activeCategory = true
+      setActiveCategoryIndex(sortedCategories.length)
+    }
   }, [session.votes, sortedCategories, loadingCategories])
 
   const activeCategory          = sortedCategories[activeCategoryIndex]
@@ -124,13 +129,13 @@ export function Voting({ session, onVoteSubmitted }: VotingProps) {
       setCompletedCategories(prev => new Set([...prev, activeCategory!.id]))
       setCelebrating(true)
 
+      // Avanzar siempre al siguiente índice.
+      // Si next >= sortedCategories.length → activeCategory queda undefined → muestra gracias
       const next = activeCategoryIndex + 1
-      if (next < sortedCategories.length) {
-        setTimeout(() => {
-          setActiveCategoryIndex(next)
-          setSelectedNominee(null)
-        }, 800)
-      }
+      setTimeout(() => {
+        setActiveCategoryIndex(next)
+        setSelectedNominee(null)
+      }, 800)
 
       onVoteSubmitted?.()
     } catch (err) {
