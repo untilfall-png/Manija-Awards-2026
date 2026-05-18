@@ -29,11 +29,6 @@ const Voting = dynamicImport(() => import('@/components/Voting').then(m => ({ de
   ssr: false,
 })
 
-const LiveResults = dynamicImport(() => import('@/components/LiveResults').then(m => ({ default: m.LiveResults })), {
-  loading: () => null,
-  ssr: false,
-})
-
 const WaitingRoom = dynamicImport(() => import('@/components/WaitingRoom').then(m => ({ default: m.WaitingRoom })), {
   loading: () => null,
   ssr: false,
@@ -139,9 +134,6 @@ export default function Home() {
 
             <ErrorBoundary>
               <Voting session={session} onVoteSubmitted={handleVoteSubmitted} />
-            </ErrorBoundary>
-            <ErrorBoundary>
-              <LiveResults />
             </ErrorBoundary>
           </>
         ) : votingOpen ? (
