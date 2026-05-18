@@ -1,7 +1,9 @@
 'use client'
 
+export const dynamic = 'force-dynamic'
+
 import { useEffect, useState } from 'react'
-import dynamic from 'next/dynamic'
+import dynamicImport from 'next/dynamic'
 import { supabase } from '@/lib/supabase'
 import { Hero } from '@/components/Hero'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
@@ -9,7 +11,7 @@ import { Footer } from '@/components/Footer'
 import { VoterSession } from '@/lib/types'
 
 // Carga diferida de todo lo que está bajo el fold
-const Login = dynamic(() => import('@/components/Login').then(m => ({ default: m.Login })), {
+const Login = dynamicImport(() => import('@/components/Login').then(m => ({ default: m.Login })), {
   loading: () => (
     <div className="flex items-center justify-center py-24">
       <div className="w-8 h-8 border-2 border-neon-pink/30 border-t-neon-pink rounded-full animate-spin" />
@@ -18,7 +20,7 @@ const Login = dynamic(() => import('@/components/Login').then(m => ({ default: m
   ssr: false,
 })
 
-const Voting = dynamic(() => import('@/components/Voting').then(m => ({ default: m.Voting })), {
+const Voting = dynamicImport(() => import('@/components/Voting').then(m => ({ default: m.Voting })), {
   loading: () => (
     <div className="flex items-center justify-center py-24">
       <div className="w-8 h-8 border-2 border-neon-purple/30 border-t-neon-purple rounded-full animate-spin" />
@@ -27,12 +29,12 @@ const Voting = dynamic(() => import('@/components/Voting').then(m => ({ default:
   ssr: false,
 })
 
-const LiveResults = dynamic(() => import('@/components/LiveResults').then(m => ({ default: m.LiveResults })), {
+const LiveResults = dynamicImport(() => import('@/components/LiveResults').then(m => ({ default: m.LiveResults })), {
   loading: () => null,
   ssr: false,
 })
 
-const WaitingRoom = dynamic(() => import('@/components/WaitingRoom').then(m => ({ default: m.WaitingRoom })), {
+const WaitingRoom = dynamicImport(() => import('@/components/WaitingRoom').then(m => ({ default: m.WaitingRoom })), {
   loading: () => null,
   ssr: false,
 })
