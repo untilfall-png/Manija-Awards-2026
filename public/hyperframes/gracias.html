@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Gracias – Manija Awards 2026</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Segoe UI',system-ui,sans-serif}
+  canvas{position:fixed;inset:0;z-index:0}
+
+  /* ── Contenedor principal ── */
+  .stage{
+    position:fixed;inset:0;z-index:10;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:clamp(10px,2.5vh,24px);
+    padding:clamp(16px,4vw,48px);
+    text-align:center;
+  }
+
+  /* ── Estrella top ── */
+  .top-star{font-size:clamp(36px,8vw,80px);animation:starPop 1.2s cubic-bezier(.34,1.56,.64,1) both, starSpin 4s ease-in-out infinite 1.2s}
+
+  /* ── GRACIAS ── */
+  .thanks{
+    font-size:clamp(52px,13vw,160px);
+    font-weight:900;letter-spacing:.04em;line-height:1;
+    background:linear-gradient(135deg,#ff2ede,#bf5af2,#ff2ede);
+    background-size:200% 200%;
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+    filter:drop-shadow(0 0 18px #ff2ede) drop-shadow(0 0 40px #bf5af2);
+    animation:gradShift 3s linear infinite, popIn .8s cubic-bezier(.34,1.56,.64,1) .3s both
+  }
+
+  /* ── Por participar ── */
+  .sub{
+    font-size:clamp(14px,3.5vw,28px);
+    color:#e0e0ff;letter-spacing:.08em;text-transform:uppercase;
+    text-shadow:0 0 12px #bf5af2;
+    animation:fadeUp .8s ease .9s both
+  }
+
+  /* ── MANIJA AWARDS 2026 ── */
+  .awards{
+    font-size:clamp(22px,5.5vw,72px);
+    font-weight:900;letter-spacing:.12em;
+    background:linear-gradient(90deg,#ffe94d,#ffb340,#ff6b00,#ffb340,#ffe94d);
+    background-size:300% 100%;
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+    filter:drop-shadow(0 0 16px #ffa000) drop-shadow(0 0 32px #ff6b00);
+    animation:goldShift 2.5s linear infinite, fadeUp .8s ease 1.1s both
+  }
+
+  /* ── Línea separadora ── */
+  .divider{
+    width:clamp(120px,40vw,400px);height:2px;
+    background:linear-gradient(90deg,transparent,#ff2ede,#bf5af2,#ff2ede,transparent);
+    animation:fadeUp .8s ease 1.3s both;
+    box-shadow:0 0 12px #ff2ede;
+  }
+
+  /* ── Stars row ── */
+  .stars-row{
+    font-size:clamp(20px,4.5vw,48px);
+    animation:fadeUp .8s ease 1.5s both;
+    letter-spacing:.2em;
+  }
+  .stars-row span{display:inline-block;animation:starBounce 1.6s ease-in-out infinite}
+  .stars-row span:nth-child(2){animation-delay:.2s}
+  .stars-row span:nth-child(3){animation-delay:.4s}
+  .stars-row span:nth-child(4){animation-delay:.6s}
+  .stars-row span:nth-child(5){animation-delay:.8s}
+
+  /* ── Mensaje fiesta ── */
+  .party{
+    font-size:clamp(16px,3.8vw,42px);
+    font-weight:800;letter-spacing:.06em;
+    color:#fff;
+    text-shadow:0 0 20px #ff2ede,0 0 40px #bf5af2,0 0 60px #ff2ede;
+    animation:fadeUp .8s ease 1.7s both, neonPulse 2s ease-in-out infinite 2.5s
+  }
+
+  /* ── Sub fiesta ── */
+  .party-sub{
+    font-size:clamp(12px,2.8vw,22px);
+    color:#bf5af2;letter-spacing:.1em;text-transform:uppercase;
+    text-shadow:0 0 10px #bf5af2;
+    animation:fadeUp .8s ease 1.9s both
+  }
+
+  /* ── Emoji party row ── */
+  .emoji-row{
+    font-size:clamp(24px,5vw,56px);
+    animation:fadeUp .8s ease 2.1s both;
+  }
+  .emoji-row span{display:inline-block;animation:emojiBounce 2s ease-in-out infinite}
+  .emoji-row span:nth-child(1){animation-delay:0s}
+  .emoji-row span:nth-child(2){animation-delay:.25s}
+  .emoji-row span:nth-child(3){animation-delay:.5s}
+  .emoji-row span:nth-child(4){animation-delay:.75s}
+  .emoji-row span:nth-child(5){animation-delay:1s}
+  .emoji-row span:nth-child(6){animation-delay:1.25s}
+  .emoji-row span:nth-child(7){animation-delay:1.5s}
+
+  /* ── Keyframes ── */
+  @keyframes popIn{from{transform:scale(0) rotate(-10deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+  @keyframes fadeUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+  @keyframes starPop{from{transform:scale(0) rotate(-180deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+  @keyframes starSpin{0%,100%{transform:rotate(0) scale(1)}50%{transform:rotate(20deg) scale(1.15)}}
+  @keyframes starBounce{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-10px) scale(1.2)}}
+  @keyframes emojiBounce{0%,100%{transform:translateY(0) scale(1)}40%{transform:translateY(-14px) scale(1.18)}70%{transform:translateY(-4px) scale(1.05)}}
+  @keyframes neonPulse{0%,100%{text-shadow:0 0 20px #ff2ede,0 0 40px #bf5af2,0 0 60px #ff2ede}50%{text-shadow:0 0 40px #ff2ede,0 0 80px #bf5af2,0 0 100px #ff2ede,0 0 140px #ff2ede}}
+  @keyframes gradShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+  @keyframes goldShift{from{background-position:0% 50%}to{background-position:300% 50%}}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div class="stage">
+  <div class="top-star">⭐</div>
+
+  <div class="thanks">¡GRACIAS!</div>
+
+  <div class="sub">Por participar en la votación</div>
+
+  <div class="awards">MANIJA AWARDS 2026</div>
+
+  <div class="divider"></div>
+
+  <div class="stars-row">
+    <span>✦</span><span>★</span><span>✦</span><span>★</span><span>✦</span>
+  </div>
+
+  <div class="party">¡A disfrutar la fiesta aniversario!</div>
+  <div class="party-sub">La noche es tuya · celebrate · 🎊</div>
+
+  <div class="emoji-row">
+    <span>🎉</span><span>🥳</span><span>🎆</span><span>🏆</span><span>🎆</span><span>🥳</span><span>🎉</span>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('c')
+const ctx    = canvas.getContext('2d')
+
+const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) || window.innerWidth < 768
+const STAR_COUNT     = isMobile ? 60  : 140
+const CONFETTI_COUNT = isMobile ? 50  : 120
+const FPS            = isMobile ? 24  : 60
+const FRAME_MS       = 1000 / FPS
+
+// ── Resize ──────────────────────────────────────────────────────────────
+function resize(){
+  canvas.width  = window.innerWidth
+  canvas.height = window.innerHeight
+}
+window.addEventListener('resize', resize)
+resize()
+
+// ── Starfield ────────────────────────────────────────────────────────────
+const stars = Array.from({length: STAR_COUNT}, () => ({
+  x: Math.random() * canvas.width,
+  y: Math.random() * canvas.height,
+  r: Math.random() * 1.8 + 0.3,
+  phase: Math.random() * Math.PI * 2,
+  speed: Math.random() * 0.015 + 0.005,
+}))
+
+function drawStars(t){
+  for(const s of stars){
+    const alpha = 0.3 + 0.65 * Math.abs(Math.sin(s.phase + t * s.speed))
+    ctx.beginPath()
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2)
+    ctx.fillStyle = `rgba(255,255,255,${alpha})`
+    ctx.fill()
+  }
+}
+
+// ── Confetti ─────────────────────────────────────────────────────────────
+const COLORS = ['#ff2ede','#bf5af2','#ffe94d','#ff6b00','#00f5d4','#fff','#ffb340']
+const confetti = Array.from({length: CONFETTI_COUNT}, () => ({
+  x:   Math.random() * canvas.width,
+  y:   -Math.random() * canvas.height,   // start above screen
+  vx:  (Math.random() - 0.5) * 1.8,
+  vy:  Math.random() * 2 + 1.2,
+  rot: Math.random() * Math.PI * 2,
+  vr:  (Math.random() - 0.5) * 0.12,
+  w:   Math.random() * 8 + 4,
+  h:   Math.random() * 4 + 2,
+  color: COLORS[Math.floor(Math.random() * COLORS.length)],
+  alpha: Math.random() * 0.5 + 0.5,
+  wave: Math.random() * Math.PI * 2,
+  waveSpeed: Math.random() * 0.04 + 0.01,
+}))
+
+function drawConfetti(t){
+  for(const p of confetti){
+    p.x  += p.vx + Math.sin(p.wave + t * p.waveSpeed) * 0.6
+    p.y  += p.vy
+    p.rot += p.vr
+    // wrap vertically
+    if(p.y > canvas.height + 20) { p.y = -20; p.x = Math.random() * canvas.width }
+
+    ctx.save()
+    ctx.translate(p.x, p.y)
+    ctx.rotate(p.rot)
+    ctx.globalAlpha = p.alpha
+    ctx.fillStyle = p.color
+    ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h)
+    ctx.restore()
+  }
+}
+
+// ── Blobs de fondo ───────────────────────────────────────────────────────
+const blobs = [
+  { x: 0.25, y: 0.35, r: 0.30, h: 290, phase: 0.0 },
+  { x: 0.75, y: 0.65, r: 0.28, h: 260, phase: 1.4 },
+  { x: 0.50, y: 0.15, r: 0.22, h:  50, phase: 2.7 },
+]
+function drawBlobs(t){
+  for(const b of blobs){
+    const alpha = 0.07 + 0.04 * Math.sin(b.phase + t * 0.0007)
+    const grd = ctx.createRadialGradient(
+      b.x * canvas.width, b.y * canvas.height, 0,
+      b.x * canvas.width, b.y * canvas.height, b.r * Math.min(canvas.width, canvas.height)
+    )
+    grd.addColorStop(0, `hsla(${b.h},100%,65%,${alpha})`)
+    grd.addColorStop(1, 'transparent')
+    ctx.fillStyle = grd
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+  }
+}
+
+// ── Sparks ──────────────────────────────────────────────────────────────
+const sparks = Array.from({length: isMobile ? 18 : 40}, () => resetSpark({}))
+function resetSpark(s){
+  s.x     = Math.random() * canvas.width
+  s.y     = Math.random() * canvas.height
+  s.vx    = (Math.random() - 0.5) * 2.5
+  s.vy    = (Math.random() - 0.5) * 2.5
+  s.life  = 0
+  s.maxLife = Math.random() * 80 + 40
+  s.r     = Math.random() * 2.5 + 0.5
+  s.color = COLORS[Math.floor(Math.random() * COLORS.length)]
+  return s
+}
+function drawSparks(){
+  for(const s of sparks){
+    s.life++
+    if(s.life > s.maxLife) resetSpark(s)
+    s.x += s.vx; s.y += s.vy
+    const prog  = s.life / s.maxLife
+    const alpha = prog < 0.3 ? prog / 0.3 : 1 - (prog - 0.3) / 0.7
+    ctx.beginPath()
+    ctx.arc(s.x, s.y, s.r * (1 - prog * 0.5), 0, Math.PI * 2)
+    ctx.fillStyle = s.color
+    ctx.globalAlpha = alpha
+    ctx.fill()
+    ctx.globalAlpha = 1
+  }
+}
+
+// ── Loop ────────────────────────────────────────────────────────────────
+let last = 0, t = 0
+function loop(now){
+  requestAnimationFrame(loop)
+  if(now - last < FRAME_MS) return
+  last = now; t++
+
+  // Background
+  ctx.fillStyle = '#050008'
+  ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+  drawBlobs(t)
+  drawStars(t)
+  ctx.globalAlpha = 1
+  drawConfetti(t)
+  ctx.globalAlpha = 1
+  drawSparks()
+  ctx.globalAlpha = 1
+}
+requestAnimationFrame(loop)
+</script>
+</body>
+</html>

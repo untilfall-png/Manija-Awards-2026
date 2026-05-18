@@ -94,12 +94,13 @@ export function Voting({ session, onVoteSubmitted }: VotingProps) {
   )
 
   if (!activeCategory) return (
-    <section className="px-4 sm:px-6 py-16 mx-auto max-w-6xl text-center">
-      <div className="neon-card p-12">
-        <div className="text-6xl mb-4">🏆</div>
-        <h2 className="text-4xl font-display font-bold text-white mb-4">¡VOTACIÓN COMPLETADA!</h2>
-        <p className="text-xl text-white/80">Has votado en todas las categorías. ¡Gracias por participar!</p>
-      </div>
+    <section className="fixed inset-0 z-50">
+      <iframe
+        src="/hyperframes/gracias.html?v=1"
+        className="w-full h-full border-0"
+        title="Gracias por participar"
+        allow="autoplay"
+      />
     </section>
   )
 
