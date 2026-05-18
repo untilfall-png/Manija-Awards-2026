@@ -3,8 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Users, Mail, Phone, Calendar } from 'lucide-react'
-import { collection, query, getDocs } from 'firebase/firestore'
-import { db } from '@/lib/firebase'
+import { supabase } from '@/lib/supabase'
 import { Voter } from '@/lib/types'
 
 export function AdminVoters() {
@@ -18,19 +17,19 @@ export function AdminVoters() {
 
   const loadVoters = async () => {
     try {
-      const q = query(collection(db, 'voters'))
-      const snapshot = await getDocs(q)
-      const votersData = snapshot.docs.map(doc => {
-        const data = doc.data()
-        return {
-          id: doc.id,
-          email: data.email,
-          name: data.name,
-          phone: data.phone,
-          createdAt: data.createdAt?.toDate() || new Date(),
-          updatedAt: data.updatedAt?.toDate() || new Date(),
-        } as Voter
-      })
+      const { data, error } = await supabase
+        .from('voters')
+        .select('*')
+        .order('created_at', { ascending: false })
+      if (error) throw error
+      const votersData: Voter[] = (data || []).map((row: any) => ({
+        id: row.id,
+        email: row.email,
+        name: row.name,
+        phone: row.phone ?? undefined,
+        createdAt: new Date(row.created_at),
+        updatedAt: new Date(row.updated_at),
+      }))
       setVoters(votersData)
     } catch (error) {
       console.error('Error loading voters:', error)

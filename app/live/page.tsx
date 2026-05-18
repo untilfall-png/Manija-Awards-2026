@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { collection, onSnapshot, QuerySnapshot, DocumentData, doc } from 'firebase/firestore'
-import { db } from '@/lib/firebase'
+import { supabase } from '@/lib/supabase'
 import { getCategories } from '@/lib/voting'
 import { Category, Vote } from '@/lib/types'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -65,33 +64,35 @@ export default function LivePage() {
 
   // Listener votación abierta/cerrada
   useEffect(() => {
-    const unsub = onSnapshot(doc(db, 'system_config', 'system_config'), snap => {
-      if (snap.exists()) setVotingOpen(snap.data().votingEnabled ?? true)
-    }, console.error)
-    return unsub
+    supabase.from('system_config').select('voting_enabled').eq('id', 'system_config').single()
+      .then(({ data }) => { if (data) setVotingOpen(data.voting_enabled ?? true) })
+    const ch = supabase.channel('live-system-config')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'system_config' },
+        payload => { const d = payload.new as any; if (d) setVotingOpen(d.voting_enabled ?? true) })
+      .subscribe()
+    return () => { supabase.removeChannel(ch) }
   }, [])
 
   // Listener votos en tiempo real
   useEffect(() => {
     if (!categories.length) return
-    const unsub = onSnapshot(collection(db, 'votes'), (snap: QuerySnapshot<DocumentData>) => {
-      const votes: Vote[] = snap.docs.map(d => ({
-        id: d.id,
-        voterId: d.data().voterId,
-        categoryId: d.data().categoryId,
-        nomineeId: d.data().nomineeId,
-        createdAt: d.data().createdAt?.toDate() || new Date(),
-      }))
 
+    const rowToVote = (row: any): Vote => ({
+      id: row.id,
+      voterId: row.voter_id,
+      categoryId: row.category_id,
+      nomineeId: row.nominee_id,
+      createdAt: new Date(row.created_at),
+    })
+
+    const computeResults = (votes: Vote[]) => {
       setTotalVoters(new Set(votes.map(v => v.voterId)).size)
       setTotalVotes(votes.length)
-
       const results: CatResult[] = categories.map(cat => {
         const catVotes = votes.filter(v => v.categoryId === cat.id)
         const total    = catVotes.length
         const counts: Record<string, number> = {}
         catVotes.forEach(v => { counts[v.nomineeId] = (counts[v.nomineeId] || 0) + 1 })
-
         const sorted = cat.nominees
           .map(n => ({
             nomineeId: n.id,
@@ -102,14 +103,38 @@ export default function LivePage() {
             isLeader: false,
           }))
           .sort((a, b) => b.votes - a.votes)
-
         if (sorted[0]?.votes > 0) sorted[0].isLeader = true
         return { category: cat, results: sorted, totalVotes: total }
       })
-
       setCatResults(results)
-    }, console.error)
-    return unsub
+    }
+
+    let allVotes: Vote[] = []
+
+    // Carga inicial
+    void supabase.from('votes').select('id, voter_id, category_id, nominee_id, created_at')
+      .then(({ data, error }) => {
+        if (error) { console.error(error); return }
+        allVotes = (data || []).map(rowToVote)
+        computeResults(allVotes)
+      })
+
+    // Realtime
+    const ch = supabase.channel('live-votes')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'votes' },
+        payload => {
+          allVotes = [...allVotes, rowToVote(payload.new as any)]
+          computeResults(allVotes)
+        })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'votes' },
+        payload => {
+          const old = payload.old as any
+          allVotes = allVotes.filter(v => v.id !== old.id)
+          computeResults(allVotes)
+        })
+      .subscribe()
+
+    return () => { supabase.removeChannel(ch) }
   }, [categories])
 
   const timeStr = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' })

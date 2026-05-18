@@ -3,8 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { BarChart3, TrendingUp, PieChart } from 'lucide-react'
-import { collection, onSnapshot, QuerySnapshot, DocumentData } from 'firebase/firestore'
-import { db } from '@/lib/firebase'
+import { supabase } from '@/lib/supabase'
 import { getCategories } from '@/lib/voting'
 import { Category, Vote } from '@/lib/types'
 
@@ -27,29 +26,28 @@ export function AdminCharts() {
   }, [])
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(
-      collection(db, 'votes'),
-      (snapshot: QuerySnapshot<DocumentData>) => {
-        const votesData: Vote[] = snapshot.docs.map(doc => {
-          const data = doc.data()
-          return {
-            id: doc.id,
-            voterId: data.voterId,
-            categoryId: data.categoryId,
-            nomineeId: data.nomineeId,
-            createdAt: data.createdAt?.toDate() || new Date(),
-          }
-        })
-        setVotes(votesData)
-        setLoading(false)
-      },
-      (error) => {
-        console.error('Error loading votes:', error)
-        setLoading(false)
-      }
-    )
+    const rowToVote = (row: any): Vote => ({
+      id: row.id,
+      voterId: row.voter_id,
+      categoryId: row.category_id,
+      nomineeId: row.nominee_id,
+      createdAt: new Date(row.created_at),
+    })
 
-    return () => unsubscribe()
+    void supabase.from('votes').select('id, voter_id, category_id, nominee_id, created_at')
+      .then(({ data, error }) => {
+        if (error) { console.error('Error loading votes:', error); setLoading(false); return }
+        setVotes((data || []).map(rowToVote)); setLoading(false)
+      })
+
+    const ch = supabase.channel('charts-votes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'votes' }, async () => {
+        const { data } = await supabase.from('votes').select('id, voter_id, category_id, nominee_id, created_at')
+        setVotes((data || []).map(rowToVote))
+      })
+      .subscribe()
+
+    return () => { supabase.removeChannel(ch) }
   }, [])
 
   if (loading) {

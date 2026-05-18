@@ -4,8 +4,7 @@
 import { useState, useEffect, lazy, Suspense } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { LogOut, Lock, BarChart3, Settings, Users, Trophy, QrCode, Monitor, Sparkles, Loader2, CheckCircle, ExternalLink, Maximize2 } from 'lucide-react'
-import { collection, doc, onSnapshot } from 'firebase/firestore'
-import { db } from '@/lib/firebase'
+import { supabase } from '@/lib/supabase'
 import { AdminLogin } from './AdminLogin.tsx'
 import { getSystemConfig, setVotingEnabled, getCategories } from '@/lib/voting'
 import { getVotingResults, type VotingStats } from '@/lib/results'
@@ -321,16 +320,31 @@ function AdminDashboardContent() {
       setLoading(false)
     }).catch(err => { console.error(err); setLoading(false) })
 
-    // Real-time: voters
-    const unsubVoters = onSnapshot(collection(db, 'voters'), snap => setTotalVoters(snap.size))
-    // Real-time: votes
-    const unsubVotes = onSnapshot(collection(db, 'votes'), snap => setTotalVotes(snap.size))
-    // Real-time: system config (votingEnabled)
-    const unsubConfig = onSnapshot(doc(db, 'system_config', 'system_config'), snap => {
-      if (snap.exists()) setVotingEnabledLocal(snap.data().votingEnabled ?? true)
-    })
+    // Conteo inicial
+    supabase.from('voters').select('*', { count: 'exact', head: true }).then(({ count }) => setTotalVoters(count || 0))
+    supabase.from('votes').select('*', { count: 'exact', head: true }).then(({ count }) => setTotalVotes(count || 0))
+    supabase.from('system_config').select('voting_enabled').eq('id', 'system_config').single()
+      .then(({ data }) => { if (data) setVotingEnabledLocal(data.voting_enabled ?? true) })
 
-    return () => { unsubVoters(); unsubVotes(); unsubConfig() }
+    // Real-time: voters
+    const chVoters = supabase.channel('admin-voters-count')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'voters' }, async () => {
+        const { count } = await supabase.from('voters').select('*', { count: 'exact', head: true })
+        setTotalVoters(count || 0)
+      }).subscribe()
+    // Real-time: votes
+    const chVotes = supabase.channel('admin-votes-count')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'votes' }, async () => {
+        const { count } = await supabase.from('votes').select('*', { count: 'exact', head: true })
+        setTotalVotes(count || 0)
+      }).subscribe()
+    // Real-time: system config
+    const chConfig = supabase.channel('admin-system-config')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'system_config' },
+        payload => { const d = payload.new as any; if (d) setVotingEnabledLocal(d.voting_enabled ?? true) })
+      .subscribe()
+
+    return () => { supabase.removeChannel(chVoters); supabase.removeChannel(chVotes); supabase.removeChannel(chConfig) }
   }, [])
 
   const participation = totalCategories > 0 && totalVoters > 0
@@ -398,7 +412,7 @@ function AdminDashboardContent() {
           <h3 className="text-xl font-display font-bold text-white mb-4">Información del Sistema</h3>
           <div className="space-y-2 text-white/80 text-sm">
             <p><span className="text-neon-pink font-semibold">Evento:</span> Manija Awards 2026</p>
-            <p><span className="text-neon-pink font-semibold">Base de Datos:</span> Firebase Firestore</p>
+            <p><span className="text-neon-pink font-semibold">Base de Datos:</span> Supabase PostgreSQL</p>
             <p><span className="text-neon-pink font-semibold">Almacenamiento:</span> Seguro en la nube</p>
             <p><span className="text-neon-pink font-semibold">Estado:</span> <span className="text-green-400">En vivo</span></p>
            </div>

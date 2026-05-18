@@ -16,7 +16,7 @@ const nextConfig = {
     optimizePackageImports: [
       'lucide-react',
       'framer-motion',
-      'firebase/firestore',
+      '@supabase/supabase-js',
     ],
   },
 

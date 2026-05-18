@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
-import { doc, onSnapshot } from 'firebase/firestore'
-import { db } from '@/lib/firebase'
+import { supabase } from '@/lib/supabase'
 import { Hero } from '@/components/Hero'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { Footer } from '@/components/Footer'
@@ -61,12 +60,15 @@ export default function Home() {
 
   /* ── Real-time voting status (page level) ── */
   useEffect(() => {
-    const unsub = onSnapshot(
-      doc(db, 'system_config', 'system_config'),
-      snap => { if (snap.exists()) setVotingOpen(snap.data().votingEnabled ?? true) },
-      err => console.error('page votingStatus:', err)
-    )
-    return unsub
+    // Carga inicial
+    supabase.from('system_config').select('voting_enabled').eq('id','system_config').single()
+      .then(({ data }) => { if (data) setVotingOpen(data.voting_enabled ?? true) })
+    // Suscripción realtime
+    const ch = supabase.channel('page-system-config')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'system_config' },
+        payload => { const d = payload.new as any; if (d) setVotingOpen(d.voting_enabled ?? true) })
+      .subscribe()
+    return () => { supabase.removeChannel(ch) }
   }, [])
 
   useEffect(() => {

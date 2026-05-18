@@ -3,8 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import { motion } from 'framer-motion'
-import { collection, onSnapshot, QuerySnapshot, DocumentData } from 'firebase/firestore'
-import { db } from '@/lib/firebase'
+import { supabase } from '@/lib/supabase'
 import { getCategories } from '@/lib/voting'
 import { Vote, Category } from '@/lib/types'
 import { Trophy, TrendingUp, Users, Award, Download } from 'lucide-react'
@@ -81,8 +80,8 @@ export function LiveResults() {
   }, [])
 
   /* ── Listener votos — FIX race condition ──
-     El listener se suscribe una vez y lee categories desde la ref,
-     que se mantiene actualizada en tiempo real sin recrear el listener. */
+     Carga inicial + realtime; categories se lee de la ref para evitar
+     recrear el canal cuando cambian las categorías. */
   useEffect(() => {
     const buildResults = (votes: Vote[], cats: Category[]): CategoryResults[] =>
       cats.map(cat => {
@@ -104,31 +103,42 @@ export function LiveResults() {
         }
       })
 
+    const rowToVote = (row: any): Vote => ({
+      id: row.id,
+      voterId: row.voter_id,
+      categoryId: row.category_id,
+      nomineeId: row.nominee_id,
+      createdAt: new Date(row.created_at),
+    })
+
     let lastVotes: Vote[] = []
 
-    const unsub = onSnapshot(
-      collection(db, 'votes'),
-      (snap: QuerySnapshot<DocumentData>) => {
-        lastVotes = snap.docs.map(d => ({
-          id: d.id,
-          voterId: d.data().voterId,
-          categoryId: d.data().categoryId,
-          nomineeId: d.data().nomineeId,
-          createdAt: d.data().createdAt?.toDate() || new Date(),
-        }))
+    const refresh = () => {
+      setTotalVoters(new Set(lastVotes.map(v => v.voterId)).size)
+      setTotalVotes(lastVotes.length)
+      if (categoriesRef.current.length > 0) {
+        setCategoryResults(buildResults(lastVotes, categoriesRef.current))
+      }
+    }
 
-        setTotalVoters(new Set(lastVotes.map(v => v.voterId)).size)
-        setTotalVotes(lastVotes.length)
-
-        if (categoriesRef.current.length > 0) {
-          setCategoryResults(buildResults(lastVotes, categoriesRef.current))
-        }
+    // Carga inicial
+    void supabase.from('votes').select('id, voter_id, category_id, nominee_id, created_at')
+      .then(({ data, error }) => {
+        if (error) { console.error(error); setIsLoading(false); return }
+        lastVotes = (data || []).map(rowToVote)
+        refresh()
         setIsLoading(false)
-      },
-      err => { console.error(err); setIsLoading(false) }
-    )
+      })
 
-    return unsub
+    // Realtime
+    const ch = supabase.channel('liveresults-votes')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'votes' },
+        payload => { lastVotes = [...lastVotes, rowToVote(payload.new as any)]; refresh() })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'votes' },
+        payload => { lastVotes = lastVotes.filter(v => v.id !== (payload.old as any).id); refresh() })
+      .subscribe()
+
+    return () => { supabase.removeChannel(ch) }
   }, [])
 
   /* Cuando categorías cargan, recalcular con los últimos votos — sin crear listener nuevo */

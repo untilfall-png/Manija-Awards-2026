@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { doc, onSnapshot } from 'firebase/firestore'
-import { db } from '@/lib/firebase'
+import { supabase } from '@/lib/supabase'
 import { CheckCircle, Vote, Clock, Sparkles, AlertCircle } from 'lucide-react'
 import { createVote, getCategories } from '@/lib/voting'
 import { VoterSession, Category, Vote as VoteType } from '@/lib/types'
@@ -40,14 +39,13 @@ export function Voting({ session, onVoteSubmitted }: VotingProps) {
 
   /* ── Real-time: votación abierta/cerrada ── */
   useEffect(() => {
-    const unsub = onSnapshot(
-      doc(db, 'system_config', 'system_config'),
-      snap => {
-        if (snap.exists()) setVotingDisabled(!snap.data().votingEnabled)
-      },
-      err => console.error('system_config listener:', err)
-    )
-    return unsub
+    supabase.from('system_config').select('voting_enabled').eq('id', 'system_config').single()
+      .then(({ data }) => { if (data) setVotingDisabled(!(data.voting_enabled ?? true)) })
+    const ch = supabase.channel('voting-system-config')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'system_config' },
+        payload => { const d = payload.new as any; if (d) setVotingDisabled(!(d.voting_enabled ?? true)) })
+      .subscribe()
+    return () => { supabase.removeChannel(ch) }
   }, [])
 
   // Las categorías especiales no participan del flujo de votación pública

@@ -1,217 +1,166 @@
-// lib/voting.ts
-import {
-  collection,
-  doc,
-  getDoc,
-  setDoc,
-  addDoc,
-  deleteDoc,
-  writeBatch,
-  query,
-  where,
-  orderBy,
-  limit,
-  getDocs,
-  updateDoc,
-  serverTimestamp,
-  Timestamp
-} from 'firebase/firestore'
-import { db, isFirebaseConfigured } from './firebase'
+// lib/voting.ts — Supabase edition
+import { supabase, isSupabaseConfigured } from './supabase'
 import { Voter, Vote, Category, VoterSession } from './types'
 
-const SYSTEM_CONFIG_ID = 'system_config'
-
-export interface SystemConfig {
-  votingEnabled: boolean;
-  updatedAt: Date;
-  updatedBy?: string;
+// ── Error wrapper ────────────────────────────────────────────────────────────
+async function dbOp<T>(fn: () => Promise<T>, name: string): Promise<T> {
+  try {
+    if (!isSupabaseConfigured) throw new Error('Supabase no configurado')
+    return await fn()
+  } catch (err: any) {
+    console.error(`Supabase [${name}]:`, err?.message || err)
+    throw new Error(err?.message || 'Error de base de datos')
+  }
 }
 
-async function firestoreOperation<T>(operation: () => Promise<T>, operationName: string): Promise<T> {
-  try {
-    if (!isFirebaseConfigured) {
-      throw new Error('Firebase no configurado');
-    }
-    return await operation();
-  } catch (error: any) {
-    let errorMessage = 'Error desconocido';
-    if (error?.code) {
-      const firebaseErrors: any = {
-        'permission-denied': 'No tiene permiso',
-        'unavailable': 'Servicio no disponible',
-        'not-found': 'El recurso no existe',
-      };
-      errorMessage = firebaseErrors[error.code] || 'Error ' + error.code;
-    } else if (error?.message) {
-      errorMessage = error.message;
-    }
-    console.error('Firestore [' + operationName + ']:', errorMessage);
-    const finalError = new Error(errorMessage);
-    (finalError as any).code = error?.code;
-    throw finalError;
-  }
+// ── System Config ─────────────────────────────────────────────────────────────
+export interface SystemConfig {
+  votingEnabled: boolean
+  updatedAt: Date
+  updatedBy?: string
 }
 
 export async function getSystemConfig(): Promise<SystemConfig | null> {
   try {
-    const configRef = doc(db, 'system_config', SYSTEM_CONFIG_ID);
-    const configDoc = await getDoc(configRef);
-    if (!configDoc.exists()) {
-      const defaultConfig: SystemConfig = {
-        votingEnabled: true,
-        updatedAt: new Date(),
-      };
-      await setDoc(configRef, {
-        votingEnabled: true,
-        updatedAt: serverTimestamp(),
-      });
-      return defaultConfig;
+    const { data, error } = await supabase
+      .from('system_config')
+      .select('*')
+      .eq('id', 'system_config')
+      .single()
+
+    if (error || !data) {
+      // Crear config por defecto si no existe
+      await supabase.from('system_config').upsert({ id: 'system_config', voting_enabled: true })
+      return { votingEnabled: true, updatedAt: new Date() }
     }
-    const data = configDoc.data();
     return {
-      votingEnabled: data.votingEnabled ?? true,
-      updatedAt: data.updatedAt?.toDate() || new Date(),
-      updatedBy: data.updatedBy,
-    };
-  } catch (error) {
-    console.error('Error getting system config:', error);
-    return null;
+      votingEnabled: data.voting_enabled,
+      updatedAt:     new Date(data.updated_at),
+      updatedBy:     data.updated_by ?? undefined,
+    }
+  } catch (err) {
+    console.error('getSystemConfig:', err)
+    return null
   }
 }
 
 export async function setVotingEnabled(enabled: boolean, adminId?: string): Promise<boolean> {
   try {
-    const configRef = doc(db, 'system_config', SYSTEM_CONFIG_ID);
-    await updateDoc(configRef, {
-      votingEnabled: enabled,
-      updatedAt: serverTimestamp(),
-      updatedBy: adminId,
-    });
-    return true;
-  } catch (error) {
-    console.error('Error updating voting status:', error);
-    return false;
+    const { error } = await supabase
+      .from('system_config')
+      .upsert({ id: 'system_config', voting_enabled: enabled, updated_at: new Date().toISOString(), updated_by: adminId })
+    if (error) throw error
+    return true
+  } catch (err) {
+    console.error('setVotingEnabled:', err)
+    return false
   }
 }
 
-export async function createVoter(voterData: Omit<Voter, 'id' | 'createdAt' | 'updatedAt'>): Promise<Voter> {
-  const voterRef = doc(collection(db, 'voters'))
-  const voter: Voter = {
-    id: voterRef.id,
-    ...voterData,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  }
-  const dataToSave: any = {
-    email: voterData.email,
-    name: voterData.name,
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-  }
-  if (voterData.phone && voterData.phone.trim()) {
-    dataToSave.phone = voterData.phone.trim()
-  }
-  await setDoc(voterRef, dataToSave)
-  return voter
+// ── Voters ────────────────────────────────────────────────────────────────────
+export async function createVoter(data: Omit<Voter, 'id' | 'createdAt' | 'updatedAt'>): Promise<Voter> {
+  return dbOp(async () => {
+    const { data: row, error } = await supabase
+      .from('voters')
+      .insert({ email: data.email, name: data.name, phone: data.phone || null })
+      .select()
+      .single()
+    if (error) throw error
+    return rowToVoter(row)
+  }, 'createVoter')
 }
 
 export async function getVoterByEmail(email: string): Promise<Voter | null> {
-  const q = query(collection(db, 'voters'), where('email', '==', email))
-  const querySnapshot = await getDocs(q)
-  if (querySnapshot.empty) return null
-  const docSnap = querySnapshot.docs[0]
-  const data = docSnap.data()
-  return {
-    id: docSnap.id,
-    email: data.email,
-    name: data.name,
-    phone: data.phone,
-    createdAt: data.createdAt?.toDate() || new Date(),
-    updatedAt: data.updatedAt?.toDate() || new Date(),
-  }
-}
-
-export async function getVoteByVoterAndCategory(voterId: string, categoryId: string): Promise<Vote | null> {
-  const q = query(
-    collection(db, 'votes'),
-    where('voterId', '==', voterId),
-    where('categoryId', '==', categoryId)
-  )
-  const querySnapshot = await getDocs(q)
-  if (querySnapshot.empty) return null
-  const docSnap = querySnapshot.docs[0]
-  const data = docSnap.data()
-  return {
-    id: docSnap.id,
-    voterId: data.voterId,
-    categoryId: data.categoryId,
-    nomineeId: data.nomineeId,
-    createdAt: data.createdAt?.toDate() || new Date(),
-  }
-}
-
-export async function getVotesByVoter(voterId: string): Promise<Vote[]> {
-  const q = query(collection(db, 'votes'), where('voterId', '==', voterId))
-  const querySnapshot = await getDocs(q)
-  return querySnapshot.docs.map(docSnap => {
-    const data = docSnap.data()
-    return {
-      id: docSnap.id,
-      voterId: data.voterId,
-      categoryId: data.categoryId,
-      nomineeId: data.nomineeId,
-      createdAt: data.createdAt?.toDate() || new Date(),
-    }
-  })
-}
-
-export async function getVotesByCategory(categoryId: string): Promise<Vote[]> {
-  const q = query(collection(db, 'votes'), where('categoryId', '==', categoryId))
-  const querySnapshot = await getDocs(q)
-  return querySnapshot.docs.map(docSnap => {
-    const data = docSnap.data()
-    return {
-      id: docSnap.id,
-      voterId: data.voterId,
-      categoryId: data.categoryId,
-      nomineeId: data.nomineeId,
-      createdAt: data.createdAt?.toDate() || new Date(),
-    }
-  })
-}
-
-export async function createVote(voteData: Omit<Vote, 'id' | 'createdAt'>): Promise<Vote> {
-  const existingVote = await getVoteByVoterAndCategory(voteData.voterId, voteData.categoryId)
-  if (existingVote) {
-    throw new Error('Ya has votado en esta categoria')
-  }
-  const voteRef = await addDoc(collection(db, 'votes'), {
-    ...voteData,
-    createdAt: serverTimestamp(),
-  })
-  return {
-    id: voteRef.id,
-    ...voteData,
-    createdAt: new Date(),
-  }
+  const { data, error } = await supabase
+    .from('voters')
+    .select('*')
+    .eq('email', email.toLowerCase().trim())
+    .maybeSingle()
+  if (error) { console.error('getVoterByEmail:', error); return null }
+  return data ? rowToVoter(data) : null
 }
 
 export async function updateVoter(voterId: string, updates: Partial<Voter>): Promise<void> {
-  const voterRef = doc(db, 'voters', voterId)
-  const updateData: any = { updatedAt: serverTimestamp() }
-  if (updates.name !== undefined) updateData.name = updates.name
-  if (updates.email !== undefined) updateData.email = updates.email
-  if (updates.phone !== undefined && updates.phone.trim()) {
-    updateData.phone = updates.phone.trim()
-  }
-  await updateDoc(voterRef, updateData)
+  const patch: any = { updated_at: new Date().toISOString() }
+  if (updates.name  !== undefined) patch.name  = updates.name
+  if (updates.email !== undefined) patch.email = updates.email.toLowerCase().trim()
+  if (updates.phone !== undefined) patch.phone = updates.phone?.trim() || null
+  const { error } = await supabase.from('voters').update(patch).eq('id', voterId)
+  if (error) throw error
 }
 
+function rowToVoter(row: any): Voter {
+  return {
+    id:        row.id,
+    email:     row.email,
+    name:      row.name,
+    phone:     row.phone ?? undefined,
+    createdAt: new Date(row.created_at),
+    updatedAt: new Date(row.updated_at),
+  }
+}
+
+// ── Votes ─────────────────────────────────────────────────────────────────────
+export async function getVoteByVoterAndCategory(voterId: string, categoryId: string): Promise<Vote | null> {
+  const { data, error } = await supabase
+    .from('votes')
+    .select('*')
+    .eq('voter_id', voterId)
+    .eq('category_id', categoryId)
+    .maybeSingle()
+  if (error) { console.error('getVoteByVoterAndCategory:', error); return null }
+  return data ? rowToVote(data) : null
+}
+
+export async function getVotesByVoter(voterId: string): Promise<Vote[]> {
+  const { data, error } = await supabase
+    .from('votes')
+    .select('*')
+    .eq('voter_id', voterId)
+  if (error) { console.error('getVotesByVoter:', error); return [] }
+  return (data || []).map(rowToVote)
+}
+
+export async function getVotesByCategory(categoryId: string): Promise<Vote[]> {
+  const { data, error } = await supabase
+    .from('votes')
+    .select('*')
+    .eq('category_id', categoryId)
+  if (error) { console.error('getVotesByCategory:', error); return [] }
+  return (data || []).map(rowToVote)
+}
+
+export async function createVote(voteData: Omit<Vote, 'id' | 'createdAt'>): Promise<Vote> {
+  return dbOp(async () => {
+    const existing = await getVoteByVoterAndCategory(voteData.voterId, voteData.categoryId)
+    if (existing) throw new Error('Ya has votado en esta categoría')
+
+    const { data, error } = await supabase
+      .from('votes')
+      .insert({ voter_id: voteData.voterId, category_id: voteData.categoryId, nominee_id: voteData.nomineeId })
+      .select()
+      .single()
+    if (error) throw error
+    return rowToVote(data)
+  }, 'createVote')
+}
+
+function rowToVote(row: any): Vote {
+  return {
+    id:         row.id,
+    voterId:    row.voter_id,
+    categoryId: row.category_id,
+    nomineeId:  row.nominee_id,
+    createdAt:  new Date(row.created_at),
+  }
+}
+
+// ── Voter session ──────────────────────────────────────────────────────────────
 export async function createVoterSession(email: string, name: string, phone?: string): Promise<VoterSession> {
   try {
     let voter = await getVoterByEmail(email)
     if (!voter) {
-      voter = await createVoter({ email, name, phone })
+      voter = await createVoter({ email: email.toLowerCase().trim(), name, phone })
     } else {
       await updateVoter(voter.id, { name, phone })
     }
@@ -219,233 +168,129 @@ export async function createVoterSession(email: string, name: string, phone?: st
     return {
       voter,
       votes,
-      hasVotedForCategory: (categoryId: string) => {
-        return votes.some(vote => vote.categoryId === categoryId)
-      }
+      hasVotedForCategory: (categoryId: string) => votes.some(v => v.categoryId === categoryId),
     }
-  } catch (error) {
-    console.error('Error creating voter session:', error)
-    throw new Error('Error al conectar con Firebase')
+  } catch (err: any) {
+    console.error('createVoterSession:', err)
+    throw new Error('Error al conectar con la base de datos')
   }
 }
 
+// ── Categories ────────────────────────────────────────────────────────────────
 export async function getCategories(): Promise<Category[]> {
-  const categoriesQuery = query(collection(db, 'categories'), orderBy('order', 'asc'))
-  const querySnapshot = await getDocs(categoriesQuery)
-  if (querySnapshot.empty) {
-    return categories
-  }
-  return querySnapshot.docs.map((doc) => {
-    const data = doc.data()
-    return {
-      id: doc.id,
-      name: data.name,
-      description: data.description,
-      order: data.order,
-      nominees: (data.nominees || []).map((nominee: any) => ({
-        id: nominee.id,
-        name: nominee.name,
-        description: nominee.description,
-        imageUrl: nominee.imageUrl,
-      })),
-      isSpecial: data.isSpecial ?? false,
-      directWinner: data.directWinner ?? '',
-    }
-  })
+  const { data, error } = await supabase
+    .from('categories')
+    .select('*')
+    .order('order', { ascending: true })
+
+  if (error) { console.error('getCategories:', error); return fallbackCategories }
+  if (!data || data.length === 0) return fallbackCategories
+
+  return data.map(rowToCategory)
 }
 
 export async function saveCategory(category: Category): Promise<void> {
-  return firestoreOperation(async () => {
-    const categoryRef = doc(db, 'categories', category.id)
-    // Sanitize nominees: Firestore rejects undefined values
-    const sanitizedNominees = (category.nominees || []).map(n => {
-      const clean: Record<string, string> = {
-        id: n.id || '',
-        name: n.name || '',
-        description: n.description || '',
-      }
-      if (n.imageUrl) clean.imageUrl = n.imageUrl
-      return clean
-    })
-    await setDoc(categoryRef, {
-      name: category.name,
-      description: category.description || '',
-      order: category.order,
-      nominees: sanitizedNominees,
-      isSpecial: category.isSpecial ?? false,
-      directWinner: category.isSpecial ? (category.directWinner || '') : '',
-    })
+  return dbOp(async () => {
+    const nominees = (category.nominees || []).map(n => ({
+      id:          n.id || '',
+      name:        n.name || '',
+      description: n.description || '',
+      ...(n.imageUrl ? { imageUrl: n.imageUrl } : {}),
+    }))
+
+    const { error } = await supabase
+      .from('categories')
+      .upsert({
+        id:           category.id,
+        name:         category.name,
+        description:  category.description || '',
+        order:        category.order,
+        nominees,
+        is_special:   category.isSpecial ?? false,
+        direct_winner: category.isSpecial ? (category.directWinner || '') : '',
+      })
+    if (error) throw error
   }, 'saveCategory')
 }
 
 export async function deleteCategory(categoryId: string): Promise<void> {
-  return firestoreOperation(async () => {
-    const categoryRef = doc(db, 'categories', categoryId)
-    const deleteVoteBatch = async (): Promise<boolean> => {
-      const votesQuery = query(collection(db, 'votes'), where('categoryId', '==', categoryId), limit(500))
-      const votesSnapshot = await getDocs(votesQuery)
-      if (votesSnapshot.empty) return false
-      const batch = writeBatch(db)
-      votesSnapshot.docs.forEach((voteDoc) => batch.delete(voteDoc.ref))
-      await batch.commit()
-      return votesSnapshot.docs.length === 500
-    }
-    while (await deleteVoteBatch()) {
-    }
-    await deleteDoc(categoryRef)
+  return dbOp(async () => {
+    // Votes se eliminan en cascada por FK ON DELETE CASCADE
+    const { error } = await supabase.from('categories').delete().eq('id', categoryId)
+    if (error) throw error
   }, 'deleteCategory')
 }
 
+function rowToCategory(row: any): Category {
+  return {
+    id:          row.id,
+    name:        row.name,
+    description: row.description || '',
+    order:       row.order,
+    nominees:    Array.isArray(row.nominees) ? row.nominees : [],
+    isSpecial:   row.is_special ?? false,
+    directWinner: row.direct_winner ?? '',
+  }
+}
+
+// ── Bulk admin operations ─────────────────────────────────────────────────────
 export async function deleteAllVotes(): Promise<void> {
-  const batchSize = 500
-  const deleteBatch = async () => {
-    const votesQuery = query(collection(db, 'votes'), limit(batchSize))
-    const votesSnapshot = await getDocs(votesQuery)
-    if (votesSnapshot.empty) return false
-    const batch = writeBatch(db)
-    votesSnapshot.docs.forEach((voteDoc) => batch.delete(voteDoc.ref))
-    await batch.commit()
-    return votesSnapshot.docs.length === batchSize
-  }
-  while (await deleteBatch()) {
-  }
+  const { error } = await supabase.from('votes').delete().neq('id', '00000000-0000-0000-0000-000000000000')
+  if (error) throw error
 }
-
-export async function getAllVotesWithVoters(): Promise<Array<{
-  voteId: string
-  voterId: string
-  voterName: string
-  voterEmail: string
-  categoryId: string
-  nomineeId: string
-  createdAt: Date
-}>> {
-  const [votesSnapshot, votersSnapshot] = await Promise.all([
-    getDocs(collection(db, 'votes')),
-    getDocs(collection(db, 'voters')),
-  ])
-  const votersMap = new Map<string, { name: string; email: string }>()
-  votersSnapshot.docs.forEach((doc) => {
-    const data = doc.data()
-    votersMap.set(doc.id, {
-      name: data.name,
-      email: data.email,
-    })
-  })
-  return votesSnapshot.docs.map((doc) => {
-    const data = doc.data()
-    const voter = votersMap.get(data.voterId) || { name: 'Anonimo', email: '---' }
-    return {
-      voteId: doc.id,
-      voterId: data.voterId,
-      voterName: voter.name,
-      voterEmail: voter.email,
-      categoryId: data.categoryId,
-      nomineeId: data.nomineeId,
-      createdAt: data.createdAt?.toDate() || new Date(),
-    }
-  })
-}
-
-export const categories: Category[] = [
-  {
-    id: 'best-director',
-    name: 'Mejor Director',
-    description: 'Premio al mejor director de cine',
-    order: 1,
-    nominees: [
-      { id: 'dir-1', name: 'Director A', description: 'Pelicula: Accion Total' },
-      { id: 'dir-2', name: 'Director B', description: 'Pelicula: Drama Nocturno' },
-      { id: 'dir-3', name: 'Director C', description: 'Pelicula: Comedia Salvaje' },
-    ]
-  },
-  {
-    id: 'best-actor',
-    name: 'Mejor Actor',
-    description: 'Premio al mejor actor principal',
-    order: 2,
-    nominees: [
-      { id: 'act-1', name: 'Actor X', description: 'Rol: Heroe de Accion' },
-      { id: 'act-2', name: 'Actor Y', description: 'Rol: Detective Misterioso' },
-      { id: 'act-3', name: 'Actor Z', description: 'Rol: Comediante Carismatico' },
-    ]
-  },
-  {
-    id: 'best-actress',
-    name: 'Mejor Actriz',
-    description: 'Premio a la mejor actriz principal',
-    order: 3,
-    nominees: [
-      { id: 'actr-1', name: 'Actriz M', description: 'Rol: Mujer Fuerte' },
-      { id: 'actr-2', name: 'Actriz N', description: 'Rol: Personaje Complejo' },
-      { id: 'actr-3', name: 'Actriz O', description: 'Rol: Comedia Ligera' },
-    ]
-  },
-  {
-    id: 'best-movie',
-    name: 'Mejor Pelicula',
-    description: 'Premio a la mejor pelicula del ano',
-    order: 4,
-    nominees: [
-      { id: 'mov-1', name: 'Accion Total', description: 'Genero: Accion' },
-      { id: 'mov-2', name: 'Drama Nocturno', description: 'Genero: Drama' },
-      { id: 'mov-3', name: 'Comedia Salvaje', description: 'Genero: Comedia' },
-    ]
-  }
-
-]
-
-// Funciones de limpieza masiva admin
-
 
 export async function deleteAllVoters(): Promise<void> {
-  const batchSize = 500
-  const deleteBatch = async (): Promise<boolean> => {
-    const votersQuery = query(collection(db, 'voters'), limit(batchSize))
-    const votersSnapshot = await getDocs(votersQuery)
-    if (votersSnapshot.empty) return false
-    const batch = writeBatch(db)
-    votersSnapshot.docs.forEach((voterDoc) => batch.delete(voterDoc.ref))
-    await batch.commit()
-    return votersSnapshot.docs.length === batchSize
-  }
-  while (await deleteBatch()) {}
+  // Votos se eliminan en cascada
+  const { error } = await supabase.from('voters').delete().neq('id', '00000000-0000-0000-0000-000000000000')
+  if (error) throw error
 }
 
 export async function deleteAllCategories(): Promise<void> {
-  const q = query(collection(db, 'categories'))
-  const snapshot = await getDocs(q)
-  const batch = writeBatch(db)
-  snapshot.docs.forEach((doc) => batch.delete(doc.ref))
-  await batch.commit()
+  const { error } = await supabase.from('categories').delete().neq('id', '')
+  if (error) throw error
 }
 
 export async function deleteAllData(): Promise<{ voters: number; votes: number; categories: number }> {
-  const [votersSnap, votesSnap, catsSnap] = await Promise.all([
-    getDocs(collection(db, 'voters')),
-    getDocs(collection(db, 'votes')),
-    getDocs(collection(db, 'categories'))
+  const [
+    { count: votesCount },
+    { count: votersCount },
+    { count: catsCount },
+  ] = await Promise.all([
+    supabase.from('votes').select('*', { count: 'exact', head: true }),
+    supabase.from('voters').select('*', { count: 'exact', head: true }),
+    supabase.from('categories').select('*', { count: 'exact', head: true }),
   ])
-  const counts = { voters: votersSnap.size, votes: votesSnap.size, categories: catsSnap.size }
-  await Promise.all([deleteAllVoters(), deleteAllVotes(), deleteAllCategories()])
-  return counts
+  await Promise.all([deleteAllVotes(), deleteAllVoters(), deleteAllCategories()])
+  return { voters: votersCount || 0, votes: votesCount || 0, categories: catsCount || 0 }
 }
 
 export async function resetAllVotes(): Promise<number> {
-  let totalDeleted = 0
-  const deleteBatch = async (): Promise<number> => {
-    const votesQuery = query(collection(db, 'votes'), limit(500))
-    const votesSnapshot = await getDocs(votesQuery)
-    if (votesSnapshot.empty) return 0
-    const batch = writeBatch(db)
-    votesSnapshot.docs.forEach((voteDoc) => batch.delete(voteDoc.ref))
-    await batch.commit()
-    return votesSnapshot.docs.length
-  }
-  while (true) {
-    const deleted = await deleteBatch()
-    totalDeleted += deleted
-    if (deleted === 0) break
-  }
-  return totalDeleted
+  const { count } = await supabase.from('votes').select('*', { count: 'exact', head: true })
+  await deleteAllVotes()
+  return count || 0
 }
+
+export async function getAllVotesWithVoters(): Promise<Array<{
+  voteId: string; voterId: string; voterName: string; voterEmail: string
+  categoryId: string; nomineeId: string; createdAt: Date
+}>> {
+  const { data, error } = await supabase
+    .from('votes')
+    .select('id, voter_id, category_id, nominee_id, created_at, voters(name, email)')
+  if (error) { console.error('getAllVotesWithVoters:', error); return [] }
+  return (data || []).map((row: any) => ({
+    voteId:      row.id,
+    voterId:     row.voter_id,
+    voterName:   row.voters?.name  || 'Anónimo',
+    voterEmail:  row.voters?.email || '---',
+    categoryId:  row.category_id,
+    nomineeId:   row.nominee_id,
+    createdAt:   new Date(row.created_at),
+  }))
+}
+
+// ── Fallback categories (si DB vacía) ─────────────────────────────────────────
+export const fallbackCategories: Category[] = []
+
+// Alias para compatibilidad
+export const categories = fallbackCategories

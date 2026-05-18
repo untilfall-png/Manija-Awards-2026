@@ -1,56 +1,44 @@
 // scripts/seed-special.mjs
-// Crea categorías especiales de ejemplo en Firestore
+// Crea categorías especiales de ejemplo en Supabase
 // Uso: node scripts/seed-special.mjs
 
-import { initializeApp } from 'firebase/app'
-import { getFirestore, doc, setDoc } from 'firebase/firestore'
+import { createClient } from '@supabase/supabase-js'
 
-const firebaseConfig = {
-  apiKey:            'AIzaSyCbQ7XIqVmVGaeHC0DMiHJzJT4HAxvYj8A',
-  authDomain:        'manija-awards-2026.firebaseapp.com',
-  projectId:         'manija-awards-2026',
-  storageBucket:     'manija-awards-2026.firebasestorage.app',
-  messagingSenderId: '96184198576',
-  appId:             '1:96184198576:web:333e59372729fa14e5e275',
-}
+const supabaseUrl     = 'https://siiykcbhciqisyuuufed.supabase.co'
+const supabaseAnonKey = 'sb_publishable_wQIYm2tookdty-3mDkOOsg_XjNbRPZQ'
 
-const app = initializeApp(firebaseConfig)
-const db  = getFirestore(app)
+const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 // ── Categorías especiales a crear ──────────────────────────────────────
 // Editá los nombres aquí antes de correr el script si querés personalizarlos
 const specials = [
   {
-    id:           'especial-trayectoria',
-    name:         'Premio a la Trayectoria',
-    description:  'Reconocimiento especial por años de manijeo ininterrumpido.',
-    order:        100,
-    nominees:     [],
-    isSpecial:    true,
-    directWinner: 'Nombre del Ganador',
+    id:            'especial-trayectoria',
+    name:          'Premio a la Trayectoria',
+    description:   'Reconocimiento especial por años de manijeo ininterrumpido.',
+    order:         100,
+    nominees:      [],
+    is_special:    true,
+    direct_winner: 'Nombre del Ganador',
   },
   {
-    id:           'especial-revelacion',
-    name:         'Revelación del Año',
-    description:  'El nuevo integrante que llegó para quedarse y ya es uno más.',
-    order:        101,
-    nominees:     [],
-    isSpecial:    true,
-    directWinner: 'Nombre del Ganador',
+    id:            'especial-revelacion',
+    name:          'Revelación del Año',
+    description:   'El nuevo integrante que llegó para quedarse y ya es uno más.',
+    order:         101,
+    nominees:      [],
+    is_special:    true,
+    direct_winner: 'Nombre del Ganador',
   },
 ]
 
 for (const cat of specials) {
-  const ref = doc(db, 'categories', cat.id)
-  await setDoc(ref, {
-    name:         cat.name,
-    description:  cat.description,
-    order:        cat.order,
-    nominees:     cat.nominees,
-    isSpecial:    cat.isSpecial,
-    directWinner: cat.directWinner,
-  })
-  console.log(`✅  Guardado: ${cat.name}  →  Ganador: ${cat.directWinner}`)
+  const { error } = await supabase.from('categories').upsert(cat)
+  if (error) {
+    console.error(`❌  Error al guardar ${cat.name}:`, error.message)
+  } else {
+    console.log(`✅  Guardado: ${cat.name}  →  Ganador: ${cat.direct_winner}`)
+  }
 }
 
 console.log('\n🎉  Categorías especiales creadas. Recargá el admin para verlas.')
